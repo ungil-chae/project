@@ -6,10 +6,7 @@
 	<link rel="icon" type="image/png" href="resources/image/복지로고.png">
 </head>
 <body>
-<h1>
-	Hello world!
-</h1>
-
-<P>  The time on the server is ${serverTime}. </P>
+<h1>복지24</h1>
+<p>서버 시간: ${serverTime}</p>
 </body>
 </html>

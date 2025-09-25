@@ -18,7 +18,6 @@
             background-color: #f8f9fa;
             color: #333;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
         }
         
         #main-header {
@@ -38,7 +37,6 @@
             height: 60px;
         }
 
-        .navbar-left { flex-shrink: 0; }
         
         .logo {
             display: flex;
@@ -376,24 +374,11 @@
         }
 
         @media (max-width: 768px) {
-            .summary-stats {
-                grid-template-columns: 1fr 1fr;
-            }
-            
-            .filter-buttons {
-                justify-content: center;
-            }
-            
-            .card-header {
-                flex-direction: column;
-            }
-            
-            .confidence-badge {
-                margin-left: 0;
-                margin-top: 10px;
-                align-self: flex-start;
-            }
-        
+            .summary-stats { grid-template-columns: 1fr 1fr; }
+            .filter-buttons { justify-content: center; }
+            .card-header { flex-direction: column; }
+            .confidence-badge { margin-left: 0; margin-top: 10px; align-self: flex-start; }
+        }
     </style>
 </head>
 <body>

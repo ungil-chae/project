@@ -1,7 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -10,13 +8,9 @@
     <link rel="icon" type="image/png" href="resources/image/복지로고.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.2/css/all.min.css"/>    
 	<style>
-		* { 
-	    box-sizing: border-box; 
-	    margin : 0;
-	    padding: 0;
-	}
+		* { box-sizing: border-box; margin: 0; padding: 0; }
 	
-	a { text-decoration: none;  }
+	a { text-decoration: none; }
 	
 	ul {
 	    list-style-type: none;
@@ -79,4 +73,3 @@
 </div>
 </body>
 </html>
-

@@ -27,7 +27,7 @@
             flex-direction: column;
             gap: 20px;
             width: 100%;
-            max-width: 350px;
+            max-width: 450px;
             padding: 20px;
         }
         
@@ -35,15 +35,23 @@
             background: white;
             border: 1px solid #dbdbdb;
             border-radius: 8px;
-            padding: 40px;
+            padding: 50px;
             text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         
         .logo {
             font-size: 32px;
-            font-weight: 800;
+            font-weight: 700;
             color: #333;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #8e8e8e;
             margin-bottom: 30px;
+            font-weight: 400;
         }
         
         .form-group {
@@ -52,10 +60,10 @@
         
         .form-input {
             width: 100%;
-            padding: 12px 16px;
+            padding: 15px 20px;
             border: 1px solid #dbdbdb;
             border-radius: 6px;
-            font-size: 14px;
+            font-size: 16px;
             background-color: #fafafa;
             transition: border-color 0.2s ease;
         }
@@ -72,12 +80,12 @@
         
         .login-btn {
             width: 100%;
-            padding: 12px;
-            background-color: #0095f6;
+            padding: 15px;
+            background-color: #000000;
             color: white;
             border: none;
             border-radius: 6px;
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 600;
             cursor: pointer;
             margin-top: 10px;
@@ -85,7 +93,7 @@
         }
         
         .login-btn:hover {
-            background-color: #1877f2;
+            background-color: #333333;
         }
         
         .login-btn:disabled {
@@ -126,13 +134,20 @@
             text-decoration: underline;
         }
         
-        .signup-card {
-            background: white;
-            border: 1px solid #dbdbdb;
-            border-radius: 8px;
-            padding: 20px;
+        .bottom-links {
             text-align: center;
+            margin-top: 20px;
+        }
+
+        .bottom-links a {
+            color: #8e8e8e;
             font-size: 14px;
+            text-decoration: none;
+            margin: 0 15px;
+        }
+
+        .bottom-links a:hover {
+            text-decoration: underline;
         }
         
         .signup-link {
@@ -144,34 +159,98 @@
         .signup-link:hover {
             text-decoration: underline;
         }
+
+        .social-login {
+            margin: 20px 0;
+        }
+
+        .social-icons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .social-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 20px;
+            transition: transform 0.2s ease;
+        }
+
+        .social-icon:hover {
+            transform: scale(1.1);
+        }
+
+        .social-icon.naver {
+            background-color: #03C75A;
+            color: white;
+        }
+
+        .social-icon.kakao {
+            background-color: #FEE500;
+            color: #191919;
+        }
+
+        .social-icon.google {
+            background-color: #4285F4;
+            color: white;
+        }
+
+        .social-icon.apple {
+            background-color: #000000;
+            color: white;
+        }
+
+        .social-icon.facebook {
+            background-color: #1877F2;
+            color: white;
+        }
     </style>
 </head>
 <body>
     <div class="login-container">
         <div class="login-card">
-            <a href="/bdproject/project.jsp" class="logo" style="text-decoration: none; color: inherit;">복지 24</a>
+            <div class="logo">복지24</div>
+            <div class="subtitle">로그인</div>
             
             <form id="loginForm">
                 <div class="form-group">
-                    <input type="text" class="form-input" name="username" placeholder="사용자 이름 또는 이메일" required>
+                    <input type="text" class="form-input" name="username" placeholder="이메일을 입력하세요" required>
                 </div>
                 
                 <div class="form-group">
-                    <input type="password" class="form-input" name="password" placeholder="비밀번호" required>
+                    <input type="password" class="form-input" name="password" placeholder="비밀번호를 입력하세요" required>
                 </div>
                 
-                <button type="submit" class="login-btn">로그인</button>
+                <button type="submit" class="login-btn">이메일로 로그인</button>
             </form>
             
             <div class="divider">
                 <span>또는</span>
             </div>
-            
-            <a href="#" class="forgot-password">비밀번호를 잊으셨나요?</a>
-        </div>
-        
-        <div class="signup-card">
-            계정이 없으신가요? <a href="#" class="signup-link">가입하기</a>
+
+            <div class="social-login">
+                <div class="social-icons">
+                    <div class="social-icon naver">N</div>
+                    <div class="social-icon kakao">K</div>
+                    <div class="social-icon google">G</div>
+                    <div class="social-icon apple">🍎</div>
+                    <div class="social-icon facebook">f</div>
+                </div>
+            </div>
+
+            <div class="bottom-links">
+                <a href="#">회원가입</a>
+                <a href="#">아이디 찾기</a>
+            </div>
+
+            <a href="#" class="forgot-password">간편로그인</a>
         </div>
     </div>
     

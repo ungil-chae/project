@@ -1,4 +1,3 @@
-<%-- [수정] isELIgnored="true" 속성을 추가하여 ${} 문법 충돌을 방지합니다. --%>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" isELIgnored="false"%>
 <!DOCTYPE html>
 <html lang="ko">
@@ -106,7 +105,6 @@
         // 컨텍스트 경로
         const CONTEXT_PATH = '${pageContext.request.contextPath}';
 
-        // ============== 페이지 로드 시 실행되는 메인 함수 ==============
         window.onload = async function() {
             console.log('페이지 로드 완료. 초기화를 시작합니다.');
             
@@ -129,9 +127,7 @@
             }
         };
         
-        // ============== [수정] 시설 종류 코드를 '서버 프록시'를 통해 가져오는 함수 ==============
         async function fetchFacilityTypes() {
-            // [수정] 외부 API가 아닌, 우리 서버의 프록시 주소를 호출합니다.
             const apiUrl = CONTEXT_PATH + '/api/facility-types';
             console.log("내부 서버 프록시 API 호출:", apiUrl);
 
@@ -155,7 +151,6 @@
             }
         }
 
-     // ============== API 데이터로 버튼을 동적으로 생성하는 함수 (중복 제거 버전) ==============
         function populateFacilityButtons(types) {
             const container = document.querySelector('.facility-options');
             container.innerHTML = ''; // 기존 버튼들 초기화
@@ -165,32 +160,28 @@
                 return;
             }
 
-            // Set을 사용하여 중복된 시설 종류 제거
-            const uniqueTypes = new Map(); // Map을 사용하여 코드를 키로 하여 중복 제거
+            const uniqueTypes = new Map();
             
             types.forEach(type => {
-                if (type.fcltKindCd && type.fcltKindNm) { // 유효한 데이터만 처리
-                    // 이미 같은 코드가 있는지 확인하여 중복 제거
+                if (type.fcltKindCd && type.fcltKindNm) {
                     if (!uniqueTypes.has(type.fcltKindCd)) {
                         uniqueTypes.set(type.fcltKindCd, type.fcltKindNm);
                     }
                 }
             });
 
-            // Map에서 고유한 값들만 버튼으로 생성
             uniqueTypes.forEach((fcltKindNm, fcltKindCd) => {
                 const button = document.createElement('button');
                 button.dataset.code = fcltKindCd;
                 button.textContent = fcltKindNm;
-                button.classList.add('facility-btn'); // 스타일링을 위한 클래스 추가
+                button.classList.add('facility-btn');
                 container.appendChild(button);
             });
 
-            // "전체 복지시설" 버튼은 항상 필요하므로 마지막에 직접 추가
             const allButton = document.createElement('button');
             allButton.dataset.code = 'ALL';
             allButton.textContent = '전체 복지시설';
-            allButton.classList.add('facility-btn', 'all-btn'); // 전체 버튼 구분을 위한 클래스
+            allButton.classList.add('facility-btn', 'all-btn');
             container.appendChild(allButton);
         }
 
