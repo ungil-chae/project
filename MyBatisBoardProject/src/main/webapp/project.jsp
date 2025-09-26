@@ -1362,16 +1362,10 @@
             </a>
           </div>
           <div class="menu-column" data-menu-content="donate">
-            <a href="#" class="dropdown-link">
-              <span class="dropdown-link-title">정기 기부</span>
+            <a href="/bdproject/project_Donation.jsp" class="dropdown-link">
+              <span class="dropdown-link-title">기부하기</span>
               <span class="dropdown-link-desc"
-                >정기적인 후원으로 희망을 나누세요.</span
-              >
-            </a>
-            <a href="#" class="dropdown-link">
-              <span class="dropdown-link-title">일시 기부</span>
-              <span class="dropdown-link-desc"
-                >따뜻한 마음을 한번에 전달하세요.</span
+                >따뜻한 나눔으로 세상을 변화시켜보세요.</span
               >
             </a>
             <a href="#" class="dropdown-link">
@@ -1591,7 +1585,7 @@
             </div>
           </div>
           <div class="next-btn-container">
-            <button class="next-btn" id="nextBtn">후원자 정보 입력</button>
+            <button class="next-btn" id="nextBtn" onclick="window.location.href='/bdproject/project_Donation.jsp'">후원자 정보 입력</button>
           </div>
         </div>
       </div>
@@ -2078,10 +2072,8 @@
           "volunteer-record-desc": "나의 봉사활동 내역을 확인하세요.",
 
           // 기부하기 메뉴
-          "donate-regular": "정기 기부",
-          "donate-regular-desc": "정기적인 후원으로 희망을 나누세요.",
-          "donate-onetime": "일시 기부",
-          "donate-onetime-desc": "따뜻한 마음을 한번에 전달하세요.",
+          "donate-main": "기부하기",
+          "donate-main-desc": "따뜻한 나눔으로 세상을 변화시켜보세요.",
           "donate-review": "후원자 리뷰",
           "donate-review-desc": "따뜻한 나눔 이야기를 들어보세요.",
 
@@ -2123,10 +2115,8 @@
           "volunteer-record-desc": "Check your volunteer activity history.",
 
           // 기부하기 메뉴
-          "donate-regular": "Regular Donation",
-          "donate-regular-desc": "Share hope through regular donations.",
-          "donate-onetime": "One-time Donation",
-          "donate-onetime-desc": "Share your warm heart at once.",
+          "donate-main": "Donate",
+          "donate-main-desc": "Change the world with warm sharing.",
           "donate-review": "Donor Reviews",
           "donate-review-desc": "Listen to warm sharing stories.",
 
@@ -2170,10 +2160,8 @@
             "あなたのボランティア活動履歴を確認しましょう。",
 
           // 기부하기 메뉴
-          "donate-regular": "定期寄付",
-          "donate-regular-desc": "定期的な支援で希望を分かち合いましょう。",
-          "donate-onetime": "一時寄付",
-          "donate-onetime-desc": "温かい心を一度に届けましょう。",
+          "donate-main": "寄付する",
+          "donate-main-desc": "温かい分かち合いで世界を変えましょう。",
           "donate-review": "寄付者レビュー",
           "donate-review-desc": "温かい分かち合いの話を聞きましょう。",
 
@@ -2214,10 +2202,8 @@
           "volunteer-record-desc": "查看您的志愿活动历史。",
 
           // 기부하기 메뉴
-          "donate-regular": "定期捐赠",
-          "donate-regular-desc": "通过定期捐赠分享希望。",
-          "donate-onetime": "一次性捐赠",
-          "donate-onetime-desc": "一次性传递温暖的心意。",
+          "donate-main": "捐赠",
+          "donate-main-desc": "用温暖的分享改变世界。",
           "donate-review": "捐赠者评价",
           "donate-review-desc": "聆听温暖的分享故事。",
 
@@ -2262,11 +2248,8 @@
             "Revisa tu historial de actividades de voluntariado.",
 
           // 기부하기 메뉴
-          "donate-regular": "Donación Regular",
-          "donate-regular-desc":
-            "Comparte esperanza a través de donaciones regulares.",
-          "donate-onetime": "Donación Única",
-          "donate-onetime-desc": "Comparte tu corazón cálido de una vez.",
+          "donate-main": "Donar",
+          "donate-main-desc": "Cambia el mundo con un compartir cálido.",
           "donate-review": "Reseñas de Donantes",
           "donate-review-desc": "Escucha historias cálidas de compartir.",
 
@@ -2352,16 +2335,12 @@
         );
         const donateLinks = donateMenu.querySelectorAll(".dropdown-link");
         donateLinks[0].querySelector(".dropdown-link-title").textContent =
-          t["donate-regular"];
+          t["donate-main"];
         donateLinks[0].querySelector(".dropdown-link-desc").textContent =
-          t["donate-regular-desc"];
+          t["donate-main-desc"];
         donateLinks[1].querySelector(".dropdown-link-title").textContent =
-          t["donate-onetime"];
-        donateLinks[1].querySelector(".dropdown-link-desc").textContent =
-          t["donate-onetime-desc"];
-        donateLinks[2].querySelector(".dropdown-link-title").textContent =
           t["donate-review"];
-        donateLinks[2].querySelector(".dropdown-link-desc").textContent =
+        donateLinks[1].querySelector(".dropdown-link-desc").textContent =
           t["donate-review-desc"];
 
         // 메인 콘텐츠 업데이트
