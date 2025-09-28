@@ -16,6 +16,7 @@
         width: 100%;
         margin: 0;
         padding: 0;
+        min-height: 100vh;
         overflow-x: hidden;
         background-color: #e2f0f6;
       }
@@ -332,6 +333,8 @@
       .donation-category.active {
         background: #e3f2fd;
         border-color: #4a90e2;
+        box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+        transform: translateY(-2px);
       }
       .category-icon {
         margin-right: 15px;
@@ -358,8 +361,9 @@
         margin-bottom: 25px;
       }
       .next-btn-container {
+        display: flex;
+        justify-content: flex-end;
         margin-top: 30px;
-        text-align: center;
       }
       .next-btn {
         background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
@@ -381,17 +385,60 @@
         position: relative;
         width: 100%;
         max-width: 1400px;
-        overflow: hidden;
-        min-height: 700px;
+        overflow: visible;
+        min-height: 1200px;
         background-color: #fafafa;
         color: #191918;
         margin: 40px auto;
-        padding: 40px 20px;
-        display: none; /* Hide by default */
+        padding: 40px 20px 100px 20px;
       }
 
-      #donation-container.show {
-        display: block;
+      #donation-step1 {
+        gap: 30px;
+        transition: all 0.5s ease-in-out;
+      }
+
+      #donation-step2,
+      #donation-step3 {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateX(100%);
+        transition: all 0.5s ease-in-out;
+      }
+
+      #donation-container.view-step2 #donation-step1,
+      #donation-container.view-step3 #donation-step1 {
+        opacity: 0;
+        visibility: hidden;
+        transform: translateX(-100%);
+      }
+
+      /* 단계 표시기 기본 스타일 */
+      .step-indicator {
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        position: relative;
+        z-index: 1000;
+        margin: 40px auto;
+        max-width: 1400px;
+      }
+
+      #donation-container.view-step2 #donation-step2,
+      #donation-container.view-step3 #donation-step3 {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(0);
+      }
+
+      #donation-container.view-step3 #donation-step2 {
+        opacity: 0;
+        visibility: hidden;
+        transform: translateX(-100%);
       }
 
       .donation-step {
@@ -407,6 +454,8 @@
         background: white;
         border-radius: 20px;
         padding: 40px;
+        padding-bottom: 80px;
+        min-height: 800px;
         box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
       }
 
@@ -563,7 +612,8 @@
         display: flex;
         justify-content: space-between;
         gap: 20px;
-        margin-top: 30px;
+        margin-top: 40px;
+        margin-bottom: 20px;
       }
 
       .back-btn {
@@ -1046,168 +1096,168 @@
       </div>
     </header>
 
-    <!-- Step 1: Donation Form -->
-    <div id="donation-step1" class="donation-step">
-      <div class="donation-left-box">
-        <h2 class="donation-title">기부하기</h2>
-        <p class="donation-subtitle">당신의 나눔이 모두의 행복입니다.</p>
-        <form class="donation-form" id="donationForm">
-          <div class="form-group">
-            <label class="form-label">기부금액 선택</label>
-            <select class="form-select" id="donationAmount">
-              <option value="">직접입력</option>
-              <option value="5000">5,000원</option>
-              <option value="10000">10,000원</option>
-              <option value="20000">20,000원</option>
-              <option value="30000">30,000원</option>
-              <option value="50000">50,000원</option>
-              <option value="100000">100,000원</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">기부금액을 입력하세요</label>
-            <input
-              type="text"
-              class="form-input"
-              id="amountInput"
-              placeholder="원"
-            />
-          </div>
-          <div class="donation-buttons">
-            <button type="button" class="donation-btn" id="regularBtn">
-              정기기부
-            </button>
-            <button type="button" class="donation-btn" id="onetimeBtn">
-              일시기부
-            </button>
-          </div>
-        </form>
+    <!-- Step Indicator -->
+    <div class="step-indicator">
+      <div class="step">
+        <div class="step-number active" id="step1Number">1</div>
+        <div class="step-text active" id="step1Text">기부하기</div>
       </div>
-      <div class="donation-right-box">
-        <h3 class="donation-methods-title">기부 참여 분야</h3>
-        <div class="donation-categories">
-          <div class="donation-category" data-category="위기가정">
-            <div class="category-icon">
-              <i class="fas fa-home" style="color: #e74c3c; font-size: 20px"></i>
-            </div>
-            <div class="category-content">
-              <div class="category-title">위기가정</div>
-              <div class="category-desc">
-                갑작스러운 어려움에 처한 가족이 다시 일어설 수 있도록 돕습니다.
-              </div>
-            </div>
-          </div>
-          <div class="donation-category" data-category="화재피해">
-            <div class="category-icon">
-              <i class="fas fa-fire" style="color: #e67e22; font-size: 20px"></i>
-            </div>
-            <div class="category-content">
-              <div class="category-title">화재 피해 가정 돕기</div>
-              <div class="category-desc">
-                화재로 삶의 터전을 잃은 이웃에게 희망을 전합니다.
-              </div>
-            </div>
-          </div>
-          <div class="donation-category" data-category="자연재해">
-            <div class="category-icon">
-              <i class="fas fa-cloud-rain" style="color: #3498db; font-size: 20px"></i>
-            </div>
-            <div class="category-content">
-              <div class="category-title">자연재해 이재민 돕기</div>
-              <div class="category-desc">
-                자연재해로 고통받는 사람들을 위해 긴급 구호 활동을 펼칩니다.
-              </div>
-            </div>
-          </div>
-          <div class="donation-category" data-category="의료비">
-            <div class="category-icon">
-              <i class="fas fa-heartbeat" style="color: #e74c3c; font-size: 20px"></i>
-            </div>
-            <div class="category-content">
-              <div class="category-title">긴급 의료비 지원 돕기</div>
-              <div class="category-desc">
-                치료가 시급하지만 비용 부담이 큰 환자들에게 도움을 줍니다.
-              </div>
-            </div>
-          </div>
-          <div class="donation-category" data-category="범죄피해">
-            <div class="category-icon">
-              <i class="fas fa-shield-alt" style="color: #9b59b6; font-size: 20px"></i>
-            </div>
-            <div class="category-content">
-              <div class="category-title">범죄 피해자 돕기</div>
-              <div class="category-desc">
-                범죄로 인해 신체적, 정신적, 경제적 피해를 입은 사람들을 지원합니다.
-              </div>
-            </div>
-          </div>
-          <div class="donation-category" data-category="가정폭력">
-            <div class="category-icon">
-              <i class="fas fa-hand-holding-heart" style="color: #f39c12; font-size: 20px"></i>
-            </div>
-            <div class="category-content">
-              <div class="category-title">가정 폭력/학대 피해자 돕기</div>
-              <div class="category-desc">
-                가정 내 폭력과 학대로 고통받는 이들에게 안전한 보호와 자립을 돕습니다.
-              </div>
-            </div>
-          </div>
-          <div class="donation-category" data-category="한부모">
-            <div class="category-icon">
-              <i class="fas fa-baby" style="color: #e91e63; font-size: 20px"></i>
-            </div>
-            <div class="category-content">
-              <div class="category-title">미혼 한부모 돕기</div>
-              <div class="category-desc">
-                홀로 아이를 키우는 한부모가정이 안정적인 생활을 할 수 있도록 지원합니다.
-              </div>
-            </div>
-          </div>
-          <div class="donation-category" data-category="노숙인">
-            <div class="category-icon">
-              <i class="fas fa-bed" style="color: #795548; font-size: 20px"></i>
-            </div>
-            <div class="category-content">
-              <div class="category-title">노숙인 돕기</div>
-              <div class="category-desc">
-                거리에서 생활하는 노숙인들에게 따뜻한 보금자리와 희망을 제공합니다.
-              </div>
-            </div>
-          </div>
-          <div class="donation-category" data-category="자살고위험군">
-            <div class="category-icon">
-              <i class="fas fa-hands-helping" style="color: #2ecc71; font-size: 20px"></i>
-            </div>
-            <div class="category-content">
-              <div class="category-title">자살 고위험군 돕기</div>
-              <div class="category-desc">
-                심리적 어려움을 겪는 사람들에게 전문적인 상담과 지원을 제공하여 삶을 지켜줍니다.
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="next-btn-container">
-          <button class="next-btn" id="nextBtn">후원자 정보 입력</button>
-        </div>
+      <div class="step-connector"></div>
+      <div class="step">
+        <div class="step-number" id="step2Number">2</div>
+        <div class="step-text" id="step2Text">후원자 정보</div>
+      </div>
+      <div class="step-connector"></div>
+      <div class="step">
+        <div class="step-number" id="step3Number">3</div>
+        <div class="step-text" id="step3Text">결제 수단</div>
       </div>
     </div>
 
     <div id="donation-container">
-      <!-- Step Indicator -->
-      <div class="step-indicator">
-        <div class="step">
-          <div class="step-number">1</div>
-          <div class="step-text">기부하기</div>
+      <!-- Step 1: Donation Form -->
+      <div id="donation-step1" class="donation-step">
+        <div class="donation-left-box">
+          <h2 class="donation-title">기부하기</h2>
+          <p class="donation-subtitle">당신의 나눔이 모두의 행복입니다.</p>
+          <form class="donation-form" id="donationForm">
+            <div class="form-group">
+              <label class="form-label">기부금액 선택</label>
+              <select class="form-select" id="donationAmount">
+                <option value="">직접입력</option>
+                <option value="5000">5,000원</option>
+                <option value="10000">10,000원</option>
+                <option value="20000">20,000원</option>
+                <option value="30000">30,000원</option>
+                <option value="50000">50,000원</option>
+                <option value="100000">100,000원</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">기부금액을 입력하세요</label>
+              <input
+                type="text"
+                class="form-input"
+                id="amountInput"
+                placeholder="원"
+              />
+            </div>
+            <div class="donation-buttons">
+              <button type="button" class="donation-btn" id="regularBtn">
+                정기기부
+              </button>
+              <button type="button" class="donation-btn" id="onetimeBtn">
+                일시기부
+              </button>
+            </div>
+          </form>
         </div>
-        <div class="step-connector"></div>
-        <div class="step">
-          <div class="step-number active">2</div>
-          <div class="step-text active">후원자 정보</div>
-        </div>
-        <div class="step-connector"></div>
-        <div class="step">
-          <div class="step-number" id="step3Number">3</div>
-          <div class="step-text" id="step3Text">결제 수단</div>
+        <div class="donation-right-box">
+          <h3 class="donation-methods-title">기부 참여 분야</h3>
+          <div class="donation-categories">
+            <div class="donation-category" data-category="위기가정">
+              <div class="category-icon">
+                <i class="fas fa-home" style="color: #e74c3c; font-size: 20px"></i>
+              </div>
+              <div class="category-content">
+                <div class="category-title">위기가정</div>
+                <div class="category-desc">
+                  갑작스러운 어려움에 처한 가족이 다시 일어설 수 있도록 돕습니다.
+                </div>
+              </div>
+            </div>
+            <div class="donation-category" data-category="화재피해">
+              <div class="category-icon">
+                <i class="fas fa-fire" style="color: #e67e22; font-size: 20px"></i>
+              </div>
+              <div class="category-content">
+                <div class="category-title">화재 피해 가정 돕기</div>
+                <div class="category-desc">
+                  화재로 삶의 터전을 잃은 이웃에게 희망을 전합니다.
+                </div>
+              </div>
+            </div>
+            <div class="donation-category" data-category="자연재해">
+              <div class="category-icon">
+                <i class="fas fa-cloud-rain" style="color: #3498db; font-size: 20px"></i>
+              </div>
+              <div class="category-content">
+                <div class="category-title">자연재해 이재민 돕기</div>
+                <div class="category-desc">
+                  자연재해로 고통받는 사람들을 위해 긴급 구호 활동을 펼칩니다.
+                </div>
+              </div>
+            </div>
+            <div class="donation-category" data-category="의료비">
+              <div class="category-icon">
+                <i class="fas fa-heartbeat" style="color: #e74c3c; font-size: 20px"></i>
+              </div>
+              <div class="category-content">
+                <div class="category-title">긴급 의료비 지원 돕기</div>
+                <div class="category-desc">
+                  치료가 시급하지만 비용 부담이 큰 환자들에게 도움을 줍니다.
+                </div>
+              </div>
+            </div>
+            <div class="donation-category" data-category="범죄피해">
+              <div class="category-icon">
+                <i class="fas fa-shield-alt" style="color: #9b59b6; font-size: 20px"></i>
+              </div>
+              <div class="category-content">
+                <div class="category-title">범죄 피해자 돕기</div>
+                <div class="category-desc">
+                  범죄로 인해 신체적, 정신적, 경제적 피해를 입은 사람들을 지원합니다.
+                </div>
+              </div>
+            </div>
+            <div class="donation-category" data-category="가정폭력">
+              <div class="category-icon">
+                <i class="fas fa-hand-holding-heart" style="color: #f39c12; font-size: 20px"></i>
+              </div>
+              <div class="category-content">
+                <div class="category-title">가정 폭력/학대 피해자 돕기</div>
+                <div class="category-desc">
+                  가정 내 폭력과 학대로 고통받는 이들에게 안전한 보호와 자립을 돕습니다.
+                </div>
+              </div>
+            </div>
+            <div class="donation-category" data-category="한부모">
+              <div class="category-icon">
+                <i class="fas fa-baby" style="color: #e91e63; font-size: 20px"></i>
+              </div>
+              <div class="category-content">
+                <div class="category-title">미혼 한부모 돕기</div>
+                <div class="category-desc">
+                  홀로 아이를 키우는 한부모가정이 안정적인 생활을 할 수 있도록 지원합니다.
+                </div>
+              </div>
+            </div>
+            <div class="donation-category" data-category="노숙인">
+              <div class="category-icon">
+                <i class="fas fa-bed" style="color: #795548; font-size: 20px"></i>
+              </div>
+              <div class="category-content">
+                <div class="category-title">노숙인 돕기</div>
+                <div class="category-desc">
+                  거리에서 생활하는 노숙인들에게 따뜻한 보금자리와 희망을 제공합니다.
+                </div>
+              </div>
+            </div>
+            <div class="donation-category" data-category="자살고위험군">
+              <div class="category-icon">
+                <i class="fas fa-hands-helping" style="color: #2ecc71; font-size: 20px"></i>
+              </div>
+              <div class="category-content">
+                <div class="category-title">자살 고위험군 돕기</div>
+                <div class="category-desc">
+                  심리적 어려움을 겪는 사람들에게 전문적인 상담과 지원을 제공하여 삶을 지켜줍니다.
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="next-btn-container">
+            <button class="next-btn" id="nextBtn">후원자 정보 입력</button>
+          </div>
         </div>
       </div>
 
@@ -1328,14 +1378,14 @@
             </div>
           </form>
           <div class="form-navigation-btns">
-            <button class="back-btn" id="backBtn" onclick="window.location.href='/bdproject/project.jsp'">뒤로</button>
+            <button class="back-btn" id="backBtn">뒤로</button>
             <button class="next-btn" id="goToStep3Btn">다음</button>
           </div>
         </div>
       </div>
 
       <!-- Step 3: Payment Method -->
-      <div id="donation-step3" class="donation-step" style="display: none;">
+      <div id="donation-step3" class="donation-step">
         <div class="payment-info-box">
           <h2 class="donation-title">결제 수단 선택</h2>
           <div class="payment-method-group">
@@ -1791,130 +1841,141 @@
         }
       }
 
-      // 기부 폼 관련 JavaScript
+      // Main JavaScript functionality
       document.addEventListener("DOMContentLoaded", function() {
-        const goToStep3Btn = document.getElementById("goToStep3Btn");
-        const backToStep2Btn = document.getElementById("backToStep2Btn");
-        const finalSubmitBtn = document.getElementById("finalSubmitBtn");
-        const step3Number = document.getElementById("step3Number");
-        const step3Text = document.getElementById("step3Text");
-        const donationStep2 = document.getElementById("donation-step2");
-        const donationStep3 = document.getElementById("donation-step3");
+        // Step indicator update function
+        function updateStepIndicator(currentStep) {
+          // 모든 단계 표시기의 active 클래스 제거
+          document.querySelectorAll('.step-number, .step-text').forEach(element => {
+            element.classList.remove('active');
+          });
 
-        // Step 3으로 이동
-        goToStep3Btn.addEventListener("click", function() {
-          // 필수 입력 확인
-          const sponsorName = document.getElementById("sponsorName").value;
-          const sponsorPhone = document.getElementById("sponsorPhone").value;
-          const address = document.getElementById("address").value;
-
-          if (!sponsorName) {
-            alert("이름을 입력해주세요.");
-            document.getElementById("sponsorName").focus();
-            return;
+          // 현재 단계에 해당하는 요소만 활성화
+          if (currentStep === 1) {
+            const step1Number = document.getElementById('step1Number');
+            const step1Text = document.getElementById('step1Text');
+            if (step1Number) step1Number.classList.add('active');
+            if (step1Text) step1Text.classList.add('active');
+          } else if (currentStep === 2) {
+            const step2Number = document.getElementById('step2Number');
+            const step2Text = document.getElementById('step2Text');
+            if (step2Number) step2Number.classList.add('active');
+            if (step2Text) step2Text.classList.add('active');
+          } else if (currentStep === 3) {
+            const step3Number = document.getElementById('step3Number');
+            const step3Text = document.getElementById('step3Text');
+            if (step3Number) step3Number.classList.add('active');
+            if (step3Text) step3Text.classList.add('active');
           }
+        }
 
-          if (!sponsorPhone) {
-            alert("전화번호를 입력해주세요.");
-            document.getElementById("sponsorPhone").focus();
-            return;
-          }
+        // 정기기부/일시기부 버튼 기능
+        const regularBtn = document.getElementById('regularBtn');
+        const onetimeBtn = document.getElementById('onetimeBtn');
 
-          if (!address) {
-            alert("주소를 입력해주세요.");
-            return;
-          }
+        if (regularBtn) {
+          regularBtn.addEventListener('click', function() {
+            regularBtn.classList.add('active');
+            onetimeBtn.classList.remove('active');
+          });
+        }
 
-          // Step 2 숨기고 Step 3 보이기
-          donationStep2.style.display = "none";
-          donationStep3.style.display = "flex";
+        if (onetimeBtn) {
+          onetimeBtn.addEventListener('click', function() {
+            onetimeBtn.classList.add('active');
+            regularBtn.classList.remove('active');
+          });
+        }
 
-          // Step indicator 업데이트
-          document.querySelector('.step-number.active').classList.remove('active');
-          document.querySelector('.step-text.active').classList.remove('active');
-          step3Number.classList.add('active');
-          step3Text.classList.add('active');
-        });
+        // 기부금액 드롭다운 선택 이벤트
+        const donationAmountSelect = document.getElementById('donationAmount');
+        const amountInput = document.getElementById('amountInput');
 
-        // Step 2로 돌아가기
-        backToStep2Btn.addEventListener("click", function() {
-          donationStep3.style.display = "none";
-          donationStep2.style.display = "flex";
-
-          // Step indicator 업데이트
-          step3Number.classList.remove('active');
-          step3Text.classList.remove('active');
-          document.querySelector('.step:nth-child(3) .step-number').classList.add('active');
-          document.querySelector('.step:nth-child(3) .step-text').classList.add('active');
-        });
-
-        // 최종 기부 완료
-        finalSubmitBtn.addEventListener("click", function() {
-          const activeForm = document.querySelector(".payment-details-form:not(.hidden)");
-          const activeAgreement = activeForm.querySelector(".agreement-section .agreeAll");
-
-          if (!activeAgreement || !activeAgreement.checked) {
-            alert("개인정보 수집 및 이용에 모두 동의해야 기부가 가능합니다.");
-            return;
-          }
-
-          // 서명 패드 검증
-          if (activeForm.id === "creditCardForm") {
-            const signatureCanvas = document.getElementById("cardCanvas");
-            const ctx = signatureCanvas.getContext("2d");
-            const imageData = ctx.getImageData(0, 0, signatureCanvas.width, signatureCanvas.height);
-            const hasSignature = imageData.data.some((channel, index) => index % 4 !== 3 && channel !== 0);
-
-            if (!hasSignature) {
-              alert("서명을 해주세요.");
-              return;
+        if (donationAmountSelect && amountInput) {
+          donationAmountSelect.addEventListener('change', function() {
+            const selectedValue = this.value;
+            if (selectedValue) {
+              // 선택된 금액을 입력 필드에 설정 (쉼표 추가)
+              amountInput.value = Number(selectedValue).toLocaleString();
+              amountInput.readOnly = true;
+              amountInput.style.backgroundColor = '#f8f9fa';
+            } else {
+              // 직접입력 선택 시 입력 필드 초기화
+              amountInput.value = '';
+              amountInput.readOnly = false;
+              amountInput.style.backgroundColor = '';
+              amountInput.focus();
             }
-          } else if (activeForm.id === "bankTransferForm") {
-            const bankSelect = activeForm.querySelector("select.form-select");
-            const accountNumber = activeForm.querySelector('input[placeholder*="계좌번호"]');
-            const signatureCanvas = document.getElementById("bankCanvas");
+          });
+        }
 
-            if (!bankSelect.value) {
-              alert("은행을 선택해주세요.");
-              bankSelect.focus();
-              return;
-            }
-
-            if (!accountNumber.value || accountNumber.value.trim() === "") {
-              alert("계좌번호를 입력해주세요.");
-              accountNumber.focus();
-              return;
-            }
-
-            const ctx = signatureCanvas.getContext("2d");
-            const imageData = ctx.getImageData(0, 0, signatureCanvas.width, signatureCanvas.height);
-            const hasSignature = imageData.data.some((channel, index) => index % 4 !== 3 && channel !== 0);
-
-            if (!hasSignature) {
-              alert("서명을 해주세요.");
-              return;
-            }
-          }
-
-          const sponsorName = document.getElementById("sponsorName").value;
-          alert(`${sponsorName}님, 기부가 완료되었습니다. 감사합니다!`);
-
-          // 기부 완료 후 메인 페이지로 이동
-          setTimeout(() => {
-            window.location.href = '/bdproject/project.jsp';
-          }, 2000);
-        });
-
-        // 결제 방법 선택
-        const paymentMethodBtns = document.querySelectorAll(".payment-method-btn");
-        paymentMethodBtns.forEach((btn) => {
-          btn.addEventListener("click", () => {
-            paymentMethodBtns.forEach((b) => b.classList.remove("active"));
-            btn.classList.add("active");
-            document.querySelectorAll(".payment-details-form").forEach((form) => form.classList.add("hidden"));
-            document.getElementById(btn.dataset.target).classList.remove("hidden");
+        // 기부 참여 분야 클릭 이벤트
+        const donationCategories = document.querySelectorAll('.donation-category');
+        donationCategories.forEach(category => {
+          category.addEventListener('click', function() {
+            donationCategories.forEach(cat => cat.classList.remove('active'));
+            this.classList.add('active');
           });
         });
+
+        // 단계 전환 기능
+        const nextBtn = document.getElementById('nextBtn');
+        const donationContainer = document.getElementById('donation-container');
+
+        if (nextBtn && donationContainer) {
+          nextBtn.addEventListener('click', function() {
+            donationContainer.classList.add('view-step2');
+            updateStepIndicator(2);
+          });
+        }
+
+        // 후원자 정보 -> 결제 수단
+        const goToStep3Btn = document.getElementById('goToStep3Btn');
+        if (goToStep3Btn && donationContainer) {
+          goToStep3Btn.addEventListener('click', function() {
+            const sponsorName = document.getElementById('sponsorName').value;
+            const sponsorPhone = document.getElementById('sponsorPhone').value;
+            const address = document.getElementById('address').value;
+
+            if (!sponsorName) {
+              alert('이름을 입력해주세요.');
+              document.getElementById('sponsorName').focus();
+              return;
+            }
+            if (!sponsorPhone) {
+              alert('전화번호를 입력해주세요.');
+              document.getElementById('sponsorPhone').focus();
+              return;
+            }
+            if (!address) {
+              alert('주소를 입력해주세요.');
+              return;
+            }
+
+            console.log('Moving to step 3');
+            donationContainer.classList.add('view-step3');
+            updateStepIndicator(3);
+            console.log('Step 3 classes:', donationContainer.className);
+          });
+        }
+
+        // 뒤로 가기 버튼 (후원자 정보 -> 기부하기)
+        const backBtn = document.getElementById('backBtn');
+        if (backBtn && donationContainer) {
+          backBtn.addEventListener('click', function() {
+            donationContainer.classList.remove('view-step2');
+            updateStepIndicator(1);
+          });
+        }
+
+        // 뒤로 가기 버튼 (결제 수단 -> 후원자 정보)
+        const backToStep2Btn = document.getElementById('backToStep2Btn');
+        if (backToStep2Btn && donationContainer) {
+          backToStep2Btn.addEventListener('click', function() {
+            donationContainer.classList.remove('view-step3');
+            updateStepIndicator(2);
+          });
+        }
 
         // 이메일 도메인 선택
         const emailDomainSelect = document.getElementById("emailDomainSelect");
@@ -1943,6 +2004,17 @@
           });
         }
 
+        // 결제 방법 선택
+        const paymentMethodBtns = document.querySelectorAll(".payment-method-btn");
+        paymentMethodBtns.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            paymentMethodBtns.forEach((b) => b.classList.remove("active"));
+            btn.classList.add("active");
+            document.querySelectorAll(".payment-details-form").forEach((form) => form.classList.add("hidden"));
+            document.getElementById(btn.dataset.target).classList.remove("hidden");
+          });
+        });
+
         // 동의 체크박스 기능
         document.querySelectorAll(".agreement-section").forEach((section) => {
           const agreeAll = section.querySelector(".agreeAll");
@@ -1960,174 +2032,26 @@
           });
         });
 
-        // 이름 입력 유효성 검사 (숫자 입력 방지)
-        const sponsorNameInput = document.getElementById("sponsorName");
-        if (sponsorNameInput) {
-          sponsorNameInput.addEventListener("keypress", function (e) {
-            if (/[0-9]/.test(e.key)) {
-              e.preventDefault();
-            }
-          });
+        // 최종 기부 완료
+        const finalSubmitBtn = document.getElementById("finalSubmitBtn");
+        if (finalSubmitBtn) {
+          finalSubmitBtn.addEventListener("click", function() {
+            const activeForm = document.querySelector(".payment-details-form:not(.hidden)");
+            const activeAgreement = activeForm.querySelector(".agreement-section .agreeAll");
 
-          sponsorNameInput.addEventListener("input", function (e) {
-            this.value = this.value.replace(/[0-9]/g, "");
+            if (!activeAgreement || !activeAgreement.checked) {
+              alert("개인정보 수집 및 이용에 모두 동의해야 기부가 가능합니다.");
+              return;
+            }
+
+            const sponsorName = document.getElementById("sponsorName").value;
+            alert(`${sponsorName}님, 기부가 완료되었습니다. 감사합니다!`);
+
+            setTimeout(() => {
+              window.location.href = '/bdproject/project.jsp';
+            }, 2000);
           });
         }
-
-        // 전화번호 입력 유효성 검사 (숫자만 입력)
-        const sponsorPhoneInput = document.getElementById("sponsorPhone");
-        if (sponsorPhoneInput) {
-          sponsorPhoneInput.addEventListener("keypress", function (e) {
-            if (!/[0-9]/.test(e.key) && !["Backspace", "Tab", "Enter", "Delete", "ArrowLeft", "ArrowRight"].includes(e.key)) {
-              e.preventDefault();
-            }
-          });
-
-          sponsorPhoneInput.addEventListener("input", function (e) {
-            this.value = this.value.replace(/[^0-9]/g, "");
-          });
-        }
-
-        // 생년월일 입력 유효성 검사
-        const sponsorDobInput = document.getElementById("sponsorDob");
-        if (sponsorDobInput) {
-          sponsorDobInput.addEventListener("keypress", function (e) {
-            if (!/[0-9]/.test(e.key) && !["Backspace", "Tab", "Enter", "Delete", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
-              e.preventDefault();
-            }
-          });
-
-          sponsorDobInput.addEventListener("input", function (e) {
-            let value = this.value.replace(/[^0-9]/g, "");
-            if (value.length > 8) {
-              value = value.slice(0, 8);
-            }
-            this.value = value;
-            this.validateBirthDate();
-          });
-
-          // 생년월일 유효성 검사 함수
-          sponsorDobInput.validateBirthDate = function () {
-            const value = this.value;
-            let isValid = true;
-            let errorMessage = "";
-
-            if (value.length === 8) {
-              const year = parseInt(value.substring(0, 4));
-              const month = parseInt(value.substring(4, 6));
-              const day = parseInt(value.substring(6, 8));
-
-              if (year < 1900 || year > 2025) {
-                isValid = false;
-                errorMessage = "연도는 1900~2025년 사이여야 합니다.";
-              } else if (month < 1 || month > 12) {
-                isValid = false;
-                errorMessage = "월은 01~12 사이여야 합니다.";
-              } else if (day < 1 || day > 31) {
-                isValid = false;
-                errorMessage = "일은 01~31 사이여야 합니다.";
-              } else {
-                const daysInMonth = new Date(year, month, 0).getDate();
-                if (day > daysInMonth) {
-                  isValid = false;
-                  errorMessage = year + "년 " + month + "월은 " + daysInMonth + "일까지만 있습니다.";
-                }
-              }
-
-              let errorDiv = this.parentNode.querySelector(".error-message");
-              if (!isValid) {
-                if (!errorDiv) {
-                  errorDiv = document.createElement("div");
-                  errorDiv.className = "error-message";
-                  errorDiv.style.color = "red";
-                  errorDiv.style.fontSize = "12px";
-                  errorDiv.style.marginTop = "5px";
-                  this.parentNode.appendChild(errorDiv);
-                }
-                errorDiv.textContent = errorMessage;
-                this.style.borderColor = "red";
-              } else {
-                if (errorDiv) {
-                  errorDiv.remove();
-                }
-                this.style.borderColor = "";
-              }
-            } else {
-              let errorDiv = this.parentNode.querySelector(".error-message");
-              if (errorDiv) {
-                errorDiv.remove();
-              }
-              this.style.borderColor = "";
-            }
-          };
-        }
-
-        // 카드번호 입력 유효성 검사 (숫자만)
-        const cardInputs = document.querySelectorAll('#creditCardForm .input-group input[type="text"]');
-        cardInputs.forEach((input, index) => {
-          if (index < 4) { // 카드번호 4개 입력 필드
-            input.addEventListener("keypress", function (e) {
-              if (!/[0-9]/.test(e.key) && !["Backspace", "Tab", "Enter", "Delete", "ArrowLeft", "ArrowRight"].includes(e.key)) {
-                e.preventDefault();
-              }
-            });
-
-            input.addEventListener("input", function (e) {
-              this.value = this.value.replace(/[^0-9]/g, "");
-            });
-          } else if (index < 6) { // 유효기간 MM/YY
-            input.addEventListener("keypress", function (e) {
-              if (!/[0-9]/.test(e.key) && !["Backspace", "Tab", "Enter", "Delete", "ArrowLeft", "ArrowRight"].includes(e.key)) {
-                e.preventDefault();
-              }
-            });
-
-            input.addEventListener("input", function (e) {
-              this.value = this.value.replace(/[^0-9]/g, "");
-            });
-          }
-        });
-
-        // CVC 입력 유효성 검사
-        const cvcInput = document.querySelector('#creditCardForm input[placeholder="123"]');
-        if (cvcInput) {
-          cvcInput.addEventListener("keypress", function (e) {
-            if (!/[0-9]/.test(e.key) && !["Backspace", "Tab", "Enter", "Delete", "ArrowLeft", "ArrowRight"].includes(e.key)) {
-              e.preventDefault();
-            }
-          });
-
-          cvcInput.addEventListener("input", function (e) {
-            this.value = this.value.replace(/[^0-9]/g, "");
-          });
-        }
-
-        // Modal functionality
-        const detailButtons = document.querySelectorAll(".view-details-btn");
-        const modals = document.querySelectorAll(".modal-overlay");
-        const closeButtons = document.querySelectorAll(".modal-close-btn");
-
-        detailButtons.forEach((button) =>
-          button.addEventListener("click", (e) => {
-            e.preventDefault();
-            document
-              .getElementById(button.dataset.modal)
-              .classList.add("active");
-          })
-        );
-
-        const closeModal = () =>
-          modals.forEach((modal) => modal.classList.remove("active"));
-
-        closeButtons.forEach((button) =>
-          button.addEventListener("click", closeModal)
-        );
-
-        modals.forEach((modal) =>
-          modal.addEventListener("click", (e) => {
-            if (e.target === modal) closeModal();
-          })
-        );
 
         // Signature pad functionality
         const initSignaturePad = (canvasId) => {
@@ -2135,20 +2059,24 @@
           if (!canvas) return;
           const ctx = canvas.getContext("2d");
           let drawing = false;
+
           const startDrawing = (e) => {
             drawing = true;
             draw(e);
           };
+
           const stopDrawing = () => {
             drawing = false;
             ctx.beginPath();
           };
+
           const getPos = (e) => {
             const rect = canvas.getBoundingClientRect();
             const clientX = e.clientX || e.touches[0].clientX;
             const clientY = e.clientY || e.touches[0].clientY;
             return { x: clientX - rect.left, y: clientY - rect.top };
           };
+
           const draw = (e) => {
             if (!drawing) return;
             const pos = getPos(e);
@@ -2160,6 +2088,7 @@
             ctx.beginPath();
             ctx.moveTo(pos.x, pos.y);
           };
+
           canvas.addEventListener("mousedown", startDrawing);
           canvas.addEventListener("mouseup", stopDrawing);
           canvas.addEventListener("mousemove", draw);
@@ -2180,16 +2109,32 @@
           });
         });
 
-        // Naver Pay button functionality
-        const naverPayBtn = document.getElementById("naverPayBtn");
-        if (naverPayBtn) {
-          naverPayBtn.addEventListener("click", function() {
-            alert("네이버 로그인 페이지로 이동합니다.");
-            window.open("https://nid.naver.com/nidlogin.login", "_blank");
-          });
-        }
+        // Modal functionality
+        const detailButtons = document.querySelectorAll(".view-details-btn");
+        const modals = document.querySelectorAll(".modal-overlay");
+        const closeButtons = document.querySelectorAll(".modal-close-btn");
 
-        // User icon click to navigate to login page
+        detailButtons.forEach((button) =>
+          button.addEventListener("click", (e) => {
+            e.preventDefault();
+            document.getElementById(button.dataset.modal).classList.add("active");
+          })
+        );
+
+        const closeModal = () =>
+          modals.forEach((modal) => modal.classList.remove("active"));
+
+        closeButtons.forEach((button) =>
+          button.addEventListener("click", closeModal)
+        );
+
+        modals.forEach((modal) =>
+          modal.addEventListener("click", (e) => {
+            if (e.target === modal) closeModal();
+          })
+        );
+
+        // User icon navigation
         const userIcon = document.getElementById("userIcon");
         if (userIcon) {
           userIcon.addEventListener("click", function() {
@@ -2197,50 +2142,8 @@
           });
         }
 
-        // URL parameter handling for donation type
-        const urlParams = new URLSearchParams(window.location.search);
-        const donationType = urlParams.get('type');
-        console.log('URL Parameter - type:', donationType); // Debug log
-
-        const regularBtn = document.getElementById('regularBtn');
-        const onetimeBtn = document.getElementById('onetimeBtn');
-
-        if (donationType === 'regular' && regularBtn) {
-          regularBtn.classList.add('active');
-          console.log('Regular button activated'); // Debug log
-        } else if (donationType === 'onetime' && onetimeBtn) {
-          onetimeBtn.classList.add('active');
-          console.log('Onetime button activated'); // Debug log
-        }
-
-        // Donation button functionality
-        if (regularBtn) {
-          regularBtn.addEventListener('click', function() {
-            regularBtn.classList.add('active');
-            onetimeBtn.classList.remove('active');
-          });
-        }
-
-        if (onetimeBtn) {
-          onetimeBtn.addEventListener('click', function() {
-            onetimeBtn.classList.add('active');
-            regularBtn.classList.remove('active');
-          });
-        }
-
-        // Next button functionality
-        const nextBtn = document.getElementById('nextBtn');
-        if (nextBtn) {
-          nextBtn.addEventListener('click', function() {
-            // Show donation container (step 2) and scroll to it
-            const donationContainer = document.getElementById('donation-container');
-            donationContainer.classList.add('show');
-            donationContainer.scrollIntoView({
-              behavior: 'smooth',
-              block: 'start'
-            });
-          });
-        }
+        // 초기 설정
+        updateStepIndicator(1);
       });
     </script>
   </body>
