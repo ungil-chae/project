@@ -1,4 +1,43 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%
+  // URL 파라미터에서 기부 정보 수신
+  String donationAmount = request.getParameter("amount");
+  String donationCategory = request.getParameter("category");
+  String donationType = request.getParameter("type");
+
+  // 파라미터가 있으면 첫 번째 단계를 건너뛰기
+  boolean skipFirstStep = false;
+
+  // 더 확실한 검증
+  if (donationAmount != null) {
+    String trimmedAmount = donationAmount.trim();
+    if (trimmedAmount.length() > 0 && !trimmedAmount.equals("null") && !trimmedAmount.equals("")) {
+      skipFirstStep = true;
+    }
+  }
+
+  // 추가 검증: category나 type이 있어도 건너뛰기
+  if (!skipFirstStep && donationCategory != null && !donationCategory.trim().isEmpty()) {
+    skipFirstStep = true;
+  }
+  if (!skipFirstStep && donationType != null && !donationType.trim().isEmpty()) {
+    skipFirstStep = true;
+  }
+
+  // 단계 표시기 클래스 변수들
+  String step1NumberClass = "";
+  String step1TextClass = "";
+  String step2NumberClass = "";
+  String step2TextClass = "";
+
+  if (skipFirstStep) {
+    step2NumberClass = " active";
+    step2TextClass = " active";
+  } else {
+    step1NumberClass = " active";
+    step1TextClass = " active";
+  }
+%>
 <!DOCTYPE html>
 <html lang="ko">
   <head>
@@ -423,7 +462,7 @@
         visibility: visible;
         transform: none;
         position: relative;
-        z-index: 1000;
+        z-index: 500;
         margin: 40px auto;
         max-width: 1400px;
       }
@@ -1096,16 +1135,20 @@
       </div>
     </header>
 
+    <!-- DEBUG: skipFirstStep=<%= skipFirstStep %> -->
+    <!-- amount=[<%= donationAmount %>] len=<%= donationAmount != null ? donationAmount.length() : "null" %> -->
+    <!-- category=[<%= donationCategory %>] type=[<%= donationType %>] -->
+    <!-- step1Class=[<%= step1NumberClass %>] step2Class=[<%= step2NumberClass %>] -->
     <!-- Step Indicator -->
     <div class="step-indicator">
       <div class="step">
-        <div class="step-number active" id="step1Number">1</div>
-        <div class="step-text active" id="step1Text">기부하기</div>
+        <div class="step-number<%= step1NumberClass %>" id="step1Number">1</div>
+        <div class="step-text<%= step1TextClass %>" id="step1Text">기부하기</div>
       </div>
       <div class="step-connector"></div>
       <div class="step">
-        <div class="step-number" id="step2Number">2</div>
-        <div class="step-text" id="step2Text">후원자 정보</div>
+        <div class="step-number<%= step2NumberClass %>" id="step2Number">2</div>
+        <div class="step-text<%= step2TextClass %>" id="step2Text">후원자 정보</div>
       </div>
       <div class="step-connector"></div>
       <div class="step">
@@ -1114,8 +1157,9 @@
       </div>
     </div>
 
-    <div id="donation-container">
+    <div id="donation-container"<%= skipFirstStep ? " class=\"view-step2\"" : "" %>>
       <!-- Step 1: Donation Form -->
+      <% if (!skipFirstStep) { %>
       <div id="donation-step1" class="donation-step">
         <div class="donation-left-box">
           <h2 class="donation-title">기부하기</h2>
@@ -1260,11 +1304,31 @@
           </div>
         </div>
       </div>
+      <% } %>
 
       <!-- Step 2: Sponsor Info -->
       <div id="donation-step2" class="donation-step">
         <div class="sponsor-info-box">
           <h2 class="donation-title">후원자 정보</h2>
+          <% if (skipFirstStep) { %>
+          <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+            <h4 style="margin-top: 0; color: #333;">선택하신 기부 정보</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+              <div>
+                <strong>기부 금액:</strong><br>
+                <span style="color: #4a90e2; font-size: 16px;"><%= donationAmount != null ? String.format("%,d", Integer.parseInt(donationAmount)) + "원" : "미설정" %></span>
+              </div>
+              <div>
+                <strong>기부 분야:</strong><br>
+                <span style="color: #4a90e2; font-size: 16px;"><%= donationCategory != null ? donationCategory : "미설정" %></span>
+              </div>
+              <div>
+                <strong>기부 유형:</strong><br>
+                <span style="color: #4a90e2; font-size: 16px;"><%= donationType != null ? (donationType.equals("regular") ? "정기기부" : "일시기부") : "미설정" %></span>
+              </div>
+            </div>
+          </div>
+          <% } %>
           <form class="sponsor-form" id="sponsorForm">
             <div class="form-group">
               <label class="form-label" for="sponsorName">이름</label>
@@ -1735,6 +1799,30 @@
     <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 
     <script>
+      // URL 파라미터로 전달받은 기부 정보
+      const donationParams = {
+        amount: '<%= donationAmount != null ? donationAmount : "" %>',
+        category: '<%= donationCategory != null ? donationCategory : "" %>',
+        type: '<%= donationType != null ? donationType : "" %>',
+        skipFirstStep: <%= skipFirstStep %>
+      };
+
+      // 파라미터가 있으면 강제로 단계 2를 활성화
+      if (donationParams.skipFirstStep) {
+        console.log('Forcing step 2 activation');
+        setTimeout(() => {
+          const step1Number = document.getElementById('step1Number');
+          const step1Text = document.getElementById('step1Text');
+          const step2Number = document.getElementById('step2Number');
+          const step2Text = document.getElementById('step2Text');
+
+          if (step1Number) step1Number.classList.remove('active');
+          if (step1Text) step1Text.classList.remove('active');
+          if (step2Number) step2Number.classList.add('active');
+          if (step2Text) step2Text.classList.add('active');
+        }, 100);
+      }
+
       // 네비바 드롭다운 메뉴
       document.addEventListener("DOMContentLoaded", function() {
         const header = document.getElementById("main-header");

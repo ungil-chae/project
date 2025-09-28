@@ -1585,7 +1585,7 @@
             </div>
           </div>
           <div class="next-btn-container">
-            <button class="next-btn" id="nextBtn" onclick="window.location.href='/bdproject/project_Donation.jsp'">후원자 정보 입력</button>
+            <button class="next-btn" id="nextBtn" onclick="goToDonation()">후원자 정보 입력</button>
           </div>
         </div>
       </div>
@@ -2890,12 +2890,32 @@
           return true;
         };
 
-        if (nextBtn)
-          nextBtn.addEventListener("click", () => {
-            if (validateStep1()) {
-              donationFormContainer.classList.add("view-step2");
-            }
-          });
+        // 기부하기 페이지로 이동하는 함수
+        window.goToDonation = function() {
+          if (validateStep1()) {
+            // 기부 금액 값 수집
+            const amountInput = document.getElementById("amountInput");
+            const selectedCategory = document.querySelector(".donation-category.selected");
+            const donationType = document.querySelector(".donation-btn.active");
+
+            const donationAmount = amountInput ? amountInput.value.replace(/,/g, '') : '';
+            const category = selectedCategory ? selectedCategory.dataset.category : '';
+            const type = donationType ? (donationType.id === 'regularBtn' ? 'regular' : 'onetime') : '';
+
+            // 디버깅 로그
+            console.log('Amount:', donationAmount, 'Category:', category, 'Type:', type);
+
+            // URL 파라미터로 값 전달
+            const params = new URLSearchParams();
+            if (donationAmount) params.append('amount', donationAmount);
+            if (category) params.append('category', category);
+            if (type) params.append('type', type);
+
+            const url = '/bdproject/project_Donation.jsp' + (params.toString() ? '?' + params.toString() : '');
+            console.log('Generated URL:', url);
+            window.location.href = url;
+          }
+        };
         if (backBtn)
           backBtn.addEventListener("click", () => {
             donationFormContainer.classList.remove("view-step2");
