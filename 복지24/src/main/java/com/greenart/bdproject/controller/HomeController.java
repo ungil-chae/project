@@ -41,9 +41,9 @@ public class HomeController {
         return "project_result";
     }
     
-    @GetMapping("/map")
+    @GetMapping("/project_Map.jsp")
     public String map() {
-        return "project_Map";
+        return "forward:/project_Map.jsp";
     }
     
     @GetMapping("/test")
@@ -60,32 +60,20 @@ public class HomeController {
             @RequestParam(required = false) String fcltNm,
             @RequestParam(defaultValue = "1") int pageNo,
             @RequestParam(defaultValue = "100") int numOfRows) {
-        try {
-            System.out.println("=== 사회복지시설 API 데이터 호출 ===");
-            System.out.println(fcltKindCd+"/"+ jrsdSggCd+"/"+fcltNm+"/"+ pageNo+"/"+ numOfRows);
-            String result = facilityApiService.getFacilities(fcltKindCd, jrsdSggCd, fcltNm, pageNo, numOfRows);
-            System.out.println("응답결과: "+result);
-            System.out.println("API 응답 길이: " + (result != null ? result.length() : 0));
-            return result;
-        } catch (Exception e) {
-            System.out.println("API 호출 중 오류: " + e.getMessage());
-            e.printStackTrace();
-            return "{\"error\":\"API 호출 중 오류가 발생했습니다: " + e.getMessage() + "\"}";
-        }
+        System.out.println("=== 사회복지시설 API 데이터 호출 ===");
+        System.out.println(fcltKindCd+"/"+ jrsdSggCd+"/"+fcltNm+"/"+ pageNo+"/"+ numOfRows);
+        String result = facilityApiService.getFacilities(fcltKindCd, jrsdSggCd, fcltNm, pageNo, numOfRows);
+        System.out.println("응답결과: "+result);
+        System.out.println("API 응답 길이: " + (result != null ? result.length() : 0));
+        return result;
     }
     
     @GetMapping(value = "/api/facility-types", produces = "application/json; charset=UTF-8")
     @ResponseBody
     public String getFacilityTypes() {
-        try {
-            System.out.println("=== 시설 유형 코드 조회 호출 ===");
-            String result = facilityApiService.getFacilityTypes();
-            System.out.println("시설 유형 API 응답 처리 완료");
-            return result;
-        } catch (Exception e) {
-            System.out.println("시설 유형 API 호출 중 오류: " + e.getMessage());
-            e.printStackTrace();
-            return "{\"error\":\"시설 유형 API 호출 중 오류가 발생했습니다: " + e.getMessage() + "\"}";
-        }
+        System.out.println("=== 시설 유형 코드 조회 호출 ===");
+        String result = facilityApiService.getFacilityTypes();
+        System.out.println("시설 유형 API 응답 처리 완료");
+        return result;
     }
 }
