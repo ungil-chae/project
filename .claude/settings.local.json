@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(mvn:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(dir:*)",
+      "Bash(findstr:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []
