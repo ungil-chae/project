@@ -48,20 +48,29 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            font-size: 28px;
-            color: black;
             text-decoration: none;
+            color: #333;
+            width: fit-content;
+            transition: opacity 0.2s ease;
+        }
+
+        .logo:hover {
+            opacity: 0.7;
         }
 
         .logo-icon {
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             background-image: url('resources/image/복지로고.png');
-            background-size: 80%;
+            background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
-            background-color: transparent;
-            border-radius: 6px;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
         }
         
         .container { 
@@ -291,7 +300,7 @@
     <header id="main-header">
         <nav class="navbar">
             <div class="navbar-left">
-                <a href="/bdproject/project.jsp" class="logo"><div class="logo-icon"></div>복지 24</a>
+                <a href="/bdproject/project.jsp" class="logo"><div class="logo-icon"></div><span class="logo-text">복지24</span></a>
             </div>
             <div class="navbar-right">
                 <div style="font-size: 14px; color: #6c757d;">

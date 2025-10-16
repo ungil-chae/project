@@ -118,19 +118,26 @@ pageEncoding="UTF-8" isELIgnored="false"%>
         display: flex;
         align-items: center;
         gap: 8px;
-        font-size: 28px;
-        color: black;
         text-decoration: none;
+        color: #333;
+        width: fit-content;
+        transition: opacity 0.2s ease;
+      }
+      .logo:hover {
+        opacity: 0.7;
       }
       .logo-icon {
-        width: 50px;
-        height: 50px;
+        width: 40px;
+        height: 40px;
         background-image: url("resources/image/복지로고.png");
-        background-size: 80%;
+        background-size: contain;
         background-repeat: no-repeat;
         background-position: center;
-        background-color: transparent;
-        border-radius: 6px;
+      }
+      .logo-text {
+        font-size: 24px;
+        font-weight: 700;
+        color: #333;
       }
       .nav-item {
         height: 100%;
@@ -387,7 +394,7 @@ pageEncoding="UTF-8" isELIgnored="false"%>
         <div class="navbar-left">
           <a href="/bdproject/project.jsp" class="logo">
             <div class="logo-icon"></div>
-            복지 24
+            <span class="logo-text">복지24</span>
           </a>
         </div>
         <div class="nav-menu">
@@ -458,30 +465,50 @@ pageEncoding="UTF-8" isELIgnored="false"%>
         <div class="mega-menu-content">
           <div class="menu-column" data-menu-content="service">
             <a href="/bdproject/project_detail.jsp" class="dropdown-link">
-              <div class="dropdown-link-title">복지 진단</div>
-              <span class="dropdown-link-desc">나에게 맞는 복지 서비스 찾기</span>
+              <span class="dropdown-link-title">복지 혜택 찾기</span>
+              <span class="dropdown-link-desc">나에게 맞는 복지 혜택을 찾아보세요.</span>
             </a>
             <a href="/bdproject/project_Map.jsp" class="dropdown-link">
-              <div class="dropdown-link-title">복지 시설 지도</div>
-              <span class="dropdown-link-desc">주변 복지 시설 찾기</span>
+              <span class="dropdown-link-title">복지 지도</span>
+              <span class="dropdown-link-desc">주변의 복지시설을 지도로 확인하세요.</span>
             </a>
           </div>
           <div class="menu-column" data-menu-content="explore">
-            <a href="#" class="dropdown-link">
-              <div class="dropdown-link-title">복지 뉴스</div>
-              <span class="dropdown-link-desc">최신 복지 소식</span>
+            <a href="/bdproject/project_notice.jsp" class="dropdown-link">
+              <span class="dropdown-link-title">공지사항</span>
+              <span class="dropdown-link-desc">새로운 복지 소식을 알려드립니다.</span>
+            </a>
+            <a href="/bdproject/project_faq.jsp" class="dropdown-link">
+              <span class="dropdown-link-title">자주묻는 질문</span>
+              <span class="dropdown-link-desc">궁금한 점을 빠르게 해결하세요.</span>
+            </a>
+            <a href="/bdproject/project_about.jsp" class="dropdown-link">
+              <span class="dropdown-link-title">소개</span>
+              <span class="dropdown-link-desc">복지24에 대해 알아보세요.</span>
             </a>
           </div>
           <div class="menu-column" data-menu-content="volunteer">
             <a href="#" class="dropdown-link">
-              <div class="dropdown-link-title">봉사 신청</div>
-              <span class="dropdown-link-desc">봉사 활동 참여하기</span>
+              <span class="dropdown-link-title">봉사 신청</span>
+              <span class="dropdown-link-desc">나에게 맞는 봉사활동을 찾아보세요.</span>
+            </a>
+            <a href="#" class="dropdown-link">
+              <span class="dropdown-link-title">봉사 기록</span>
+              <span class="dropdown-link-desc">나의 봉사활동 내역을 확인하세요.</span>
             </a>
           </div>
           <div class="menu-column" data-menu-content="donate">
             <a href="/bdproject/project_Donation.jsp" class="dropdown-link">
-              <div class="dropdown-link-title">기부하기</div>
-              <span class="dropdown-link-desc">따뜻한 나눔 실천</span>
+              <span class="dropdown-link-title">기부하기</span>
+              <span class="dropdown-link-desc">따뜻한 나눔으로 세상을 변화시켜보세요.</span>
+            </a>
+            <a href="#" class="dropdown-link">
+              <span class="dropdown-link-title">후원자 리뷰</span>
+              <span class="dropdown-link-desc">따뜻한 나눔 이야기를 들어보세요.</span>
+            </a>
+            <a href="#" class="dropdown-link">
+              <span class="dropdown-link-title">기금 사용처</span>
+              <span class="dropdown-link-desc">후원금을 투명하게 운영합니다.</span>
             </a>
           </div>
         </div>
@@ -1196,43 +1223,48 @@ pageEncoding="UTF-8" isELIgnored="false"%>
         });
 
         // 네비바 메가메뉴 이벤트
-        const navLinks = document.querySelectorAll('.nav-link');
-        const megaMenuWrapper = document.getElementById('mega-menu-wrapper');
-        const menuColumns = document.querySelectorAll('.menu-column');
-        let currentActiveMenu = null;
+        const header = document.getElementById("main-header");
+        const navLinks = document.querySelectorAll(".nav-link[data-menu]");
+        const megaMenuWrapper = document.getElementById("mega-menu-wrapper");
+        const menuColumns = document.querySelectorAll(".menu-column");
+        let menuTimeout;
 
-        navLinks.forEach(link => {
-          link.addEventListener('mouseenter', function() {
-            const menuType = this.getAttribute('data-menu');
+        const showMenu = (targetMenu) => {
+          clearTimeout(menuTimeout);
+          megaMenuWrapper.classList.add("active");
 
-            navLinks.forEach(l => l.classList.remove('active'));
-            this.classList.add('active');
-
-            menuColumns.forEach(col => col.classList.remove('active'));
-            const targetColumn = document.querySelector('[data-menu-content="' + menuType + '"]');
-            if (targetColumn) {
-              targetColumn.classList.add('active');
-              megaMenuWrapper.classList.add('active');
-              currentActiveMenu = menuType;
+          menuColumns.forEach((col) => {
+            if (col.dataset.menuContent === targetMenu) {
+              col.style.display = "flex";
+            } else {
+              col.style.display = "none";
             }
+          });
+
+          navLinks.forEach((link) => {
+            if (link.dataset.menu === targetMenu) {
+              link.classList.add("active");
+            } else {
+              link.classList.remove("active");
+            }
+          });
+        };
+
+        const hideMenu = () => {
+          menuTimeout = setTimeout(() => {
+            megaMenuWrapper.classList.remove("active");
+            navLinks.forEach((link) => link.classList.remove("active"));
+          }, 200);
+        };
+
+        navLinks.forEach((link) => {
+          link.addEventListener("mouseenter", () => {
+            showMenu(link.dataset.menu);
           });
         });
 
-        const navbar = document.querySelector('.navbar');
-        navbar.addEventListener('mouseleave', function() {
-          megaMenuWrapper.classList.remove('active');
-          navLinks.forEach(l => l.classList.remove('active'));
-          currentActiveMenu = null;
-        });
-
-        megaMenuWrapper.addEventListener('mouseenter', function() {
-          this.classList.add('active');
-        });
-
-        megaMenuWrapper.addEventListener('mouseleave', function() {
-          this.classList.remove('active');
-          navLinks.forEach(l => l.classList.remove('active'));
-          currentActiveMenu = null;
+        header.addEventListener("mouseleave", () => {
+          hideMenu();
         });
 
         // 언어 드롭다운 이벤트
@@ -1243,23 +1275,56 @@ pageEncoding="UTF-8" isELIgnored="false"%>
           globeIcon.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            languageDropdown.classList.toggle('active');
+
+            const isVisible = languageDropdown.style.display === 'block';
+
+            if (isVisible) {
+              languageDropdown.style.opacity = '0';
+              languageDropdown.style.visibility = 'hidden';
+              languageDropdown.style.transform = 'translateY(-10px)';
+              setTimeout(() => {
+                languageDropdown.style.display = 'none';
+              }, 200);
+            } else {
+              languageDropdown.style.display = 'block';
+              setTimeout(() => {
+                languageDropdown.style.opacity = '1';
+                languageDropdown.style.visibility = 'visible';
+                languageDropdown.style.transform = 'translateY(0)';
+              }, 10);
+            }
           });
 
           const languageOptions = languageDropdown.querySelectorAll('.language-option');
           languageOptions.forEach(option => {
-            option.addEventListener('click', function() {
-              languageOptions.forEach(opt => opt.classList.remove('active'));
-              this.classList.add('active');
-              languageDropdown.classList.remove('active');
+            option.addEventListener('click', function(e) {
+              e.preventDefault();
+              e.stopPropagation();
               const selectedLang = this.getAttribute('data-lang');
               console.log('선택된 언어:', selectedLang);
+
+              languageOptions.forEach(opt => opt.classList.remove('active'));
+              this.classList.add('active');
+
+              languageDropdown.style.opacity = '0';
+              languageDropdown.style.visibility = 'hidden';
+              languageDropdown.style.transform = 'translateY(-10px)';
+              setTimeout(() => {
+                languageDropdown.style.display = 'none';
+              }, 200);
             });
           });
 
           document.addEventListener('click', function(e) {
             if (!globeIcon.contains(e.target) && !languageDropdown.contains(e.target)) {
-              languageDropdown.classList.remove('active');
+              if (languageDropdown.style.display === 'block') {
+                languageDropdown.style.opacity = '0';
+                languageDropdown.style.visibility = 'hidden';
+                languageDropdown.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                  languageDropdown.style.display = 'none';
+                }, 200);
+              }
             }
           });
         }
@@ -1268,7 +1333,7 @@ pageEncoding="UTF-8" isELIgnored="false"%>
         const userIcon = document.getElementById('userIcon');
         if (userIcon) {
           userIcon.addEventListener('click', function() {
-            window.location.href = '/bdproject/loginForm.jsp';
+            window.location.href = '/bdproject/projectLogin.jsp';
           });
         }
       }

@@ -138,19 +138,26 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        font-size: 28px;
-        color: black;
         text-decoration: none;
+        color: #333;
+        width: fit-content;
+        transition: opacity 0.2s ease;
+      }
+      .logo:hover {
+        opacity: 0.7;
       }
       .logo-icon {
-        width: 50px;
-        height: 50px;
+        width: 40px;
+        height: 40px;
         background-image: url("resources/image/복지로고.png");
-        background-size: 80%;
+        background-size: contain;
         background-repeat: no-repeat;
         background-position: center;
-        background-color: transparent;
-        border-radius: 6px;
+      }
+      .logo-text {
+        font-size: 24px;
+        font-weight: 700;
+        color: #333;
       }
 
       .nav-item {
@@ -261,9 +268,10 @@
         top: 0;
         left: 0;
         width: 100%;
-        height: 100%;
+        height: 100vh;
         background: #f7f5f2; /* 왼쪽 패널 색상 */
         clip-path: polygon(0 0, 50% 0, 35% 100%, 0 100%); /* 대각선 모양 */
+        z-index: -2;
       }
 
       /* 3. 텍스트를 담는 컨테이너 (이제 투명함) */
@@ -349,37 +357,39 @@
         transform: translateX(5px);
       }
 
-      /* main-right와 donation 사이의 중간 섹션 */
+      /* main-right와 donation 사이의 중간 섹션 - 웹앱 컨셉에 맞춘 깔끔한 디자인 */
       .middle-section {
         width: 100%;
-        height: 700px; /* donation의 margin-top과 동일 */
-        background-color: #e2f0f6;
+        min-height: 650px;
+        background: #f8f9fa;
         position: relative;
         z-index: 0;
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding: 60px 20px;
+        padding: 80px 20px 100px;
       }
 
       .popular-welfare-title {
-        font-size: 32px;
+        font-size: 36px;
         font-weight: 700;
         color: #2c3e50;
-        margin-bottom: 10px;
+        margin-bottom: 12px;
         text-align: center;
       }
 
       .popular-welfare-subtitle {
         font-size: 16px;
         color: #6c757d;
-        margin-bottom: 40px;
+        margin-bottom: 50px;
         text-align: center;
+        line-height: 1.5;
       }
 
       .popular-welfare-container {
         position: relative;
         max-width: 1200px;
+        width: 100%;
         margin: 0 auto;
         padding: 0 60px;
       }
@@ -397,62 +407,63 @@
 
       .popular-welfare-item {
         background: white;
-        border-radius: 12px;
-        padding: 20px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
         transition: all 0.3s ease;
         cursor: pointer;
         position: relative;
-        overflow: hidden;
         flex: 0 0 calc(33.333% - 14px);
         min-width: 300px;
+        border: 1px solid #e9ecef;
       }
 
       .popular-welfare-item:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(0, 97, 255, 0.15);
+        border-color: #0061ff;
       }
 
       .welfare-rank {
         position: absolute;
-        top: 15px;
-        right: 15px;
+        top: 20px;
+        right: 20px;
         background: #0061ff;
         color: white;
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 700;
-        font-size: 14px;
+        font-size: 15px;
       }
 
       .welfare-rank.top-3 {
-        background: linear-gradient(135deg, #ffd700, #ffed4e);
-        color: #333;
+        background: #ff6b6b;
       }
 
       .welfare-info {
-        margin-right: 40px;
+        margin-right: 45px;
       }
 
       .welfare-name {
-        font-size: 16px;
+        font-size: 17px;
         font-weight: 600;
         color: #2c3e50;
-        margin-bottom: 8px;
-        line-height: 1.4;
+        margin-bottom: 12px;
+        line-height: 1.5;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
+        min-height: 48px;
       }
 
       .welfare-org {
         font-size: 13px;
-        color: #666;
+        color: #6c757d;
         margin-bottom: 8px;
       }
 
@@ -464,11 +475,11 @@
 
       .welfare-source {
         display: inline-block;
-        padding: 4px 8px;
+        padding: 5px 12px;
         font-size: 11px;
         border-radius: 4px;
-        font-weight: 500;
-        margin-top: 8px;
+        font-weight: 600;
+        margin-top: 10px;
       }
 
       .source-central {
@@ -483,8 +494,9 @@
 
       .loading-popular {
         text-align: center;
-        padding: 40px;
-        color: #666;
+        padding: 60px 40px;
+        color: #6c757d;
+        font-size: 16px;
       }
 
       .slider-nav-btn {
@@ -492,25 +504,27 @@
         top: 50%;
         transform: translateY(-50%);
         background: white;
-        border: none;
-        border-radius: 50%;
-        width: 50px;
-        height: 50px;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        width: 48px;
+        height: 48px;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         z-index: 2;
-        transition: all 0.3s ease;
-        color: #666;
-        font-size: 20px;
+        transition: all 0.2s ease;
+        color: #495057;
+        font-size: 22px;
+        font-weight: bold;
       }
 
       .slider-nav-btn:hover {
-        background: #f8f9fa;
-        transform: translateY(-50%) scale(1.1);
-        color: #333;
+        background: #0061ff;
+        color: white;
+        border-color: #0061ff;
+        transform: translateY(-50%) scale(1.05);
       }
 
       .slider-nav-btn:disabled {
@@ -519,40 +533,26 @@
         transform: translateY(-50%);
       }
 
+      .slider-nav-btn:disabled:hover {
+        background: white;
+        color: #495057;
+        border-color: #e9ecef;
+        transform: translateY(-50%);
+      }
+
       .slider-prev {
-        left: 10px;
+        left: 0;
       }
 
       .slider-next {
-        right: 10px;
-      }
-
-      .slider-indicators {
-        display: flex;
-        justify-content: center;
-        gap: 8px;
-        margin-top: 20px;
-      }
-
-      .slider-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: #ddd;
-        cursor: pointer;
-        transition: all 0.3s ease;
-      }
-
-      .slider-dot.active {
-        background: #0061ff;
-        transform: scale(1.2);
+        right: 0;
       }
 
       .loading-spinner {
-        width: 40px;
-        height: 40px;
-        border: 3px solid #f3f3f3;
-        border-top: 3px solid #0061ff;
+        width: 48px;
+        height: 48px;
+        border: 4px solid #e9ecef;
+        border-top: 4px solid #0061ff;
         border-radius: 50%;
         animation: spin 1s linear infinite;
         margin: 0 auto 20px;
@@ -603,34 +603,6 @@
       }
       #donation-step1 {
         gap: 30px;
-      }
-
-      #donation-step2,
-      #donation-step3 {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        opacity: 0;
-        visibility: hidden;
-        transform: translateX(100%);
-      }
-      #donation-container.view-step2 #donation-step1,
-      #donation-container.view-step3 #donation-step1 {
-        opacity: 0;
-        visibility: hidden;
-        transform: translateX(-100%);
-      }
-      #donation-container.view-step2 #donation-step2,
-      #donation-container.view-step3 #donation-step3 {
-        opacity: 1;
-        visibility: visible;
-        transform: translateX(0);
-      }
-      #donation-container.view-step3 #donation-step2 {
-        opacity: 0;
-        visibility: hidden;
-        transform: translateX(-100%);
       }
 
       .donation-left-box {
@@ -812,329 +784,117 @@
       .next-btn:hover {
         background: #357abd;
       }
-      .sponsor-info-box,
-      .payment-info-box {
-        width: 100%;
-        background: white;
-        border-radius: 20px;
-        padding: 40px;
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-      }
-      .sponsor-form {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 25px 40px;
-        margin-top: 30px;
-        align-items: start;
-      }
-      .email-group {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-      .email-group #emailUser {
-        flex: 1 1 50%;
-      }
-      .email-group #emailDomain {
-        flex: 1 1 50%;
-      }
-      .email-group #emailDomainSelect {
-        flex: 0 0 160px;
-      }
-      .email-at {
-        font-size: 16px;
-        color: #888;
-      }
-      .address-row {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 10px;
-      }
-      .address-row .address-group {
-        flex: 1;
-        margin-bottom: 0;
-      }
-      .address-row #address {
-        flex: 2;
-        margin-bottom: 0;
-      }
-      .address-group {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-      .address-group .form-input {
-        flex: 1;
-      }
-      #searchAddressBtn {
-        background: #4a90e2;
-        color: white;
-        border: none;
-        padding: 15px 25px;
-        border-radius: 8px;
-        font-size: 15px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: background 0.3s ease;
-      }
-      #searchAddressBtn:hover {
-        background: #357abd;
-      }
-      .custom-radio-group {
-        display: flex;
-        align-items: center;
-        gap: 30px;
-        margin-top: 10px;
-      }
-      .custom-radio-group .radio-label {
-        display: flex;
-        align-items: center;
-        font-size: 16px;
-        cursor: pointer;
-      }
-      .custom-radio-group input[type="radio"] {
-        display: none;
-      }
-      .custom-radio-group .custom-radio-box {
-        width: 22px;
-        height: 22px;
-        border: 2px solid #ccc;
-        border-radius: 4px;
-        margin-right: 12px;
+
+      /* Footer 스타일 */
+      footer {
         position: relative;
-        transition: all 0.2s ease;
+        z-index: 10;
+        background: #2c3e50;
+        color: #ecf0f1;
+        padding: 60px 20px 30px;
+        margin-top: 80px;
       }
-      .custom-radio-group
-        input[type="radio"]:checked
-        + .radio-label
-        .custom-radio-box {
-        background-color: #4a90e2;
-        border-color: #4a90e2;
+      .footer-container {
+        max-width: 1400px;
+        margin: 0 auto;
       }
-      .custom-radio-group
-        input[type="radio"]:checked
-        + .radio-label
-        .custom-radio-box::after {
-        content: "✔";
-        color: white;
-        font-size: 16px;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-      }
-      .form-navigation-btns {
-        margin-top: 40px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .back-btn {
-        background: #6c757d;
-        color: white;
-        border: none;
-        padding: 12px 30px;
-        border-radius: 8px;
-        font-size: 15px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: background 0.3s ease;
-      }
-      .back-btn:hover {
-        background: #5a6268;
-      }
-      .payment-method-group {
-        display: flex;
-        width: 75%;
-        margin: 0 auto 30px auto;
-      }
-      .payment-method-btn {
-        flex: 1;
-        padding: 15px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        border: 1px solid #4a90e2;
-        background-color: white;
-        color: #4a90e2;
-        transition: all 0.3s ease;
-        border-right-width: 0;
-      }
-      .payment-method-btn:first-child {
-        border-radius: 8px 0 0 8px;
-      }
-      .payment-method-btn:last-child {
-        border-radius: 0 8px 8px 0;
-        border-right-width: 1px;
-      }
-      .payment-method-btn.active,
-      .payment-method-btn:hover {
-        background-color: #4a90e2;
-        color: white;
-      }
-      .payment-details-form {
-        margin-top: 30px;
-      }
-      .payment-details-form.hidden {
-        display: none;
-      }
-      .payment-form-grid {
+      .footer-content {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 25px 40px;
+        grid-template-columns: 2fr 1fr 1fr 1fr 1.5fr;
+        gap: 40px;
+        margin-bottom: 40px;
       }
-      .grid-col-span-2 {
-        grid-column: span 2;
+      .footer-section h3 {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: #fff;
       }
-      .form-group-half {
-        width: 50%;
+      .footer-about p {
+        line-height: 1.8;
+        color: #bdc3c7;
+        margin-bottom: 15px;
+        font-size: 14px;
       }
-      .input-group {
+      .footer-links {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .footer-links li {
+        margin-bottom: 12px;
+      }
+      .footer-links a {
+        color: #bdc3c7;
+        text-decoration: none;
+        font-size: 14px;
+        transition: color 0.3s ease;
+      }
+      .footer-links a:hover {
+        color: #3498db;
+      }
+      .footer-contact p {
+        color: #bdc3c7;
+        margin-bottom: 12px;
+        font-size: 14px;
+        line-height: 1.8;
+      }
+      .footer-contact strong {
+        color: #fff;
+        display: block;
+        margin-bottom: 5px;
+      }
+      .social-links {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+      }
+      .social-icon {
+        width: 40px;
+        height: 40px;
+        background: #34495e;
+        border-radius: 50%;
         display: flex;
         align-items: center;
-        gap: 10px;
+        justify-content: center;
+        color: #ecf0f1;
+        text-decoration: none;
+        font-size: 18px;
+        transition: all 0.3s ease;
       }
-      .input-group .form-input {
+      .social-icon:hover {
+        background: #3498db;
+        transform: translateY(-3px);
+      }
+      .footer-bottom {
+        border-top: 1px solid #34495e;
+        padding-top: 30px;
         text-align: center;
       }
-      .input-group span {
-        color: #888;
-        font-size: 16px;
-        flex-shrink: 0;
-      }
-      .agreement-section {
-        margin-top: 30px;
-        padding-top: 20px;
-        border-top: 1px solid #eee;
-      }
-      .agreement-item {
+      .footer-bottom-content {
         display: flex;
+        flex-direction: column;
+        gap: 15px;
         align-items: center;
-        margin-bottom: 15px;
       }
-      .agreement-item label {
+      .footer-bottom p {
+        color: #95a5a6;
+        font-size: 13px;
+        margin: 5px 0;
+      }
+      .footer-legal-links {
         display: flex;
-        align-items: center;
-        cursor: pointer;
-        font-size: 16px;
+        gap: 20px;
+        margin-top: 10px;
       }
-      .agreement-item input[type="checkbox"] {
-        width: 20px;
-        height: 20px;
-        margin-right: 12px;
+      .footer-legal-links a {
+        color: #95a5a6;
+        text-decoration: none;
+        font-size: 13px;
+        transition: color 0.3s ease;
       }
-      .agreement-item a {
-        margin-left: 8px;
-        color: #888;
-        text-decoration: underline;
-        font-size: 14px;
-        cursor: pointer;
-      }
-      .agreement-item.all-agree {
-        font-weight: 600;
-      }
-      .signature-pad {
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        cursor: crosshair;
-      }
-      .signature-container {
-        position: relative;
-        display: inline-block;
-      }
-      .clear-signature-btn {
-        position: absolute;
-        top: 5px;
-        right: 5px;
-        width: 28px;
-        height: 28px;
-        border: none;
-        background: rgba(255, 255, 255, 0.9);
-        border-radius: 50%;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        transition: all 0.2s ease;
-        z-index: 100;
-      }
-      .clear-signature-btn:hover {
-        background: rgba(255, 255, 255, 1);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        transform: scale(1.05);
-      }
-      .clear-signature-btn::before {
-        content: "↻";
-        font-size: 16px;
-        color: #666;
-        font-weight: bold;
-      }
-      .signature-pad-wrapper {
-        margin-top: 40px;
-      }
-      .signature-pad-wrapper .form-label {
-        margin-bottom: 0;
-      }
-      .signature-container .form-label {
-        position: absolute;
-        top: -25px;
-        left: 0;
-        font-size: 16px;
-        font-weight: 600;
-      }
-      .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.6);
-        z-index: 2000;
-        display: none;
-        align-items: center;
-        justify-content: center;
-      }
-      .modal-overlay.active {
-        display: flex;
-      }
-      .modal-content {
-        background: white;
-        padding: 40px;
-        border-radius: 12px;
-        width: 90%;
-        max-width: 600px;
-        max-height: 80vh;
-        overflow-y: auto;
-        position: relative;
-      }
-      .modal-title {
-        font-size: 20px;
-        font-weight: 600;
-        margin-bottom: 20px;
-      }
-      .modal-body {
-        font-size: 14px;
-        line-height: 1.7;
-        color: #444;
-      }
-      .modal-body h4 {
-        font-size: 15px;
-        margin: 15px 0 8px 0;
-      }
-      .modal-body p {
-        margin-bottom: 10px;
-      }
-      .modal-close-btn {
-        position: absolute;
-        top: 15px;
-        right: 15px;
-        font-size: 24px;
-        font-weight: bold;
-        color: #888;
-        cursor: pointer;
-        border: none;
-        background: none;
+      .footer-legal-links a:hover {
+        color: #3498db;
       }
 
       @media (max-width: 1200px) {
@@ -1161,16 +921,6 @@
         }
         .donation-categories {
           grid-template-columns: 1fr;
-        }
-        .sponsor-form,
-        .payment-form-grid {
-          grid-template-columns: 1fr;
-        }
-        .grid-col-span-2 {
-          grid-column: span 1;
-        }
-        .form-group-half {
-          width: 100%;
         }
       }
       @media (max-width: 768px) {
@@ -1219,21 +969,13 @@
         .donation-title {
           font-size: 24px;
         }
-        .custom-radio-group {
+        .footer-content {
+          grid-template-columns: 1fr;
+          gap: 30px;
+        }
+        .footer-legal-links {
           flex-direction: column;
-          align-items: flex-start;
-          gap: 15px;
-        }
-        .email-group {
-          flex-wrap: wrap;
-        }
-        .email-group #emailUser,
-        .email-group #emailDomain {
-          flex-basis: 45%;
-        }
-        .email-group #emailDomainSelect {
-          flex-basis: 100%;
-          margin-top: 10px;
+          gap: 10px;
         }
       }
     </style>
@@ -1244,10 +986,10 @@
     <header id="main-header">
       <nav class="navbar">
         <div class="navbar-left">
-          <a href="/bdproject/project.jsp" class="logo"
-            ><div class="logo-icon"></div>
-            복지 24</a
-          >
+          <a href="/bdproject/project.jsp" class="logo">
+            <div class="logo-icon"></div>
+            <span class="logo-text">복지24</span>
+          </a>
         </div>
         <div class="nav-menu">
           <div class="nav-item">
@@ -1330,19 +1072,19 @@
             </a>
           </div>
           <div class="menu-column" data-menu-content="explore">
-            <a href="#" class="dropdown-link">
+            <a href="/bdproject/project_notice.jsp" class="dropdown-link">
               <span class="dropdown-link-title">공지사항</span>
               <span class="dropdown-link-desc"
                 >새로운 복지 소식을 알려드립니다.</span
               >
             </a>
-            <a href="#" class="dropdown-link">
+            <a href="/bdproject/project_faq.jsp" class="dropdown-link">
               <span class="dropdown-link-title">자주묻는 질문</span>
               <span class="dropdown-link-desc"
                 >궁금한 점을 빠르게 해결하세요.</span
               >
             </a>
-            <a href="#" class="dropdown-link">
+            <a href="/bdproject/project_about.jsp" class="dropdown-link">
               <span class="dropdown-link-title">소개</span>
               <span class="dropdown-link-desc">복지24에 대해 알아보세요.</span>
             </a>
@@ -1589,456 +1331,109 @@
           </div>
         </div>
       </div>
-      <div id="donation-step2" class="donation-step">
-        <div class="sponsor-info-box">
-          <h2 class="donation-title">후원자 정보</h2>
-          <form class="sponsor-form" id="sponsorForm">
-            <div class="form-group">
-              <label class="form-label" for="sponsorName">이름</label
-              ><input
-                type="text"
-                id="sponsorName"
-                class="form-input"
-                placeholder="이름을 입력하세요"
-              />
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="sponsorPhone">전화번호</label
-              ><input
-                type="text"
-                id="sponsorPhone"
-                class="form-input"
-                placeholder="'-' 없이 숫자만 입력"
-                maxlength="11"
-              />
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="sponsorDob">생년월일</label
-              ><input
-                type="text"
-                id="sponsorDob"
-                class="form-input"
-                placeholder="8자리 입력 (예: 19900101)"
-                maxlength="8"
-              />
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="emailUser">이메일</label>
-              <div class="email-group">
-                <input type="text" id="emailUser" class="form-input" /><span
-                  class="email-at"
-                  >@</span
-                ><input
-                  type="text"
-                  id="emailDomain"
-                  class="form-input"
-                  placeholder="직접입력"
-                /><select id="emailDomainSelect" class="form-select">
-                  <option value="">직접입력</option>
-                  <option value="naver.com">naver.com</option>
-                  <option value="gmail.com">gmail.com</option>
-                  <option value="hanmail.net">hanmail.net</option>
-                  <option value="daum.net">daum.net</option>
-                  <option value="nate.com">nate.com</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="form-label">주소</label>
-              <div class="address-row">
-                <div class="address-group">
-                  <input
-                    type="text"
-                    id="postcode"
-                    class="form-input"
-                    placeholder="우편번호"
-                    readonly
-                  /><button type="button" id="searchAddressBtn">
-                    주소검색
-                  </button>
-                </div>
-                <input
-                  type="text"
-                  id="address"
-                  class="form-input"
-                  placeholder="주소"
-                  readonly
-                />
-              </div>
-              <input
-                type="text"
-                id="detailAddress"
-                class="form-input"
-                placeholder="상세주소"
-              />
-            </div>
-            <div class="form-group">
-              <label class="form-label">소식 안내</label>
-              <div class="custom-radio-group">
-                <div>
-                  <input
-                    type="radio"
-                    id="noti_mobile"
-                    name="notifications"
-                    value="mobile"
-                  /><label for="noti_mobile" class="radio-label"
-                    ><span class="custom-radio-box"></span> 모바일</label
-                  >
-                </div>
-                <div>
-                  <input
-                    type="radio"
-                    id="noti_email"
-                    name="notifications"
-                    value="email"
-                  /><label for="noti_email" class="radio-label"
-                    ><span class="custom-radio-box"></span> 이메일</label
-                  >
-                </div>
-                <div>
-                  <input
-                    type="radio"
-                    id="noti_post"
-                    name="notifications"
-                    value="post"
-                  /><label for="noti_post" class="radio-label"
-                    ><span class="custom-radio-box"></span> 우편</label
-                  >
-                </div>
-              </div>
-            </div>
-          </form>
-          <div class="form-navigation-btns">
-            <button class="back-btn" id="backBtn">뒤로</button>
-            <button class="next-btn" id="goToStep3Btn">다음</button>
-          </div>
-        </div>
-      </div>
-      <div id="donation-step3" class="donation-step">
-        <div class="payment-info-box">
-          <h2 class="donation-title">결제 수단 선택</h2>
-          <div class="payment-method-group">
-            <button
-              type="button"
-              class="payment-method-btn active"
-              data-target="creditCardForm"
-            >
-              신용카드
-            </button>
-            <button
-              type="button"
-              class="payment-method-btn"
-              data-target="bankTransferForm"
-            >
-              계좌 이체
-            </button>
-            <button
-              type="button"
-              class="payment-method-btn"
-              data-target="naverPayForm"
-            >
-              네이버 페이
-            </button>
-          </div>
-
-          <div id="creditCardForm" class="payment-details-form">
-            <div class="payment-form-grid">
-              <div class="form-group grid-col-span-2">
-                <label class="form-label">카드번호</label>
-                <div class="input-group">
-                  <input
-                    type="text"
-                    class="form-input"
-                    maxlength="4"
-                    placeholder="1234"
-                  /><span>-</span
-                  ><input
-                    type="text"
-                    class="form-input"
-                    maxlength="4"
-                    placeholder="0000"
-                  /><span>-</span
-                  ><input
-                    type="text"
-                    class="form-input"
-                    maxlength="4"
-                    placeholder="0000"
-                  /><span>-</span
-                  ><input
-                    type="text"
-                    class="form-input"
-                    maxlength="4"
-                    placeholder="0000"
-                  />
-                </div>
-              </div>
-              <div class="form-group">
-                <label class="form-label">유효기간</label>
-                <div class="input-group">
-                  <input
-                    type="text"
-                    class="form-input"
-                    maxlength="2"
-                    placeholder="MM"
-                  /><span>/</span
-                  ><input
-                    type="text"
-                    class="form-input"
-                    maxlength="2"
-                    placeholder="YY"
-                  />
-                </div>
-              </div>
-              <div class="form-group form-group-half" id="billingDateGroupCard">
-                <label class="form-label">결제일</label>
-                <div class="input-group">
-                  <input
-                    type="text"
-                    class="billingDate form-input"
-                    placeholder="1~31"
-                  /><span style="margin-left: -5px">일</span>
-                </div>
-              </div>
-              <div class="form-group grid-col-span-2">
-                <label class="form-label">기부금 영수증 발행</label>
-                <div class="custom-radio-group">
-                  <div>
-                    <input
-                      type="radio"
-                      id="receipt_yes_card"
-                      name="receipt_card"
-                      value="yes"
-                    /><label for="receipt_yes_card" class="radio-label"
-                      ><span class="custom-radio-box"></span> 예</label
-                    >
-                  </div>
-                  <div>
-                    <input
-                      type="radio"
-                      id="receipt_no_card"
-                      name="receipt_card"
-                      value="no"
-                    /><label for="receipt_no_card" class="radio-label"
-                      ><span class="custom-radio-box"></span> 아니오</label
-                    >
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="agreement-section" data-type="card">
-              <div class="agreement-item all-agree">
-                <label
-                  ><input type="checkbox" class="agreeAll" /> 개인정보 수집 및
-                  이용에 모두 동의합니다.</label
-                >
-              </div>
-              <div class="agreement-item">
-                <label
-                  ><input type="checkbox" class="agree-item" /> 개인정보 수집 및
-                  이용 동의</label
-                ><a class="view-details-btn" data-modal="modal1">상세보기</a>
-              </div>
-              <div class="agreement-item">
-                <label
-                  ><input type="checkbox" class="agree-item" /> 제3자 제공
-                  동의</label
-                ><a class="view-details-btn" data-modal="modal2">상세보기</a>
-              </div>
-            </div>
-          </div>
-
-          <div id="bankTransferForm" class="payment-details-form hidden">
-            <div class="payment-form-grid">
-              <div class="form-group">
-                <label class="form-label">은행 선택</label
-                ><select class="form-select">
-                  <option value="">은행을 선택하세요</option>
-                  <option>KB국민은행</option>
-                  <option>신한은행</option>
-                  <option>우리은행</option>
-                  <option>하나은행</option>
-                  <option>iM뱅크</option>
-                  <option>SC제일은행</option>
-                  <option>한국씨티은행</option>
-                  <option>부산은행</option>
-                  <option>경남은행</option>
-                  <option>광주은행</option>
-                  <option>전북은행</option>
-                  <option>제주은행</option>
-                  <option>NH농협은행</option>
-                  <option>IBK기업은행</option>
-                  <option>Sh수협은행</option>
-                  <option>한국산업은행</option>
-                  <option>한국수출입은행</option>
-                  <option>카카오뱅크</option>
-                  <option>케이뱅크</option>
-                  <option>토스뱅크</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label class="form-label">계좌번호</label
-                ><input
-                  type="text"
-                  class="form-input"
-                  placeholder="계좌번호 입력('-' 제외)"
-                />
-              </div>
-              <div class="form-group form-group-half" id="billingDateGroupBank">
-                <label class="form-label">결제일</label>
-                <div class="input-group">
-                  <input
-                    type="text"
-                    class="billingDate form-input"
-                    placeholder="1~31"
-                  /><span>일</span>
-                </div>
-              </div>
-              <div class="form-group grid-col-span-2">
-                <div class="signature-pad-wrapper">
-                  <div class="signature-container">
-                    <label class="form-label" for="bankCanvas">서명</label>
-                    <canvas
-                      class="signature-pad"
-                      id="bankCanvas"
-                      width="400"
-                      height="150"
-                    ></canvas>
-                    <button
-                      type="button"
-                      class="clear-signature-btn"
-                      data-target="bankCanvas"
-                    ></button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="agreement-section" data-type="bank">
-              <div class="agreement-item all-agree">
-                <label
-                  ><input type="checkbox" class="agreeAll" /> 개인정보 수집 및
-                  이용에 모두 동의합니다.</label
-                >
-              </div>
-              <div class="agreement-item">
-                <label
-                  ><input type="checkbox" class="agree-item" /> 개인정보 수집 및
-                  이용 동의</label
-                ><a class="view-details-btn" data-modal="modal1">상세보기</a>
-              </div>
-              <div class="agreement-item">
-                <label
-                  ><input type="checkbox" class="agree-item" /> 제3자 제공
-                  동의</label
-                ><a class="view-details-btn" data-modal="modal2">상세보기</a>
-              </div>
-            </div>
-          </div>
-
-          <div id="naverPayForm" class="payment-details-form hidden">
-            <div class="signature-pad-wrapper">
-              <div class="signature-container">
-                <label class="form-label" for="naverPayCanvas">서명</label>
-                <canvas
-                  class="signature-pad"
-                  id="naverPayCanvas"
-                  width="400"
-                  height="150"
-                ></canvas>
-                <button
-                  type="button"
-                  class="clear-signature-btn"
-                  data-target="naverPayCanvas"
-                ></button>
-              </div>
-            </div>
-            <div class="agreement-section" data-type="naver">
-              <div class="agreement-item all-agree">
-                <label
-                  ><input type="checkbox" class="agreeAll" /> 개인정보 수집 및
-                  이용에 모두 동의합니다.</label
-                >
-              </div>
-              <div class="agreement-item">
-                <label
-                  ><input type="checkbox" class="agree-item" /> 개인정보 수집 및
-                  이용 동의</label
-                ><a class="view-details-btn" data-modal="modal1">상세보기</a>
-              </div>
-              <div class="agreement-item">
-                <label
-                  ><input type="checkbox" class="agree-item" /> 제3자 제공
-                  동의</label
-                ><a class="view-details-btn" data-modal="modal2">상세보기</a>
-              </div>
-            </div>
-          </div>
-
-          <div class="form-navigation-btns">
-            <button class="back-btn" id="backToStep2Btn">뒤로</button>
-            <button class="next-btn" id="finalSubmitBtn">기부하기</button>
-          </div>
-        </div>
-      </div>
     </div>
 
-    <div id="modal1" class="modal-overlay">
-      <div class="modal-content">
-        <button class="modal-close-btn">&times;</button>
-        <h3 class="modal-title">개인정보 및 고유식별정보 수집 및 이용 동의</h3>
-        <div class="modal-body">
-          <p>
-            개인정보 및 고유식별정보 수집‧이용에 대한 동의를 거부할 권리가
-            있습니다. 단, 동의를 거부할 경우 기부신청 및 이력 확인, 기부자
-            서비스 등 기부신청이 거부될 수 있습니다.
-          </p>
-          <h4>가. 개인정보 및 고유식별정보 수집‧이용 항목:</h4>
-          <p>
-            - 고유식별정보: 주민등록번호 (기부영수증 신청 시)<br />- 필수 항목:
-            성명, 생년월일, 연락처, 주소<br />(신용카드 기부방식) 카드번호,
-            카드유효기간<br />(정기이체 기부방식) 계좌은행, 계좌번호, 예금주,
-            전자서명<br />- 선택 항목: 이메일
-          </p>
-          <h4>나. 수집‧이용 목적:</h4>
-          <p>
-            모금회에서 처리하는 기부관련 업무 (기부신청, 기부내역확인, 확인서
-            발급, 기부자서비스 등)
-          </p>
-          <h4>다. 보유기간 :</h4>
-          <p>
-            관계 법령에 의거 기부 종료 후 10년간 보존 후 파기<br />※ 개인정보의
-            위탁회사 및 위탁업무의 구체적인 정보는 모금회 홈페이지
-            [http://wwwchest.or.kr]에서 확인할 수 있습니다<br />※ 소득세법,
-            상속세 및 증여세법에 따라 주민등록번호의 수집․이용이 가능하며,
-            소득세법 시행령의 (기부금영수증 발급명세의 작성·보관의무)에 따라
-            보유기간을 10년으로 합니다.
-          </p>
+    <!-- Footer -->
+    <footer>
+      <div class="footer-container">
+        <div class="footer-content">
+          <!-- 회사 소개 -->
+          <div class="footer-section footer-about">
+            <h3>복지24</h3>
+            <p>
+              국민 모두가 누려야 할 복지 혜택,<br />
+              복지24가 찾아드립니다.
+            </p>
+            <p style="font-size: 13px; color: #95a5a6">
+              보건복지부, 지방자치단체와 함께<br />
+              국민의 복지 향상을 위해 노력합니다.
+            </p>
+          </div>
+
+          <!-- 서비스 -->
+          <div class="footer-section">
+            <h3>서비스</h3>
+            <ul class="footer-links">
+              <li><a href="/bdproject/project_detail.jsp">복지 혜택 찾기</a></li>
+              <li><a href="/bdproject/project_Map.jsp">복지 지도</a></li>
+              <li><a href="/bdproject/project_information.jsp">상황 진단하기</a></li>
+            </ul>
+          </div>
+
+          <!-- 참여하기 -->
+          <div class="footer-section">
+            <h3>참여하기</h3>
+            <ul class="footer-links">
+              <li><a href="#">봉사 신청</a></li>
+              <li><a href="/bdproject/project_Donation.jsp">기부하기</a></li>
+              <li><a href="#">후원자 리뷰</a></li>
+            </ul>
+          </div>
+
+          <!-- 고객지원 -->
+          <div class="footer-section">
+            <h3>고객지원</h3>
+            <ul class="footer-links">
+              <li><a href="/bdproject/project_notice.jsp">공지사항</a></li>
+              <li><a href="/bdproject/project_faq.jsp">자주묻는 질문</a></li>
+              <li><a href="/bdproject/project_about.jsp">소개</a></li>
+            </ul>
+          </div>
+
+          <!-- 문의 정보 -->
+          <div class="footer-section footer-contact">
+            <h3>고객센터</h3>
+            <p>
+              <strong>전화</strong>
+              1234-5678
+            </p>
+            <p>
+              <strong>운영시간</strong>
+              평일 09:00 - 18:00<br />
+              (주말 및 공휴일 휴무)
+            </p>
+            <p>
+              <strong>이메일</strong>
+              support@welfare24.com
+            </p>
+            <div class="social-links">
+              <a href="#" class="social-icon" aria-label="Facebook">
+                <i class="fab fa-facebook-f"></i>
+              </a>
+              <a href="#" class="social-icon" aria-label="Instagram">
+                <i class="fab fa-instagram"></i>
+              </a>
+              <a href="#" class="social-icon" aria-label="YouTube">
+                <i class="fab fa-youtube"></i>
+              </a>
+              <a href="#" class="social-icon" aria-label="Blog">
+                <i class="fas fa-blog"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 하단 정보 -->
+        <div class="footer-bottom">
+          <div class="footer-bottom-content">
+            <div class="footer-legal-links">
+              <a href="#">이용약관</a>
+              <a href="#" style="font-weight: 600; color: #3498db">개인정보처리방침</a>
+              <a href="#">이메일무단수집거부</a>
+            </div>
+            <p>
+              사업자등록번호: 123-45-67890 | 대표: 홍길동 | 통신판매업신고: 제2024-서울종로-0000호
+            </p>
+            <p>
+              주소: 서울특별시 종로구 세종대로 209 (복지로 빌딩)
+            </p>
+            <p style="margin-top: 10px">
+              Copyright &copy; 2024 복지24. All rights reserved.
+            </p>
+          </div>
         </div>
       </div>
-    </div>
-    <div id="modal2" class="modal-overlay">
-      <div class="modal-content">
-        <button class="modal-close-btn">&times;</button>
-        <h3 class="modal-title">개인정보 제3자 제공·이용 동의</h3>
-        <div class="modal-body">
-          <p>
-            개인정보 제3자 제공‧이용에 대한 동의를 거부할 권리가 있습니다. 단,
-            동의를 거부할 경우 기부금 신청이 거부될 수 있습니다.
-          </p>
-          <h4>가. 제공받는 곳</h4>
-          <p>- NICE평가정보, 금융결제원, KG이니시스, 해당은행</p>
-          <h4>나. 제공 항목</h4>
-          <p>
-            - (본인인증) 휴대전화번호<br />- (CMS 결제정보) 은행명, 계좌번호,
-            예금주, 생년월일<br />- (카드 결제정보) 카드번호, 유효기간, 소유주,
-            생년월일
-          </p>
-          <h4>다. 제공 목적</h4>
-          <p>- 본인확인 및 기부금결제<br />- 기부안내를 위한 정보공유</p>
-          <h4>라. 제공 기간</h4>
-          <p>- 기부금결제 중단시 까지<br />- 사업종료시 까지</p>
-        </div>
-      </div>
-    </div>
+    </footer>
 
     <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
     <script>
@@ -2578,294 +1973,12 @@
           selectedCategory: "",
         };
 
-        const initSignaturePad = (canvasId) => {
-          const canvas = document.getElementById(canvasId);
-          if (!canvas) return;
-          const ctx = canvas.getContext("2d");
-          let drawing = false;
-          const startDrawing = (e) => {
-            drawing = true;
-            draw(e);
-          };
-          const stopDrawing = () => {
-            drawing = false;
-            ctx.beginPath();
-          };
-          const getPos = (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const clientX = e.clientX || e.touches[0].clientX;
-            const clientY = e.clientY || e.touches[0].clientY;
-            return { x: clientX - rect.left, y: clientY - rect.top };
-          };
-          const draw = (e) => {
-            if (!drawing) return;
-            e.preventDefault();
-            const { x, y } = getPos(e);
-            ctx.lineWidth = 2;
-            ctx.lineCap = "round";
-            ctx.strokeStyle = "#000";
-            ctx.lineTo(x, y);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-          };
-          canvas.addEventListener("mousedown", startDrawing);
-          canvas.addEventListener("mouseup", stopDrawing);
-          canvas.addEventListener("mousemove", draw);
-          canvas.addEventListener("mouseleave", stopDrawing);
-          canvas.addEventListener("touchstart", startDrawing);
-          canvas.addEventListener("touchend", stopDrawing);
-          canvas.addEventListener("touchmove", draw);
-        };
-        initSignaturePad("bankCanvas");
-        initSignaturePad("naverPayCanvas");
-
-        document.querySelectorAll(".clear-signature-btn").forEach((button) => {
-          button.addEventListener("click", () => {
-            const canvas = document.getElementById(button.dataset.target);
-            const ctx = canvas.getContext("2d");
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-          });
-        });
-
-        document.querySelectorAll(".billingDate").forEach((input) => {
-          input.addEventListener("input", (e) => {
-            let value = e.target.value.replace(/[^0-9]/g, "");
-            if (value > 31) value = 31;
-            e.target.value = value;
-          });
-        });
-
-        document.querySelectorAll(".agreement-section").forEach((section) => {
-          const agreeAll = section.querySelector(".agreeAll");
-          const agreeItems = section.querySelectorAll(".agree-item");
-          if (!agreeAll) return;
-          agreeAll.addEventListener("change", (e) => {
-            agreeItems.forEach(
-              (checkbox) => (checkbox.checked = e.target.checked)
-            );
-          });
-          agreeItems.forEach((checkbox) => {
-            checkbox.addEventListener("change", () => {
-              agreeAll.checked = [...agreeItems].every((item) => item.checked);
-            });
-          });
-        });
-
-        const detailButtons = document.querySelectorAll(".view-details-btn");
-        const modals = document.querySelectorAll(".modal-overlay");
-        const closeButtons = document.querySelectorAll(".modal-close-btn");
-        detailButtons.forEach((button) =>
-          button.addEventListener("click", () => {
-            document
-              .getElementById(button.dataset.modal)
-              .classList.add("active");
-          })
-        );
-        const closeModal = () =>
-          modals.forEach((modal) => modal.classList.remove("active"));
-        closeButtons.forEach((button) =>
-          button.addEventListener("click", closeModal)
-        );
-        modals.forEach((modal) =>
-          modal.addEventListener("click", (e) => {
-            if (e.target === modal) closeModal();
-          })
-        );
-
         const amountInput = document.getElementById("amountInput");
         const regularBtn = document.getElementById("regularBtn");
         const onetimeBtn = document.getElementById("onetimeBtn");
-        const goToStep3Btn = document.getElementById("goToStep3Btn");
-
-        if (regularBtn)
-          regularBtn.addEventListener("click", () => {
-            donationData.donationType = "regular";
-          });
-        if (onetimeBtn)
-          onetimeBtn.addEventListener("click", () => {
-            donationData.donationType = "onetime";
-          });
-
-        if (goToStep3Btn)
-          goToStep3Btn.addEventListener("click", () => {
-            const addressValue = document.getElementById("address").value;
-            if (
-              !document.getElementById("sponsorName").value ||
-              !document.getElementById("sponsorPhone").value
-            ) {
-              alert("이름과 전화번호는 필수 입력 항목입니다.");
-              return;
-            }
-            if (!addressValue) {
-              alert("주소를 입력해주세요.");
-              return;
-            }
-
-            document
-              .querySelectorAll("#billingDateGroupCard, #billingDateGroupBank")
-              .forEach((group) => {
-                group.style.display =
-                  donationData.donationType === "regular" ? "flex" : "none";
-              });
-            donationFormContainer.classList.remove("view-step2");
-            donationFormContainer.classList.add("view-step3");
-          });
-
-        const finalSubmitBtn = document.getElementById("finalSubmitBtn");
-        if (finalSubmitBtn)
-          finalSubmitBtn.addEventListener("click", () => {
-            const activeForm = document.querySelector(
-              ".payment-details-form:not(.hidden)"
-            );
-            const activeAgreement = activeForm.querySelector(
-              ".agreement-section .agreeAll"
-            );
-
-            if (!activeAgreement || !activeAgreement.checked) {
-              alert("개인정보 수집 및 이용에 모두 동의해야 기부가 가능합니다.");
-              return;
-            }
-
-            if (activeForm.id === "creditCardForm") {
-              const cardNumbers = activeForm.querySelectorAll(
-                '.input-group input[type="text"]'
-              );
-              const cardInputs = Array.from(cardNumbers).slice(0, 4);
-              const expMonth = Array.from(cardNumbers)[4];
-              const expYear = Array.from(cardNumbers)[5];
-
-              for (let i = 0; i < 4; i++) {
-                if (!cardInputs[i].value || cardInputs[i].value.length !== 4) {
-                  alert("카드번호를 정확히 입력해주세요.");
-                  cardInputs[i].focus();
-                  return;
-                }
-              }
-
-              if (!expMonth.value || expMonth.value.length !== 2) {
-                alert("유효기간 월을 정확히 입력해주세요 (MM).");
-                expMonth.focus();
-                return;
-              }
-              if (!expYear.value || expYear.value.length !== 2) {
-                alert("유효기간 년을 정확히 입력해주세요 (YY).");
-                expYear.focus();
-                return;
-              }
-              const monthNum = parseInt(expMonth.value);
-              if (monthNum < 1 || monthNum > 12) {
-                alert("유효기간 월은 01~12 사이의 값이어야 합니다.");
-                expMonth.focus();
-                return;
-              }
-            } else if (activeForm.id === "bankTransferForm") {
-              const bankSelect = activeForm.querySelector("select.form-select");
-              const accountNumber = activeForm.querySelector(
-                'input[placeholder*="계좌번호"]'
-              );
-              const signatureCanvas = document.getElementById("bankCanvas");
-
-              if (!bankSelect.value) {
-                alert("은행을 선택해주세요.");
-                bankSelect.focus();
-                return;
-              }
-
-              if (!accountNumber.value || accountNumber.value.trim() === "") {
-                alert("계좌번호를 입력해주세요.");
-                accountNumber.focus();
-                return;
-              }
-
-              const ctx = signatureCanvas.getContext("2d");
-              const imageData = ctx.getImageData(
-                0,
-                0,
-                signatureCanvas.width,
-                signatureCanvas.height
-              );
-              const hasSignature = imageData.data.some(
-                (channel, index) => index % 4 !== 3 && channel !== 0
-              );
-
-              if (!hasSignature) {
-                alert("서명을 해주세요.");
-                return;
-              }
-            } else if (activeForm.id === "naverPayForm") {
-              const signatureCanvas = document.getElementById("naverPayCanvas");
-              const ctx = signatureCanvas.getContext("2d");
-              const imageData = ctx.getImageData(
-                0,
-                0,
-                signatureCanvas.width,
-                signatureCanvas.height
-              );
-              const hasSignature = imageData.data.some(
-                (channel, index) => index % 4 !== 3 && channel !== 0
-              );
-
-              if (!hasSignature) {
-                alert("서명을 해주세요.");
-                return;
-              }
-
-              alert("네이버 로그인 페이지로 이동합니다.");
-              window.open("https://nid.naver.com/nidlogin.login", "_blank");
-              return;
-            }
-
-            alert(
-              `${
-                document.getElementById("sponsorName").value
-              }님, 기부가 완료되었습니다.`
-            );
-          });
-
-        const paymentMethodBtns = document.querySelectorAll(
-          ".payment-method-btn"
-        );
-        paymentMethodBtns.forEach((btn) => {
-          btn.addEventListener("click", () => {
-            paymentMethodBtns.forEach((b) => b.classList.remove("active"));
-            btn.classList.add("active");
-            document
-              .querySelectorAll(".payment-details-form")
-              .forEach((form) => form.classList.add("hidden"));
-            document
-              .getElementById(btn.dataset.target)
-              .classList.remove("hidden");
-          });
-        });
-
         const donationAmount = document.getElementById("donationAmount");
         const donationCategories =
           document.querySelectorAll(".donation-category");
-        const nextBtn = document.getElementById("nextBtn");
-        const backBtn = document.getElementById("backBtn");
-        const emailDomainSelect = document.getElementById("emailDomainSelect");
-        const searchAddressBtn = document.getElementById("searchAddressBtn");
-        const notificationRadios = document.querySelectorAll(
-          'input[name="notifications"]'
-        );
-        const backToStep2Btn = document.getElementById("backToStep2Btn");
-
-        let lastCheckedRadio = document.querySelector(
-          'input[name="notifications"]:checked'
-        );
-        if (notificationRadios.length > 0) {
-          notificationRadios.forEach((radio) => {
-            radio.addEventListener("click", (e) => {
-              if (e.target === lastCheckedRadio) {
-                e.target.checked = false;
-                lastCheckedRadio = null;
-              } else {
-                lastCheckedRadio = e.target;
-              }
-            });
-          });
-        }
 
         const validateStep1 = () => {
           const amountValue = amountInput.value.replace(/,/g, "");
@@ -2916,15 +2029,6 @@
             window.location.href = url;
           }
         };
-        if (backBtn)
-          backBtn.addEventListener("click", () => {
-            donationFormContainer.classList.remove("view-step2");
-          });
-        if (backToStep2Btn)
-          backToStep2Btn.addEventListener("click", () => {
-            donationFormContainer.classList.remove("view-step3");
-            donationFormContainer.classList.add("view-step2");
-          });
         if (donationAmount)
           donationAmount.addEventListener("change", (e) => {
             const selectedValue = e.target.value;
@@ -2976,25 +2080,6 @@
             });
           });
         }
-        if (emailDomainSelect)
-          emailDomainSelect.addEventListener("change", (e) => {
-            const selectedValue = e.target.value;
-            const emailDomain = document.getElementById("emailDomain");
-            emailDomain.value = selectedValue ? selectedValue : "";
-            emailDomain.readOnly = !!selectedValue;
-            emailDomain.classList.toggle("disabled", !!selectedValue);
-            if (!selectedValue) emailDomain.focus();
-          });
-        if (searchAddressBtn)
-          searchAddressBtn.addEventListener("click", () => {
-            new daum.Postcode({
-              oncomplete: function (data) {
-                document.getElementById("postcode").value = data.zonecode;
-                document.getElementById("address").value = data.address;
-                document.getElementById("detailAddress").focus();
-              },
-            }).open();
-          });
 
         // 인기 복지 혜택 로드
         loadPopularWelfareServices();
@@ -3182,143 +2267,6 @@
             e.preventDefault();
             window.location.href = "/bdproject/projectLogin.jsp";
           });
-        }
-
-        // 입력 필드 검증 로직
-        // 이름 필드에서 숫자 입력 방지
-        const sponsorNameInput = document.getElementById("sponsorName");
-        if (sponsorNameInput) {
-          sponsorNameInput.addEventListener("keypress", function (e) {
-            // 숫자만 차단 (한글, 영문자, 공백, 특수문자는 허용)
-            if (/[0-9]/.test(e.key)) {
-              e.preventDefault();
-            }
-          });
-
-          sponsorNameInput.addEventListener("input", function (e) {
-            // 숫자만 제거 (한글, 영문, 공백, 일반적인 특수문자는 허용)
-            this.value = this.value.replace(/[0-9]/g, "");
-          });
-        }
-
-        // 생년월일 입력 필드에 숫자만 입력 가능하도록 제한 및 유효성 검증
-        const sponsorDobInput = document.getElementById("sponsorDob");
-        if (sponsorDobInput) {
-          // 키 입력 시 숫자만 허용
-          sponsorDobInput.addEventListener("keypress", function (e) {
-            // 숫자(0-9)와 백스페이스, 탭, 엔터, Delete, 방향키만 허용
-            if (
-              !/[0-9]/.test(e.key) &&
-              ![
-                "Backspace",
-                "Tab",
-                "Enter",
-                "Delete",
-                "ArrowLeft",
-                "ArrowRight",
-                "ArrowUp",
-                "ArrowDown",
-              ].includes(e.key)
-            ) {
-              e.preventDefault();
-            }
-          });
-
-          // 붙여넣기 시에도 숫자만 허용
-          sponsorDobInput.addEventListener("paste", function (e) {
-            e.preventDefault();
-            const pasteData = (e.clipboardData || window.clipboardData).getData(
-              "text"
-            );
-            const numbersOnly = pasteData.replace(/[^0-9]/g, "");
-            if (numbersOnly.length <= 8) {
-              this.value = numbersOnly;
-              this.validateBirthDate();
-            }
-          });
-
-          // 입력 값 검증 및 정리
-          sponsorDobInput.addEventListener("input", function (e) {
-            // 숫자가 아닌 문자 제거
-            let value = this.value.replace(/[^0-9]/g, "");
-            // 8자리로 제한
-            if (value.length > 8) {
-              value = value.slice(0, 8);
-            }
-            this.value = value;
-            this.validateBirthDate();
-          });
-
-          // 생년월일 유효성 검증 함수 추가
-          sponsorDobInput.validateBirthDate = function () {
-            const value = this.value;
-            let isValid = true;
-            let errorMessage = "";
-
-            // 8자리가 완성되었을 때만 검증
-            if (value.length === 8) {
-              const year = parseInt(value.substring(0, 4));
-              const month = parseInt(value.substring(4, 6));
-              const day = parseInt(value.substring(6, 8));
-
-              // 연도 검증 (1900~2025)
-              if (year < 1900 || year > 2025) {
-                isValid = false;
-                errorMessage = "연도는 1900~2025년 사이여야 합니다.";
-              }
-              // 월 검증 (01~12)
-              else if (month < 1 || month > 12) {
-                isValid = false;
-                errorMessage = "월은 01~12 사이여야 합니다.";
-              }
-              // 일 검증 (1~31, 월별 일수 고려)
-              else if (day < 1 || day > 31) {
-                isValid = false;
-                errorMessage = "일은 01~31 사이여야 합니다.";
-              }
-              // 월별 일수 정확한 검증
-              else {
-                const daysInMonth = new Date(year, month, 0).getDate();
-                if (day > daysInMonth) {
-                  isValid = false;
-                  errorMessage =
-                    year +
-                    "년 " +
-                    month +
-                    "월은 " +
-                    daysInMonth +
-                    "일까지만 있습니다.";
-                }
-              }
-
-              // 오류 메시지 표시/제거
-              let errorDiv = this.parentNode.querySelector(".error-message");
-              if (!isValid) {
-                if (!errorDiv) {
-                  errorDiv = document.createElement("div");
-                  errorDiv.className = "error-message";
-                  errorDiv.style.color = "red";
-                  errorDiv.style.fontSize = "12px";
-                  errorDiv.style.marginTop = "5px";
-                  this.parentNode.appendChild(errorDiv);
-                }
-                errorDiv.textContent = errorMessage;
-                this.style.borderColor = "red";
-              } else {
-                if (errorDiv) {
-                  errorDiv.remove();
-                }
-                this.style.borderColor = "";
-              }
-            } else {
-              // 8자리가 아닐 때는 오류 메시지 제거
-              let errorDiv = this.parentNode.querySelector(".error-message");
-              if (errorDiv) {
-                errorDiv.remove();
-              }
-              this.style.borderColor = "";
-            }
-          };
         }
       });
     </script>

@@ -18,9 +18,47 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: #f5f5f5;
             display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .top-header {
+            padding: 20px 40px;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: #333;
+            width: fit-content;
+            transition: opacity 0.2s ease;
+        }
+
+        .header-logo:hover {
+            opacity: 0.7;
+        }
+
+        .header-logo-icon {
+            width: 40px;
+            height: 40px;
+            background-image: url('resources/image/복지로고.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .header-logo-text {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .main-wrapper {
+            flex: 1;
+            display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
             padding: 20px;
         }
 
@@ -38,7 +76,7 @@
             max-width: 400px;
         }
 
-        h1 {
+        .page-title {
             font-size: 28px;
             font-weight: 600;
             text-align: center;
@@ -239,8 +277,16 @@
     </style>
 </head>
 <body>
-    <div class="signup-container" id="signupContainer">
-        <a href="/bdproject/project.jsp" style="text-decoration: none; color: inherit;"><h1>복지 24</h1></a>
+    <header class="top-header">
+        <a href="/bdproject/project.jsp" class="header-logo">
+            <div class="header-logo-icon"></div>
+            <span class="header-logo-text">복지24</span>
+        </a>
+    </header>
+
+    <div class="main-wrapper">
+        <div class="signup-container" id="signupContainer">
+            <h2 class="page-title">회원가입</h2>
         
         <form id="signupForm" action="/register/save" method="POST">
             <div class="initial-form">
@@ -504,5 +550,6 @@
             this.submit();
         });
     </script>
+    </div>
 </body>
 </html>

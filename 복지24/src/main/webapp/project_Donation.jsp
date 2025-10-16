@@ -175,19 +175,26 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        font-size: 28px;
-        color: black;
         text-decoration: none;
+        color: #333;
+        width: fit-content;
+        transition: opacity 0.2s ease;
+      }
+      .logo:hover {
+        opacity: 0.7;
       }
       .logo-icon {
-        width: 50px;
-        height: 50px;
+        width: 40px;
+        height: 40px;
         background-image: url("resources/image/복지로고.png");
-        background-size: 80%;
+        background-size: contain;
         background-repeat: no-repeat;
         background-position: center;
-        background-color: transparent;
-        border-radius: 6px;
+      }
+      .logo-text {
+        font-size: 24px;
+        font-weight: 700;
+        color: #333;
       }
 
       .nav-item {
@@ -994,10 +1001,10 @@
     <header id="main-header">
       <nav class="navbar">
         <div class="navbar-left">
-          <a href="/bdproject/project.jsp" class="logo"
-            ><div class="logo-icon"></div>
-            복지 24</a
-          >
+          <a href="/bdproject/project.jsp" class="logo">
+            <div class="logo-icon"></div>
+            <span class="logo-text">복지24</span>
+          </a>
         </div>
         <div class="nav-menu">
           <div class="nav-item">
@@ -1080,19 +1087,19 @@
             </a>
           </div>
           <div class="menu-column" data-menu-content="explore">
-            <a href="#" class="dropdown-link">
+            <a href="/bdproject/project_notice.jsp" class="dropdown-link">
               <span class="dropdown-link-title">공지사항</span>
               <span class="dropdown-link-desc"
                 >새로운 복지 소식을 알려드립니다.</span
               >
             </a>
-            <a href="#" class="dropdown-link">
+            <a href="/bdproject/project_faq.jsp" class="dropdown-link">
               <span class="dropdown-link-title">자주묻는 질문</span>
               <span class="dropdown-link-desc"
                 >궁금한 점을 빠르게 해결하세요.</span
               >
             </a>
-            <a href="#" class="dropdown-link">
+            <a href="/bdproject/project_about.jsp" class="dropdown-link">
               <span class="dropdown-link-title">소개</span>
               <span class="dropdown-link-desc">복지24에 대해 알아보세요.</span>
             </a>
