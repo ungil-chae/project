@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?><project-modules id="moduleCoreId" project-version="1.5.0">
+        
+    <wb-module deploy-name="BookRec_Final">
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/java"/>
+        <wb-resource deploy-path="/" source-path="/src/main/webapp"/>
+                
+        <property name="context-root" value="BookRec_Final"/>
+                
+        <property name="java-output-path" value="/BookRec_Final/build/classes"/>
+            
+    </wb-module>
+    
+</project-modules>

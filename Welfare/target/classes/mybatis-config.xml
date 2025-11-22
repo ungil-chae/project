@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+		PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+	<typeAliases>
+		<!-- 기존 DTO -->
+		<typeAlias type="com.greenart.bdproject.dto.BoardDto" alias="BoardDto"/>
+		<typeAlias type="com.greenart.bdproject.dto.Member" alias="Member"/>
+
+		<!-- 새로 추가된 DTO (UserDto는 Member로 대체) -->
+		<typeAlias type="com.greenart.bdproject.dto.DonationDto" alias="DonationDto"/>
+		<typeAlias type="com.greenart.bdproject.dto.DonationReviewDto" alias="DonationReviewDto"/>
+		<typeAlias type="com.greenart.bdproject.dto.WelfareDiagnosisDto" alias="WelfareDiagnosisDto"/>
+		<typeAlias type="com.greenart.bdproject.dto.NoticeDto" alias="NoticeDto"/>
+		<typeAlias type="com.greenart.bdproject.dto.FaqDto" alias="FaqDto"/>
+		<typeAlias type="com.greenart.bdproject.dto.VolunteerApplicationDto" alias="VolunteerApplicationDto"/>
+		<typeAlias type="com.greenart.bdproject.dto.VolunteerReviewDto" alias="VolunteerReviewDto"/>
+		<typeAlias type="com.greenart.bdproject.dto.MemberStatusHistoryDto" alias="MemberStatusHistoryDto"/>
+	</typeAliases>
+
+	<!-- Mapper files are loaded via root-context.xml mapperLocations wildcard pattern -->
+</configuration>

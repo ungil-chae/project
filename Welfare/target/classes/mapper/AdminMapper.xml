@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.greenart.bdproject.mapper.AdminMapper">
+
+    <!-- 전체 회원 수 조회 -->
+    <select id="getTotalMembers" resultType="int">
+        SELECT COUNT(*)
+        FROM member
+    </select>
+
+    <!-- 총 기부금 조회 (완료된 기부만) -->
+    <select id="getTotalDonations" resultType="long">
+        SELECT COALESCE(SUM(amount), 0)
+        FROM donations
+        WHERE payment_status = 'COMPLETED'
+    </select>
+
+    <!-- 봉사 신청 수 조회 -->
+    <select id="getTotalVolunteers" resultType="int">
+        SELECT COUNT(*)
+        FROM volunteer_applications
+    </select>
+
+    <!-- 복지 진단 수 조회 -->
+    <select id="getTotalDiagnoses" resultType="int">
+        SELECT COUNT(*)
+        FROM welfare_diagnoses
+    </select>
+
+    <!-- 회원 목록 조회 -->
+    <select id="getAllMembers" resultType="hashmap">
+        SELECT
+            member_id AS memberId,
+            email AS userId,
+            pwd,
+            name,
+            email,
+            phone,
+            role,
+            birth,
+            COALESCE(status, 'ACTIVE') AS status,
+            DATE_FORMAT(created_at, '%Y-%m-%d') AS createdAt
+        FROM member
+        ORDER BY
+            CASE WHEN role = 'ADMIN' THEN 0 ELSE 1 END,
+            created_at DESC
+    </select>
+
+    <!-- 공지사항 목록 조회 -->
+    <select id="getAllNotices" resultType="hashmap">
+        SELECT
+            notice_id AS noticeId,
+            admin_id AS adminId,
+            title,
+            content,
+            views,
+            is_pinned AS isPinned,
+            DATE_FORMAT(created_at, '%Y-%m-%d') AS createdAt
+        FROM notices
+        ORDER BY is_pinned DESC, created_at DESC
+    </select>
+
+    <!-- FAQ 목록 조회 -->
+    <select id="getAllFaqs" resultType="hashmap">
+        SELECT
+            f.faq_id AS faqId,
+            fc.category_name AS category,
+            f.question,
+            f.answer,
+            f.order_num AS orderNum,
+            f.is_active AS isActive,
+            DATE_FORMAT(f.created_at, '%Y-%m-%d') AS createdAt
+        FROM faqs f
+        LEFT JOIN faq_categories fc ON f.category_id = fc.category_id
+        ORDER BY f.order_num ASC, f.created_at DESC
+    </select>
+
+    <!-- 기부 내역 조회 -->
+    <select id="getAllDonations" resultType="hashmap">
+        SELECT
+            d.donation_id AS donationId,
+            d.member_id AS userId,
+            d.amount,
+            d.donation_type AS donationType,
+            dc.category_name AS category,
+            d.package_name AS packageName,
+            d.donor_name AS donorName,
+            d.donor_email AS donorEmail,
+            d.donor_phone AS donorPhone,
+            d.message,
+            COALESCE(d.payment_method, 'CREDIT_CARD') AS paymentMethod,
+            d.payment_status AS paymentStatus,
+            DATE_FORMAT(d.created_at, '%Y-%m-%d %H:%i') AS createdAt
+        FROM donations d
+        LEFT JOIN donation_categories dc ON d.category_id = dc.category_id
+        ORDER BY d.created_at DESC
+    </select>
+
+    <!-- 봉사 신청 내역 조회 -->
+    <select id="getAllVolunteers" resultType="hashmap">
+        SELECT
+            va.application_id AS applicationId,
+            va.activity_id AS activityId,
+            va.member_id AS userId,
+            va.applicant_name AS applicantName,
+            va.applicant_phone AS applicantPhone,
+            va.applicant_email AS applicantEmail,
+            va.selected_category AS selectedCategory,
+            DATE_FORMAT(va.volunteer_date, '%Y-%m-%d') AS volunteerDate,
+            va.status,
+            act.activity_name AS activityName,
+            DATE_FORMAT(va.created_at, '%Y-%m-%d') AS createdAt
+        FROM volunteer_applications va
+        LEFT JOIN volunteer_activities act ON va.activity_id = act.activity_id
+        ORDER BY va.created_at DESC
+    </select>
+
+    <!-- 회원 정보 수정 -->
+    <update id="updateMember" parameterType="map">
+        UPDATE member
+        SET name = #{name},
+            phone = #{phone}
+        WHERE email = #{userId}
+    </update>
+
+    <!-- 회원 삭제 -->
+    <delete id="deleteMember" parameterType="string">
+        DELETE FROM member
+        WHERE email = #{userId}
+    </delete>
+
+    <!-- 회원 계정 정지 -->
+    <update id="suspendMember" parameterType="string">
+        UPDATE member
+        SET status = 'SUSPENDED'
+        WHERE email = #{userId}
+    </update>
+
+    <!-- 회원 계정 활성화 -->
+    <update id="activateMember" parameterType="string">
+        UPDATE member
+        SET status = 'ACTIVE'
+        WHERE email = #{userId}
+    </update>
+
+    <!-- 회원 상태 조회 (member_id로 조회) -->
+    <select id="getMemberStatus" parameterType="long" resultType="map">
+        SELECT
+            member_id,
+            email,
+            name,
+            status
+        FROM member
+        WHERE member_id = #{memberId}
+    </select>
+
+    <!-- 회원 상태 조회 (userId로 조회) -->
+    <select id="getMemberStatusByUserId" parameterType="string" resultType="map">
+        SELECT
+            member_id,
+            email,
+            name,
+            status
+        FROM member
+        WHERE email = #{userId}
+    </select>
+
+</mapper>

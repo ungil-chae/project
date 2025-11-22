@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.greenart.bdproject.mapper.VolunteerApplicationMapper">
+
+    <!-- resultMap: VolunteerApplicationResult → VolunteerApplicationDto (activityName은 volunteer_activities 조인) -->
+    <resultMap id="VolunteerApplicationResult" type="com.greenart.bdproject.dto.VolunteerApplicationDto">
+        <id property="applicationId" column="application_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="activityId" column="activity_id"/>
+        <result property="activityName" column="activity_name"/>
+        <result property="applicantName" column="applicant_name"/>
+        <result property="applicantEmail" column="applicant_email"/>
+        <result property="applicantPhone" column="applicant_phone"/>
+        <result property="motivation" column="motivation"/>
+        <result property="status" column="status"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- insert: INSERT INTO volunteer_applications -->
+    <insert id="insert" parameterType="com.greenart.bdproject.dto.VolunteerApplicationDto" useGeneratedKeys="true" keyProperty="applicationId">
+        INSERT INTO volunteer_applications (user_id, activity_id, applicant_name, applicant_email, applicant_phone,
+                                           motivation, status, created_at, updated_at)
+        VALUES (#{userId}, #{activityId}, #{applicantName}, #{applicantEmail}, #{applicantPhone},
+                #{motivation}, #{status}, NOW(), NOW())
+    </insert>
+
+    <!-- selectById: SELECT va.*, vact.activity_name FROM volunteer_applications va LEFT JOIN volunteer_activities vact ON va.activity_id = vact.activity_id WHERE va.application_id = #{applicationId} -->
+    <select id="selectById" parameterType="int" resultMap="VolunteerApplicationResult">
+        SELECT va.application_id, va.user_id, va.activity_id, va.applicant_name, va.applicant_email, va.applicant_phone,
+               va.motivation, va.status, va.created_at, va.updated_at,
+               vact.activity_name
+        FROM volunteer_applications va
+        LEFT JOIN volunteer_activities vact ON va.activity_id = vact.activity_id
+        WHERE va.application_id = #{applicationId}
+    </select>
+
+    <!-- selectByUserId: SELECT va.*, vact.activity_name FROM volunteer_applications va LEFT JOIN volunteer_activities vact ON va.activity_id = vact.activity_id WHERE va.user_id = #{userId} ORDER BY va.created_at DESC -->
+    <select id="selectByUserId" parameterType="int" resultMap="VolunteerApplicationResult">
+        SELECT va.application_id, va.user_id, va.activity_id, va.applicant_name, va.applicant_email, va.applicant_phone,
+               va.motivation, va.status, va.created_at, va.updated_at,
+               vact.activity_name
+        FROM volunteer_applications va
+        LEFT JOIN volunteer_activities vact ON va.activity_id = vact.activity_id
+        WHERE va.user_id = #{userId}
+        ORDER BY va.created_at DESC
+    </select>
+
+    <!-- selectAll: SELECT va.*, vact.activity_name FROM volunteer_applications va LEFT JOIN volunteer_activities vact ON va.activity_id = vact.activity_id ORDER BY va.created_at DESC -->
+    <select id="selectAll" resultMap="VolunteerApplicationResult">
+        SELECT va.application_id, va.user_id, va.activity_id, va.applicant_name, va.applicant_email, va.applicant_phone,
+               va.motivation, va.status, va.created_at, va.updated_at,
+               vact.activity_name
+        FROM volunteer_applications va
+        LEFT JOIN volunteer_activities vact ON va.activity_id = vact.activity_id
+        ORDER BY va.created_at DESC
+    </select>
+
+    <!-- updateStatus: UPDATE volunteer_applications SET status = #{status} WHERE application_id = #{applicationId} -->
+    <update id="updateStatus" parameterType="map">
+        UPDATE volunteer_applications
+        SET status = #{status},
+            updated_at = NOW()
+        WHERE application_id = #{applicationId}
+    </update>
+
+</mapper>

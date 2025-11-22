@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.greenart.bdproject.mapper.WelfareDiagnosisMapper">
+
+    <!-- resultMap: WelfareDiagnosisResult → WelfareDiagnosisDto -->
+    <resultMap id="WelfareDiagnosisResult" type="com.greenart.bdproject.dto.WelfareDiagnosisDto">
+        <id property="diagnosisId" column="diagnosis_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="birthDate" column="birth_date"/>
+        <result property="gender" column="gender"/>
+        <result property="householdSize" column="household_size"/>
+        <result property="incomeLevel" column="income_level"/>
+        <result property="maritalStatus" column="marital_status"/>
+        <result property="childrenCount" column="children_count"/>
+        <result property="employmentStatus" column="employment_status"/>
+        <result property="sido" column="sido"/>
+        <result property="sigungu" column="sigungu"/>
+        <result property="isPregnant" column="is_pregnant"/>
+        <result property="isDisabled" column="is_disabled"/>
+        <result property="isMulticultural" column="is_multicultural"/>
+        <result property="isVeteran" column="is_veteran"/>
+        <result property="isSingleParent" column="is_single_parent"/>
+        <result property="matchedServicesJson" column="matched_services_json"/>
+        <result property="saveConsent" column="save_consent"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <!-- insert: INSERT INTO welfare_diagnoses -->
+    <insert id="insert" parameterType="com.greenart.bdproject.dto.WelfareDiagnosisDto" useGeneratedKeys="true" keyProperty="diagnosisId">
+        INSERT INTO welfare_diagnoses (
+            user_id, birth_date, gender, household_size, income_level,
+            marital_status, children_count, employment_status, sido, sigungu,
+            is_pregnant, is_disabled, is_multicultural, is_veteran, is_single_parent,
+            matched_services_json, save_consent, created_at
+        )
+        VALUES (
+            #{userId}, #{birthDate}, #{gender}, #{householdSize}, #{incomeLevel},
+            #{maritalStatus}, #{childrenCount}, #{employmentStatus}, #{sido}, #{sigungu},
+            #{isPregnant}, #{isDisabled}, #{isMulticultural}, #{isVeteran}, #{isSingleParent},
+            #{matchedServicesJson}, #{saveConsent}, NOW()
+        )
+    </insert>
+
+    <!-- selectByUserId: SELECT * FROM welfare_diagnoses WHERE user_id = #{userId} ORDER BY created_at DESC -->
+    <select id="selectByUserId" parameterType="string" resultMap="WelfareDiagnosisResult">
+        SELECT diagnosis_id, user_id, birth_date, gender, household_size, income_level,
+               marital_status, children_count, employment_status, sido, sigungu,
+               is_pregnant, is_disabled, is_multicultural, is_veteran, is_single_parent,
+               matched_services_json, save_consent, created_at
+        FROM welfare_diagnoses
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- selectById: SELECT * FROM welfare_diagnoses WHERE diagnosis_id = #{diagnosisId} -->
+    <select id="selectById" parameterType="long" resultMap="WelfareDiagnosisResult">
+        SELECT diagnosis_id, user_id, birth_date, gender, household_size, income_level,
+               marital_status, children_count, employment_status, sido, sigungu,
+               is_pregnant, is_disabled, is_multicultural, is_veteran, is_single_parent,
+               matched_services_json, save_consent, created_at
+        FROM welfare_diagnoses
+        WHERE diagnosis_id = #{diagnosisId}
+    </select>
+
+    <!-- selectLatestByUserId: SELECT * FROM welfare_diagnoses WHERE user_id = #{userId} ORDER BY created_at DESC LIMIT 1 -->
+    <select id="selectLatestByUserId" parameterType="string" resultMap="WelfareDiagnosisResult">
+        SELECT diagnosis_id, user_id, birth_date, gender, household_size, income_level,
+               marital_status, children_count, employment_status, sido, sigungu,
+               is_pregnant, is_disabled, is_multicultural, is_veteran, is_single_parent,
+               matched_services_json, save_consent, created_at
+        FROM welfare_diagnoses
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+        LIMIT 1
+    </select>
+
+</mapper>

@@ -1,0 +1,568 @@
+/*mypage.css*/
+body {
+	font-family: 'Arial', sans-serif;
+	background-color: #fff;
+	margin: 0;
+	padding: 0;
+	display: flex; /* Flexbox 레이아웃 사용 */
+	flex-direction: column; /* 세로 방향으로 아이템 배치 */
+	min-height: 100vh; /* 최소 뷰포트 높이 = 화면 전체 높이 */
+	box-sizing: border-box;
+}
+
+/* Header 스타일 */
+header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	background-color: #eff7e8;
+	padding: 10px 20px;
+	width: 100%;
+	box-sizing: border-box;
+	flex-shrink: 0; /* 헤더 크기 고정 (줄어들지 않음) */
+}
+
+#logo img {
+	width: 200px;
+	height: auto;
+}
+
+#search-box {
+	padding: 8px;
+	width: 400px;
+	border: 1px solid #ccc;
+	border-radius: 5px;
+	margin: 0 auto;
+	box-sizing: border-box;
+}
+
+#logout-btn {
+	background-color: #e6f0d7;
+	border: none;
+	padding: 10px 16px;
+	cursor: pointer;
+	width: 90px;
+	border-radius: 5px;
+}
+
+/* Navigation Bar 스타일 */
+nav {
+	background-color: #e6f0d7;
+	text-align: center;
+	padding: 15px 0;
+	border-bottom: 1px solid #d4e0c4;
+	width: 100%;
+	box-sizing: border-box;
+	flex-shrink: 0; /* 네비게이션바 크기 고정 (줄어들지 않음) */
+}
+
+nav a {
+	text-decoration: none;
+	margin: 0 20px;
+	color: #000;
+	font-weight: bold;
+}
+
+nav a:hover {
+	text-decoration: underline;
+}
+
+/* 메인 콘텐츠 영역 전체를 감싸는 래퍼 (헤더, 네비, 푸터를 제외한 공간 차지) */
+.main-content-wrapper {
+	display: flex; /* 내부 요소들을 가로로 배치 (사이드바 + 우측 영역) */
+	width: 90%;
+	max-width: 1200px;
+	margin: 20px auto 0; /* 상단 마진 20px, 좌우 중앙, 하단 마진 0 (푸터와의 간격은 푸터 margin-top으로) */
+	gap: 20px; /* 사이드바와 우측 영역 사이 간격 */
+	align-items: flex-start; /* 자식 요소들을 상단에 정렬 */
+	box-sizing: border-box;
+	flex-grow: 1; /* 이 부분이 중요: 남은 수직 공간을 모두 차지하도록 함 */
+}
+
+
+/* 사이드바 스타일 */
+.sidebar {
+	width: 250px;
+	padding: 20px;
+	background-color: #f9f9f9;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+	flex-shrink: 0; /* 사이드바 너비 고정 */
+	box-sizing: border-box;
+	border-radius: 10px;
+}
+
+/* 배너와 메인 컨테이너를 감싸는 우측 영역 */
+.right-section-wrapper {
+    display: flex;
+    flex-direction: column; /* 배너와 메인 컨테이너를 세로로 배치 */
+    width: 100%; /* 부모 .main-content-wrapper 안에서 남은 공간 전부 사용 */
+    gap: 20px; /* 배너와 메인 컨테이너 사이 간격 */
+}
+
+/* 배너 스타일 */
+.top-main-banner {
+	flex-shrink: 0; /* 배너 크기 고정 (줄어들지 않음) */
+	background-color: rgb(255, 255, 224); /* 연한 노란색 */
+	border-radius: 10px;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between; /* 상단 제목과 하단 버튼 분리 */
+	align-items: flex-start; /* 콘텐츠를 왼쪽에 정렬 */
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+	box-sizing: border-box;
+	padding: 20px;
+	min-height: 350px;
+	height: auto;
+	position: relative;
+}
+
+/* 최근 본 책들 제목 및 구분선 */
+.top-main-banner .recent-books-header {
+	width: 100%;
+	text-align: left;
+	padding-bottom: 10px;
+	margin-bottom: 10px;
+	border-bottom: 1px solid gray;
+	box-sizing: border-box;
+}
+
+.top-main-banner .recent-books-header h2 {
+	color: gray;
+	font-size: 1.5em;
+	margin: 0;
+}
+
+/* 책 목록 컨테이너 */
+.recent-books-list {
+	flex-grow: 1;
+	width: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	color: #888;
+	font-size: 1.2em;
+	text-align: center;
+	min-height: 100px;
+	box-sizing: border-box;
+	overflow-y: auto;
+	padding: 10px 0;
+}
+
+/* 실제 책 아이템들을 위한 스타일 (나중에 사용) */
+.recent-books-list .book-item {
+	/* 각 책 아이템 스타일 */
+}
+
+/* 프로필 박스 스타일 */
+.profile {
+	width: 170px;
+	background-color: #ddd;
+	border-radius: 10px;
+	text-align: center;
+	padding-top: 20px;
+	padding-bottom: 10px;
+	margin: 10px auto 30px auto;
+	box-sizing: border-box;
+}
+
+.profile .image {
+	width: 70px;
+	height: 70px;
+	border-radius: 50%;
+	margin-bottom: 10px;
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	object-fit: cover;
+}
+
+.profile .nickname-display {
+	color: #333;
+	font-weight: bold;
+	margin-bottom: 10px;
+}
+
+.profile .link-group {
+	display: flex;
+	justify-content: center;
+	gap: 10px;
+}
+
+.profile .a {
+	color: #333;
+	font-weight: bold;
+	text-decoration: none;
+	white-space: nowrap;
+}
+
+.profile .a:hover {
+	text-decoration: underline;
+}
+
+/* 사이드바 메뉴 스타일 */
+.sidebar-menu ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.sidebar-menu li {
+	margin-bottom: 5px;
+}
+
+.sidebar-menu a {
+	text-decoration: none;
+	color: #333;
+	font-weight: bold;
+	display: block;
+	padding: 8px 10px;
+	transition: background-color 0.2s ease, color 0.2s ease;
+	border-radius: 4px;
+	box-sizing: border-box;
+}
+
+.sidebar-menu a:hover {
+	color: #fff;
+	background-color: #4CAF50;
+	text-decoration: none;
+}
+
+/* 선택된 사이드바 메뉴 항목 */
+.sidebar-menu a.active {
+	background-color: #4CAF50;
+	color: #fff;
+	font-weight: bold;
+}
+
+.sidebar-menu .menu-category {
+	font-size: 1.1em;
+	color: #555;
+	margin-top: 25px;
+	margin-bottom: 10px;
+	font-weight: bold;
+	border-bottom: 2px solid #ccc;
+	padding-bottom: 5px;
+	padding-left: 5px;
+	box-sizing: border-box;
+}
+
+/* 메인 컨테이너 (사이드바 클릭 시 내용이 바뀌는 영역) */
+.main-container {
+	width: 100%; /* 부모 .right-section-wrapper 안에서 100% */
+	border: 1px solid #eee;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+	border-radius: 10px;
+	overflow: hidden;
+	flex-grow: 1; /* 남은 수직 공간을 채우도록 */
+	box-sizing: border-box;
+	padding: 20px;
+}
+
+/* 각 내용 섹션에 공통 적용될 스타일 */
+.content-section {
+	display: none;
+	width: 100%;
+	max-width: 800px;
+	text-align: center;
+	margin: 0 auto;
+}
+
+.content-section.active {
+	display: block;
+}
+
+.content-section h2 {
+	color: #333;
+	margin-bottom: 15px;
+}
+
+.content-section p {
+	color: #666;
+	margin-bottom: 30px;
+	line-height: 1.6;
+}
+
+/* 노란색 버튼들 (슬라이드 컨트롤) 스타일 - 배너 내부에 배치됨 */
+.banner-controls {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	position: absolute;
+	bottom: 20px;
+	left: 50%;
+	transform: translateX(-50%);
+	width: auto;
+}
+#wishlist-select-toggle-btn { margin-bottom: 70px; }
+.banner-controls button {
+	background-color: rgba(255, 193, 7, 0.9);
+	border: none;
+	border-radius: 5px;
+	padding: 8px 12px;
+	margin: 0 5px;
+	cursor: pointer;
+	font-size: 16px;
+	color: #000;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	transition: background-color 0.3s ease;
+}
+
+.banner-controls button:hover {
+	background-color: rgba(255, 160, 0, 0.95);
+}
+
+/* 폼 관련 CSS */
+#edit-profile-password-form, #withdraw-form, #review-manage-form, #contact-form, #edit-profile-detail-form,
+#change-id-pw-password-form, #edit-id-password-forms-content, #customer-service-form {
+	max-width: 500px;
+	margin: 20px auto;
+	padding: 20px;
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	background-color: #fff;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+	text-align: left;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+#edit-profile-password-form label, #withdraw-form label,
+#review-manage-form label, #contact-form label, #edit-profile-detail-form label,
+#change-id-pw-password-form label, #edit-id-password-forms-content label,
+#customer-service-form label {
+	display: block;
+	margin-bottom: 8px;
+	font-weight: bold;
+	color: #555;
+}
+
+#edit-profile-password-form input[type="password"],
+#withdraw-form textarea,
+#review-manage-form textarea, #contact-form textarea, #customer-service-form textarea,
+#edit-profile-detail-form input[type="text"], #edit-profile-detail-form input[type="password"],
+#edit-profile-detail-form input[type="email"], #edit-profile-detail-form select,
+#change-id-pw-password-form input[type="password"],
+#edit-id-password-forms-content input[type="text"], #edit-id-password-forms-content input[type="password"],
+#withdraw-form input[type="password"],
+#customer-service-form input[type="text"] {
+	width: calc(100% - 20px);
+	padding: 10px;
+	margin-bottom: 15px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	box-sizing: border-box;
+	min-height: 30px;
+	resize: none;
+}
+
+/* 폼 안의 textarea와 체크박스 그룹만 높이 조절 및 별도 스타일 */
+#contact-form textarea, #customer-service-form textarea {
+	min-height: 150px;
+	resize: vertical;
+}
+
+#edit-profile-detail-form .checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+#edit-profile-detail-form .checkbox-group label {
+    display: inline-flex;
+    align-items: center;
+    margin-bottom: 0;
+    font-weight: normal;
+    color: #333;
+}
+
+#edit-profile-detail-form .checkbox-group input[type="checkbox"] {
+    width: auto;
+    margin-right: 5px;
+    margin-bottom: 0;
+}
+
+#edit-profile-password-form button, #withdraw-form button,
+#review-manage-form button, #contact-form button, #edit-profile-detail-form button,
+#change-id-pw-password-form button, #edit-id-password-forms-content button,
+#customer-service-form button {
+	background-color: #4CAF50;
+	color: white;
+	padding: 10px 15px;
+	border: none;
+	border-radius: 5px;
+	cursor: pointer;
+	font-size: 1em;
+	margin-top: 10px;
+}
+
+#edit-profile-password-form button:hover,
+#withdraw-form button:hover,
+#review-manage-form button:hover, #contact-form button:hover, #edit-profile-detail-form button:hover,
+#change-id-pw-password-form button:hover, #edit-id-password-forms-content button:hover,
+#customer-service-form button:hover {
+	background-color: #45a049;
+}
+
+/* 푸터 스타일 */
+footer {
+    background-color: #eff7e8;
+    color: #333;
+    padding: 20px 0;
+    text-align: center;
+    font-size: 14px;
+    border-top: 1px solid #ccc;
+    margin-top: auto; /* 중요: flex 컨테이너 내에서 푸터를 하단으로 밀어냅니다. */
+    flex-shrink: 0; /* 푸터가 줄어들지 않도록 합니다. */
+    width: 100%; /* 너비를 100%로 설정 */
+    box-sizing: border-box; /* 패딩, 보더 포함 너비 계산 */
+}
+
+.footer-container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.footer-links a {
+    color: #333;
+    text-decoration: none;
+    margin: 0 8px;
+}
+
+.footer-links a:hover {
+    text-decoration: underline;
+}
+
+/* mypage.css에 추가 */
+
+/* 찜 목록 그리드에 상대적 위치 설정 */
+.search-results-grid {
+    position: relative;
+}
+
+/* 찜 목록 각 카드에 적용될 스타일 */
+.book-card {
+    position: relative; /* 자식 요소인 삭제 버튼의 위치 기준점 */
+    overflow: hidden; /* 카드를 벗어나는 요소 숨김 */
+}
+
+/* 삭제 버튼 (X) 스타일 */
+.wishlist-delete-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 24px;
+    text-align: center;
+    cursor: pointer;
+    opacity: 0; /* 평소에는 숨김 */
+    transition: opacity 0.2s, background-color 0.2s;
+    z-index: 10;
+}
+
+/* 카드에 마우스를 올렸을 때 삭제 버튼 표시 */
+.book-card:hover .wishlist-delete-btn {
+    opacity: 1;
+}
+
+.wishlist-delete-btn:hover {
+    background-color: rgba(255, 0, 0, 0.8);
+}
+
+/* 선택 삭제 버튼 스타일 */
+.wishlist-select-delete-btn {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    margin: 20px 0 10px;
+}
+
+.wishlist-select-delete-btn:hover {
+    background-color: #c0392b;
+}
+
+/* --- 카드 2중 이미지 겹치기 전용 --- */
+.card{position:relative;overflow:hidden;}        /* 기준점 + 잘라내기 */
+.card .bg-img{position:absolute;inset:0;object-fit:cover;filter:blur(8px);opacity:.35;transform:scale(1.1);}
+.card .cover-img{position:relative;z-index:1;display:block;width:100%;}
+
+/* --- 카드(찜 목록) 썸네일 크기를 1/3로 축소 --- */
+.card{                 /* 카드 자체 폭 ↓ */
+    max-width:120px;   /* 예: 원래 360px → 120px (= 1/3)  */
+}
+.card img{             /* 카드 안 모든 이미지가 카드 폭을 꽉 채우도록 */
+    width:100%;
+    height:auto;
+}
+/* --- 찜 목록(책 카드) 썸네일을 1/3 사이즈로 축소 --- */
+.search-results-grid{                          /* 카드들을 그리드로 배치 */
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
+    gap:20px;                                  /* 카드 사이 간격 */
+    justify-content:center;
+}
+
+.book-card,           /* 찜 목록 카드 */
+.card{                /* (다른 페이지 공용 카드까지 함께 축소) */
+    width:120px;      /* 고정 폭 = 원본 360px의 1/3 */
+    max-width:120px;
+    position:relative;
+}
+
+.book-card img,
+.card img{
+    width:100%;       /* 카드 폭에 맞춰 축소 */
+    height:auto;
+}
+/* === 찜 목록 카드( .grid > .card ) 썸네일 사이즈 축소 & 레이아웃 === */
+.grid{
+    /* 필요하면 아래 두 줄로 그리드를 만들고, gap 조정 */
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
+    gap:20px;
+}
+
+.grid > .card{
+    width:120px !important;       /* 원본(≈360px)의 1/3 */
+    max-width:120px !important;
+    position:relative;
+    text-decoration:none;         /* 링크 밑줄 제거 */
+}
+
+/* 카드 안 이미지 - 배경, 표지 모두 카드 폭을 꽉 채우도록 */
+.grid > .card img{
+    width:100% !important;
+    height:auto !important;
+    display:block;
+}
+
+/* 배경 이미지를 흐릿하게 겹치기 ─ 필요 없다면 삭제 */
+.grid > .card .bg-img{
+    position:absolute;
+    inset:0;
+    object-fit:cover;
+    filter:blur(8px);
+    opacity:.35;
+    transform:scale(1.1);
+}
+.grid > .card .cover-img{
+    position:relative;
+    z-index:1;
+}
+/* --- 찜 목록 선택 삭제 모드 --- */
+.wishlist-item-checkbox{display:none;}                /* 기본은 숨김 */
+
+.delete-mode .wishlist-item-checkbox{display:block;}  /* 삭제 모드에서만 표시 */
+.delete-mode .card{cursor:pointer;}

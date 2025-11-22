@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.greenart.bdproject.mapper.DonationReviewMapper">
+
+    <!-- resultMap: DonationReviewResult → DonationReviewDto -->
+    <resultMap id="DonationReviewResult" type="com.greenart.bdproject.dto.DonationReviewDto">
+        <id property="reviewId" column="review_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="donationId" column="donation_id"/>
+        <result property="reviewerName" column="reviewer_name"/>
+        <result property="rating" column="rating"/>
+        <result property="content" column="content"/>
+        <result property="isAnonymous" column="is_anonymous"/>
+        <result property="helpfulCount" column="helpful_count"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <!-- JOIN으로 가져올 필드 -->
+        <result property="category" column="category"/>
+        <result property="donationAmount" column="donation_amount"/>
+        <result property="donationType" column="donation_type"/>
+    </resultMap>
+
+    <!-- insert: INSERT INTO donation_reviews -->
+    <insert id="insertReview" parameterType="com.greenart.bdproject.dto.DonationReviewDto" useGeneratedKeys="true" keyProperty="reviewId">
+        INSERT INTO donation_reviews (user_id, donation_id, reviewer_name, rating, content, is_anonymous, helpful_count, created_at, updated_at)
+        VALUES (#{userId}, #{donationId}, #{reviewerName}, #{rating}, #{content}, #{isAnonymous}, COALESCE(#{helpfulCount}, 0), NOW(), NOW())
+    </insert>
+
+    <!-- selectById: SELECT * FROM donation_reviews WHERE review_id = #{reviewId} -->
+    <select id="selectById" parameterType="long" resultMap="DonationReviewResult">
+        SELECT
+            dr.review_id, dr.user_id, dr.donation_id, dr.reviewer_name, dr.rating,
+            dr.content, dr.is_anonymous, dr.helpful_count, dr.created_at, dr.updated_at,
+            d.category, d.amount as donation_amount, d.donation_type
+        FROM donation_reviews dr
+        LEFT JOIN donations d ON dr.donation_id = d.donation_id
+        WHERE dr.review_id = #{reviewId}
+    </select>
+
+    <!-- selectAll: SELECT * FROM donation_reviews ORDER BY created_at DESC -->
+    <select id="selectAll" resultMap="DonationReviewResult">
+        SELECT
+            dr.review_id, dr.user_id, dr.donation_id, dr.reviewer_name, dr.rating,
+            dr.content, dr.is_anonymous, dr.helpful_count, dr.created_at, dr.updated_at,
+            d.category, d.amount as donation_amount, d.donation_type
+        FROM donation_reviews dr
+        LEFT JOIN donations d ON dr.donation_id = d.donation_id
+        ORDER BY dr.created_at DESC
+    </select>
+
+    <!-- selectByUserId: SELECT * FROM donation_reviews WHERE user_id = #{userId} ORDER BY created_at DESC -->
+    <select id="selectByUserId" parameterType="long" resultMap="DonationReviewResult">
+        SELECT
+            dr.review_id, dr.user_id, dr.donation_id, dr.reviewer_name, dr.rating,
+            dr.content, dr.is_anonymous, dr.helpful_count, dr.created_at, dr.updated_at,
+            d.category, d.amount as donation_amount, d.donation_type
+        FROM donation_reviews dr
+        LEFT JOIN donations d ON dr.donation_id = d.donation_id
+        WHERE dr.user_id = #{userId}
+        ORDER BY dr.created_at DESC
+    </select>
+
+    <!-- countTotalReviews: SELECT COUNT(*) FROM donation_reviews -->
+    <select id="countTotalReviews" resultType="int">
+        SELECT COUNT(*)
+        FROM donation_reviews
+    </select>
+
+    <!-- getAverageRating: SELECT AVG(rating) FROM donation_reviews -->
+    <select id="getAverageRating" resultType="double">
+        SELECT COALESCE(AVG(rating), 0.0)
+        FROM donation_reviews
+    </select>
+
+</mapper>

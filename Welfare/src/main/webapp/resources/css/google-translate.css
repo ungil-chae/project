@@ -1,0 +1,75 @@
+/* ===================================
+   Google Translate 커스터마이징 스타일
+   =================================== */
+
+/* Google Translate 배너 숨기기 */
+.goog-te-banner-frame {
+    display: none !important;
+}
+
+body {
+    top: 0 !important;
+}
+
+/* Google Translate 위젯 스타일 */
+.goog-te-gadget {
+    font-family: inherit !important;
+}
+
+.goog-te-gadget-simple {
+    background-color: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    font-size: 14px !important;
+}
+
+.goog-te-menu-value {
+    color: #333 !important;
+}
+
+.goog-te-menu-value:hover {
+    text-decoration: none !important;
+}
+
+/* Google Translate 드롭다운 메뉴 스타일 */
+.goog-te-menu2 {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.goog-te-menu2-item {
+    padding: 10px 16px !important;
+    border-left: 3px solid transparent !important;
+    transition: all 0.2s !important;
+}
+
+.goog-te-menu2-item:hover {
+    background-color: #f8f9fa !important;
+    border-left-color: #4A90E2 !important;
+}
+
+.goog-te-menu2-item-selected {
+    background-color: #e8f4ff !important;
+    border-left-color: #4A90E2 !important;
+}
+
+/* 언어 선택기 컨테이너 */
+.language-selector {
+    position: relative;
+    display: inline-block;
+}
+
+#google_translate_element {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: white;
+    padding: 12px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    z-index: 9999;
+    min-width: 200px;
+    display: none;
+}

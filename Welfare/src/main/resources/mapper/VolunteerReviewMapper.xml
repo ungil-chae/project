@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.greenart.bdproject.mapper.VolunteerReviewMapper">
+
+    <!-- resultMap: schema.sql의 volunteer_reviews 테이블 구조에 맞춤 -->
+    <resultMap id="VolunteerReviewResult" type="com.greenart.bdproject.dto.VolunteerReviewDto">
+        <id property="reviewId" column="review_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="userName" column="user_name"/>
+        <result property="applicationId" column="application_id"/>
+        <result property="activityName" column="activity_name"/>
+        <result property="volunteerExperience" column="volunteer_experience"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="rating" column="rating"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <!-- insert: 봉사 후기 등록 -->
+    <insert id="insert" parameterType="com.greenart.bdproject.dto.VolunteerReviewDto" useGeneratedKeys="true" keyProperty="reviewId">
+        INSERT INTO volunteer_reviews (user_id, application_id, title, content, rating, created_at)
+        VALUES (#{userId}, #{applicationId}, #{title}, #{content}, #{rating}, NOW())
+    </insert>
+
+    <!-- selectById: ID로 후기 조회 (member와 조인하여 user_name 포함) -->
+    <select id="selectById" parameterType="long" resultMap="VolunteerReviewResult">
+        SELECT
+            vr.review_id,
+            vr.user_id,
+            m.name AS user_name,
+            vr.application_id,
+            va.selected_category AS activity_name,
+            va.volunteer_experience,
+            vr.title,
+            vr.content,
+            vr.rating,
+            vr.created_at
+        FROM volunteer_reviews vr
+        INNER JOIN member m ON vr.user_id = m.id
+        LEFT JOIN volunteer_applications va ON vr.application_id = va.application_id
+        WHERE vr.review_id = #{reviewId}
+    </select>
+
+    <!-- selectAll: 전체 후기 목록 조회 (최신순, member와 조인하여 user_name 포함) -->
+    <select id="selectAll" resultMap="VolunteerReviewResult">
+        SELECT
+            vr.review_id,
+            vr.user_id,
+            m.name AS user_name,
+            vr.application_id,
+            va.selected_category AS activity_name,
+            va.volunteer_experience,
+            vr.title,
+            vr.content,
+            vr.rating,
+            vr.created_at
+        FROM volunteer_reviews vr
+        INNER JOIN member m ON vr.user_id = m.id
+        LEFT JOIN volunteer_applications va ON vr.application_id = va.application_id
+        ORDER BY vr.created_at DESC
+    </select>
+
+    <!-- selectByUserId: 사용자별 후기 목록 조회 -->
+    <select id="selectByUserId" parameterType="string" resultMap="VolunteerReviewResult">
+        SELECT
+            vr.review_id,
+            vr.user_id,
+            m.name AS user_name,
+            vr.application_id,
+            va.selected_category AS activity_name,
+            va.volunteer_experience,
+            vr.title,
+            vr.content,
+            vr.rating,
+            vr.created_at
+        FROM volunteer_reviews vr
+        INNER JOIN member m ON vr.user_id = m.id
+        LEFT JOIN volunteer_applications va ON vr.application_id = va.application_id
+        WHERE vr.user_id = #{userId}
+        ORDER BY vr.created_at DESC
+    </select>
+
+    <!-- countByApplicationId: 봉사 신청별 후기 존재 여부 확인 -->
+    <select id="countByApplicationId" parameterType="long" resultType="int">
+        SELECT COUNT(*)
+        FROM volunteer_reviews
+        WHERE application_id = #{applicationId}
+    </select>
+
+</mapper>

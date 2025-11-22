@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mvn clean compile:*)",
+      "Bash(tree:*)",
+      "Bash(javac:*)",
+      "Bash(dir:*)",
+      "Bash(nul)",
+      "Bash(mysql:*)",
+      "Bash(mvn compile:*)",
+      "Bash(\"C:\\workspace\\Study\\Welfare\\src\\main\\webapp\\project_fundUsage.jsp.tmp\")",
+      "Bash(cat:*)",
+      "Bash(echo \"mysql -u root -p1709 springmvc < \"\"C:\\workspace\\Study\\Welfare\\fix_database_quick.sql\"\"\")",
+      "Bash(echo \"mysql -u root -p1709 < \"\"C:\\workspace\\Study\\Welfare\\src\\main\\resources\\schema.sql\"\"\")",
+      "Bash(echo \"mysql -u root -p1709 springmvc < \"\"C:\\workspace\\Study\\Welfare\\src\\main\\resources\\schema.sql\"\"\")",
+      "Bash(where mysql:*)",
+      "Bash(git checkout:*)",
+      "Bash(where mvn:*)",
+      "Bash(del \"C:\\workspace\\Study\\Welfare\\src\\main\\resources\\schema_optimized.sql\")",
+      "Bash(\"C:\\Program Files\\MySQL\\MySQL Server 8.4\\bin\\mysql.exe\" -u root -p1709 springmvc -e \"SELECT email, name, role, status FROM member WHERE email = ''cwil123789@gmail.com'';\")",
+      "Bash(\"C:\\Program Files\\MySQL\\MySQL Server 8.4\\bin\\mysql.exe\" -u root -p1709 springmvc -e \"SELECT email, pwd FROM member WHERE email = ''cwil123789@gmail.com'';\")",
+      "mcp__ide__getDiagnostics",
+      "Bash(\"C:\\Program Files\\MySQL\\MySQL Server 8.4\\bin\\mysql.exe\" -u root -p1709 springmvc -e \"SELECT email, login_fail_count FROM member WHERE email = ''cwil123789@gmail.com'';\")",
+      "Bash(\"C:\\workspace\\Study\\Welfare\\src\\main\\resources\\schema_optimized.sql\")",
+      "Bash(del \"C:\\workspace\\Study\\Welfare\\src\\main\\resources\\schema_optimization_migration.sql\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

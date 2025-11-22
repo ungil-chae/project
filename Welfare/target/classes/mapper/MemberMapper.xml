@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.greenart.member">
+	<!-- 회원 등록 (신규 스키마: email이 로그인 ID) -->
+	<insert id="insert" parameterType="Member">
+		INSERT INTO member (email, pwd, name, phone, role, status, birth, gender, security_question, security_answer)
+		VALUES (#{email}, #{pwd}, #{name}, #{phone},
+		        COALESCE(#{role}, 'USER'),
+		        COALESCE(#{status}, 'ACTIVE'),
+		        #{birth}, #{gender}, #{securityQuestion}, #{securityAnswer})
+	</insert>
+
+	<!-- 이메일로 회원 조회 (email이 PK 역할) -->
+	<select id="select" parameterType="String" resultType="Member">
+		SELECT member_id AS memberId, email, pwd, name, phone, role, status, birth, gender,
+		       security_question AS securityQuestion, security_answer AS securityAnswer,
+		       kindness_temperature AS kindnessTemperature,
+		       login_fail_count AS loginFailCount,
+		       last_login_fail_at AS lastLoginFailAt,
+		       account_locked_until AS accountLockedUntil,
+		       last_login_at AS lastLoginAt, created_at AS createdAt, updated_at AS updatedAt
+		FROM member
+		WHERE email = #{email} AND deleted_at IS NULL
+	</select>
+
+	<!-- 회원 삭제 (소프트 삭제) -->
+	<delete id="delete" parameterType="String">
+		UPDATE member SET deleted_at = NOW() WHERE email = #{email}
+	</delete>
+
+	<!-- 회원 정보 수정 -->
+	<update id="update" parameterType="Member">
+		UPDATE member
+		SET pwd = #{pwd},
+		    name = #{name},
+		    phone = #{phone},
+		    role = #{role},
+		    security_question = #{securityQuestion},
+		    security_answer = #{securityAnswer},
+		    login_fail_count = #{loginFailCount},
+		    last_login_fail_at = #{lastLoginFailAt},
+		    account_locked_until = #{accountLockedUntil},
+		    last_login_at = #{lastLoginAt}
+		WHERE email = #{email}
+	</update>
+
+	<!-- 전체 회원 삭제 (물리적 삭제) -->
+	<delete id="deleteAll">
+		DELETE FROM member
+	</delete>
+
+	<!-- 전체 회원 조회 -->
+	<select id="selectAll" resultType="Member">
+		SELECT member_id AS memberId, email, pwd, name, phone, role, status, birth, gender,
+		       security_question AS securityQuestion, security_answer AS securityAnswer,
+		       kindness_temperature AS kindnessTemperature,
+		       created_at AS createdAt, updated_at AS updatedAt
+		FROM member
+		WHERE deleted_at IS NULL
+		ORDER BY created_at DESC
+	</select>
+
+	<!-- 선행 온도 관련 쿼리 -->
+	<select id="getKindnessTemperature" parameterType="String" resultType="java.math.BigDecimal">
+		SELECT kindness_temperature FROM member WHERE email = #{userId}
+	</select>
+
+	<update id="updateKindnessTemperature" parameterType="map">
+		UPDATE member
+		SET kindness_temperature = #{temperature}
+		WHERE email = #{userId}
+	</update>
+
+	<update id="increaseKindnessTemperature" parameterType="map">
+		UPDATE member
+		SET kindness_temperature = kindness_temperature + #{amount}
+		WHERE email = #{userId}
+	</update>
+
+	<!-- 이름과 이메일로 회원 찾기 (아이디 찾기) -->
+	<select id="findByNameAndEmail" parameterType="map" resultType="Member">
+		SELECT member_id AS memberId, email, pwd, name, phone, role, birth, gender,
+		       security_question AS securityQuestion, security_answer AS securityAnswer,
+		       created_at AS createdAt, updated_at AS updatedAt
+		FROM member
+		WHERE name = #{name} AND email = #{email} AND deleted_at IS NULL
+	</select>
+
+	<!-- 이름과 전화번호로 회원 찾기 (아이디 찾기) -->
+	<select id="findByNameAndPhone" parameterType="map" resultType="Member">
+		SELECT member_id AS memberId, email, pwd, name, phone, role, status, birth, gender,
+		       security_question AS securityQuestion, security_answer AS securityAnswer,
+		       created_at AS createdAt, updated_at AS updatedAt
+		FROM member
+		WHERE name = #{name} AND phone = #{phone} AND deleted_at IS NULL
+	</select>
+
+	<!-- 이메일과 보안 질문 답변으로 회원 확인 (비밀번호 찾기) -->
+	<select id="findByIdAndSecurityAnswer" parameterType="map" resultType="Member">
+		SELECT member_id AS memberId, email, pwd, name, phone, role, birth, gender,
+		       security_question AS securityQuestion, security_answer AS securityAnswer,
+		       created_at AS createdAt, updated_at AS updatedAt
+		FROM member
+		WHERE email = #{id} AND security_answer = #{securityAnswer} AND deleted_at IS NULL
+	</select>
+
+	<!-- 이메일 중복 확인 -->
+	<select id="countByEmail" parameterType="String" resultType="int">
+		SELECT COUNT(*) FROM member WHERE email = #{email} AND deleted_at IS NULL
+	</select>
+</mapper>

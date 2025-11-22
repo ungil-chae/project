@@ -1,0 +1,56 @@
+body {
+    background-color: #f6f5ef;
+    margin: 0 auto;
+    min-width: 1200px;
+}
+
+.p {
+    color: #666666;
+    font-weight: 400;
+    font-size: 18px;
+}
+
+h1 {
+    font-weight: 250;
+    font-size: 72px;
+}
+
+.margin {
+    margin-bottom: 100px;
+}
+
+.coffee-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    padding: 60px 20px;
+    flex-wrap: wrap;
+}
+
+.coffee-text {
+    flex: 1;
+    font-size: 18px;
+    color: #333;
+    line-height: 1.6;
+    min-width: 250px;
+    text-align: justify;
+}
+
+.ethiopia-img {
+    width: 60%;
+    height: 650px;
+    object-fit: cover;
+    margin-top: 50px;
+}
+
+.left {
+    text-align: left;
+    margin-left: 0;
+    padding-left: 40px;
+}
+
+.container {
+    width: 1200px;
+    margin: 0 auto;
+}

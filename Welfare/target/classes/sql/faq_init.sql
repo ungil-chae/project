@@ -1,0 +1,58 @@
+-- FAQ 테이블 생성
+CREATE TABLE IF NOT EXISTS faqs (
+    faq_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    category VARCHAR(50) NOT NULL COMMENT '카테고리 (복지혜택, 서비스이용, 계정관리, 기타)',
+    question VARCHAR(500) NOT NULL COMMENT '질문',
+    answer TEXT NOT NULL COMMENT '답변',
+    order_num INT DEFAULT 0 COMMENT '정렬 순서',
+    is_active BOOLEAN DEFAULT TRUE COMMENT '활성화 여부',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '생성일',
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일',
+    INDEX idx_category (category),
+    INDEX idx_is_active (is_active),
+    INDEX idx_order_num (order_num)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='자주 묻는 질문';
+
+-- 기존 데이터 삭제 (초기화)
+DELETE FROM faqs;
+
+-- FAQ 초기 데이터 삽입
+INSERT INTO faqs (category, question, answer, order_num, is_active) VALUES
+('복지혜택', '복지 혜택은 어떻게 찾나요?', '메인 페이지에서 ''복지 혜택 찾기'' 메뉴를 클릭하시면 간단한 정보 입력 후 맞춤형 복지 혜택을 추천받으실 수 있습니다. 나이, 가구 구성, 소득 수준 등의 정보를 입력하시면 AI가 자동으로 적합한 복지 서비스를 매칭해 드립니다.', 1, TRUE),
+
+('복지혜택', '복지 혜택 신청은 어떻게 하나요?', '복지 혜택 검색 결과에서 원하는 혜택의 ''신청하기'' 버튼을 클릭하시면 해당 기관의 신청 페이지로 이동합니다. 온라인 신청이 가능한 경우 바로 신청이 가능하며, 방문 신청이 필요한 경우 주변 시설 정보를 안내해 드립니다.', 2, TRUE),
+
+('서비스이용', '복지 지도는 어떻게 사용하나요?', '''복지 지도'' 메뉴에서 현재 위치 또는 주소를 입력하시면 주변의 복지시설을 지도에서 확인하실 수 있습니다. 복지관, 주민센터, 상담센터 등 다양한 시설의 위치, 연락처, 운영시간 정보를 제공합니다.', 3, TRUE),
+
+('계정관리', '회원가입은 필수인가요?', '복지 혜택 검색과 정보 조회는 회원가입 없이도 가능합니다. 다만, 맞춤형 추천 서비스와 신청 내역 관리를 위해서는 회원가입이 필요합니다. 회원가입 시 더욱 편리하게 서비스를 이용하실 수 있습니다.', 4, TRUE),
+
+('계정관리', '비밀번호를 잊어버렸어요', '로그인 페이지에서 ''비밀번호 찾기''를 클릭하시면 가입 시 등록한 이메일 또는 휴대폰 번호로 임시 비밀번호를 발송해 드립니다. 임시 비밀번호로 로그인 후 마이페이지에서 새로운 비밀번호로 변경해 주세요.', 5, TRUE),
+
+('복지혜택', '저소득층 기준은 어떻게 되나요?', '저소득층 기준은 정부 정책에 따라 변동될 수 있으며, 일반적으로 기준 중위소득의 일정 비율 이하를 기준으로 합니다. 정확한 기준은 복지 혜택 찾기에서 소득 정보 입력 시 자동으로 판단되어 적용됩니다.', 6, TRUE),
+
+('서비스이용', '개인정보는 안전한가요?', '복지24는 개인정보보호법에 따라 모든 개인정보를 암호화하여 안전하게 관리하고 있습니다. 수집된 정보는 복지 서비스 매칭 목적으로만 사용되며, 제3자에게 제공되지 않습니다. 자세한 내용은 개인정보 처리방침을 참고해 주세요.', 7, TRUE),
+
+('기타', '서비스 이용 중 오류가 발생했어요', '서비스 이용 중 오류가 발생하신 경우 페이지를 새로고침하거나 브라우저 캐시를 삭제해 보세요. 문제가 계속되는 경우 고객센터(1544-1234)로 문의하시거나 온라인 채팅 상담을 이용해 주세요.', 8, TRUE),
+
+('서비스이용', '봉사 활동은 어떻게 참여하나요?', '메인 메뉴에서 ''봉사활동'' 메뉴를 선택하시면 다양한 봉사 활동 정보를 확인하실 수 있습니다. 원하시는 활동을 선택한 후 신청 양식을 작성하시면 됩니다. 봉사 완료 후에는 후기를 작성하실 수 있으며, 마이페이지에서 봉사 이력을 관리하실 수 있습니다.', 9, TRUE),
+
+('복지혜택', '기부는 어떻게 하나요?', '메인 메뉴에서 ''기부하기''를 선택하시면 다양한 기부 분야와 금액을 선택하실 수 있습니다. 정기 기부와 일시 기부 중 선택 가능하며, 신용카드, 계좌이체, 간편결제 등 다양한 결제 수단을 지원합니다. 기부금 영수증 발급도 가능하며, 모든 기부 내역은 마이페이지에서 확인하실 수 있습니다.', 10, TRUE);
+
+-- 카테고리별 매핑 (한글 -> 영문 코드)
+-- 복지혜택 -> welfare
+-- 서비스이용 -> service
+-- 계정관리 -> account
+-- 기타 -> etc
+
+-- 통계 조회용 뷰 생성
+CREATE OR REPLACE VIEW vw_faq_stats AS
+SELECT
+    category,
+    COUNT(*) as faq_count,
+    SUM(CASE WHEN is_active = TRUE THEN 1 ELSE 0 END) as active_count
+FROM faqs
+GROUP BY category;
+
+-- 초기 데이터 확인
+SELECT 'FAQ 초기 데이터 삽입 완료' AS status, COUNT(*) AS total_count FROM faqs;
+SELECT * FROM vw_faq_stats;

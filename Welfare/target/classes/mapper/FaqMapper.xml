@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.greenart.bdproject.mapper.FaqMapper">
+
+    <!-- resultMap: FaqResult → FaqDto -->
+    <resultMap id="FaqResult" type="com.greenart.bdproject.dto.FaqDto">
+        <id property="faqId" column="faq_id"/>
+        <result property="category" column="category"/>
+        <result property="question" column="question"/>
+        <result property="answer" column="answer"/>
+        <result property="orderNum" column="order_num"/>
+        <result property="isActive" column="is_active"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- insert: INSERT INTO faqs -->
+    <insert id="insert" parameterType="com.greenart.bdproject.dto.FaqDto" useGeneratedKeys="true" keyProperty="faqId">
+        INSERT INTO faqs (category, question, answer, order_num, is_active, created_at, updated_at)
+        VALUES (#{category}, #{question}, #{answer}, #{orderNum}, #{isActive}, NOW(), NOW())
+    </insert>
+
+    <!-- selectById: SELECT * FROM faqs WHERE faq_id = #{faqId} -->
+    <select id="selectById" parameterType="int" resultMap="FaqResult">
+        SELECT faq_id, category, question, answer, order_num, is_active, created_at, updated_at
+        FROM faqs
+        WHERE faq_id = #{faqId}
+    </select>
+
+    <!-- selectAll: SELECT * FROM faqs WHERE is_active = TRUE ORDER BY order_num ASC, created_at DESC -->
+    <select id="selectAll" resultMap="FaqResult">
+        SELECT faq_id, category, question, answer, order_num, is_active, created_at, updated_at
+        FROM faqs
+        WHERE is_active = TRUE
+        ORDER BY order_num ASC, created_at DESC
+    </select>
+
+    <!-- selectByCategory: SELECT * FROM faqs WHERE category = #{category} AND is_active = TRUE ORDER BY order_num ASC -->
+    <select id="selectByCategory" parameterType="string" resultMap="FaqResult">
+        SELECT faq_id, category, question, answer, order_num, is_active, created_at, updated_at
+        FROM faqs
+        WHERE category = #{category}
+          AND is_active = TRUE
+        ORDER BY order_num ASC
+    </select>
+
+    <!-- update: UPDATE faqs -->
+    <update id="update" parameterType="com.greenart.bdproject.dto.FaqDto">
+        UPDATE faqs
+        SET category = #{category},
+            question = #{question},
+            answer = #{answer},
+            order_num = #{orderNum},
+            is_active = #{isActive},
+            updated_at = NOW()
+        WHERE faq_id = #{faqId}
+    </update>
+
+    <!-- deleteById: DELETE FROM faqs WHERE faq_id = #{faqId} -->
+    <delete id="deleteById" parameterType="int">
+        DELETE FROM faqs
+        WHERE faq_id = #{faqId}
+    </delete>
+
+    <!-- searchFaqs: 고급 검색 쿼리 (질문 + 답변 검색, 관련성 점수 계산) -->
+    <select id="searchFaqs" parameterType="string" resultMap="FaqResult">
+        SELECT
+            faq_id,
+            category,
+            question,
+            answer,
+            order_num,
+            is_active,
+            created_at,
+            updated_at
+        FROM faqs
+        WHERE is_active = TRUE
+          AND (
+              question LIKE CONCAT('%', #{keyword}, '%')
+              OR answer LIKE CONCAT('%', #{keyword}, '%')
+              OR category LIKE CONCAT('%', #{keyword}, '%')
+          )
+        ORDER BY
+            CASE
+                WHEN question = #{keyword} THEN 1
+                WHEN question LIKE CONCAT(#{keyword}, '%') THEN 2
+                WHEN question LIKE CONCAT('%', #{keyword}, '%') THEN 3
+                WHEN answer LIKE CONCAT(#{keyword}, '%') THEN 4
+                ELSE 5
+            END,
+            order_num ASC,
+            created_at DESC
+    </select>
+
+    <!-- searchFaqsByCategory: 카테고리 필터링 검색 -->
+    <select id="searchFaqsByCategory" parameterType="map" resultMap="FaqResult">
+        SELECT
+            faq_id,
+            category,
+            question,
+            answer,
+            order_num,
+            is_active,
+            created_at,
+            updated_at
+        FROM faqs
+        WHERE is_active = TRUE
+          AND category = #{category}
+          AND (
+              question LIKE CONCAT('%', #{keyword}, '%')
+              OR answer LIKE CONCAT('%', #{keyword}, '%')
+          )
+        ORDER BY
+            CASE
+                WHEN question = #{keyword} THEN 1
+                WHEN question LIKE CONCAT(#{keyword}, '%') THEN 2
+                WHEN question LIKE CONCAT('%', #{keyword}, '%') THEN 3
+                WHEN answer LIKE CONCAT(#{keyword}, '%') THEN 4
+                ELSE 5
+            END,
+            order_num ASC,
+            created_at DESC
+    </select>
+
+</mapper>

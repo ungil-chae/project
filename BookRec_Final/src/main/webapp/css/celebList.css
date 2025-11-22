@@ -1,0 +1,157 @@
+@charset "UTF-8"; /* 파일 상단에 유지 */
+/* 이것은 celebList.css입니다. */
+/* === 전역 및 기본 스타일 === */
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0; /* body의 기본 마진 제거 */
+    padding: 0; /* body의 기본 패딩 제거 */
+    background-color: #fff;
+    box-sizing: border-box; /* 모든 요소에 대해 box-sizing을 border-box로 설정하여 패딩/보더가 너비/높이에 포함되도록 합니다. (선택 사항, 필요 시 추가) */
+}
+
+/* === 메인 컨테이너 스타일 === */
+.container {
+    max-width: 1200px; /* 컨테이너의 최대 너비 */
+    margin: 30px auto; /* 상하 30px 마진, 좌우 자동 마진으로 컨테이너를 페이지 중앙에 배치 */
+    padding: 0 20px; /* ⭐ 컨테이너 좌우에 내부 패딩을 추가하여 내용이 화면 가장자리에 붙지 않도록 합니다. ⭐ */
+                         /* 이 패딩이 그리드 아이템 배치에 영향을 주지 않도록 주의합니다. */
+                         /* 만약 그리드가 꽉 차게 보이길 원한다면 이 패딩은 .grid가 아닌 그 내부의 요소에 주는 것이 좋습니다. */
+}
+
+/* === 작성하기, 선택 삭제 버튼 컨테이너 스타일 === */
+.action-buttons {
+    display: flex;
+    justify-content: flex-end; /* 버튼들을 컨테이너의 오른쪽 끝으로 정렬 */
+    gap: 10px; /* 버튼들 사이의 간격 */
+    margin-bottom: 20px; /* 버튼 컨테이너 아래 마진 */
+    /* margin-top은 버튼 개별에 인라인으로 적용됨 (celebList.jsp에서) */
+}
+
+/* === 작성하기, 선택 삭제 버튼 자체 스타일 === */
+.action-buttons button,
+.action-buttons a {
+    padding: 10px 16px;
+    background-color: #e6f0d7;
+    color: black;
+    text-decoration: none;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+    /* margin-top: 10px; -- 이 마진은 celebList.jsp에서 인라인 스타일로 적용됨 */
+}
+.action-buttons button:hover,
+.action-buttons a:hover {
+    background-color: #cce0b8;
+}
+
+/* === 그리드 레이아웃 스타일 === */
+.grid {
+    display: grid;
+    /* ⭐⭐ 이 부분을 아래와 같이 명시적으로 4개 컬럼으로 지정합니다. ⭐⭐ */
+    /* 기존: grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); */
+    grid-template-columns: repeat(4, 1fr); /* ⭐ 한 줄에 4개 컬럼을 균등하게 나눕니다. ⭐ */
+                                            /* 각 컬럼이 컨테이너 너비를 균등하게 분배받습니다. */
+    gap: 30px; /* 그리드 아이템(카드) 사이의 간격 */
+    padding: 0; /* 그리드 자체의 내부 패딩은 여전히 0이어야 합니다. */
+}
+
+
+/* === 개별 셀럽 카드 컨테이너 스타일 === */
+.celeb-card-container {
+    position: relative;	
+    background-color: #fcfcfc;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease-in-out;
+    /* margin-top: 0; -- celebList.css의 .card { margin-top: 20px; }을 0으로 변경했는지 다시 확인 */
+}
+.celeb-card-container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+/* === 카드 내 링크 (전체 카드 영역) === */
+.card {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* 남은 세로 공간을 채우도록 함 */
+    cursor: pointer;
+}
+
+/* === 카드 이미지 스타일 === */
+.card img {
+    width: 100%; /* 부모(a.card) 너비에 꽉 채움 */
+    height: 260px; /* 이미지 높이 고정 */
+    object-fit: cover; /* 이미지가 잘리더라도 비율 유지하며 컨테이너 채움 */
+    border-bottom: 1px solid #eee;
+    /* object-position 속성은 제거되어야 함 (이전에 이미지 내 글씨 문제로 추가했던 것) */
+}
+
+/* === 카드 내용 (제목, 설명) 부분 === */
+.card-content {
+    padding: 12px 14px; /* 내부 패딩 */
+    text-align: left;
+    flex-grow: 1; /* 남은 세로 공간을 채움 */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* 제목과 설명이 상하로 벌어지도록 */
+}
+.card-title {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #444;
+    margin-bottom: 8px;
+    white-space: nowrap; /* 줄바꿈 방지 */
+    overflow: hidden; /* 넘치는 내용 숨김 */
+    text-overflow: ellipsis; /* 넘치는 내용 ... 처리 */
+}
+.card-desc {
+    font-size: 0.875rem;
+    color: #666;
+    line-height: 1.4;
+    /* height: 2.6em; -- 텍스트 찌그러짐 원인이었다면 이 줄 제거 */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box; /* 줄 수 제한을 위한 WebKit 속성 */
+    -webkit-line-clamp: 3; /* 텍스트 3줄 초과 시 ... */
+    -webkit-box-orient: vertical;
+}
+
+/* === 탑 버튼 스타일 === */
+#topBtn {
+    position: fixed;
+    bottom: 40px;
+    right: 40px;
+    z-index: 9999;
+    background-color: white;
+    color: gray;
+    border: none;
+    border-radius: 50%;
+    padding: 16px 18px;
+    cursor: pointer;
+    box-shadow: 0 8px 8px rgba(0,0,0,0.4);
+    font-size: 1.5rem;
+}
+
+/* celeblist.css 맨 아래에 추가하세요 */
+
+/* 기본 아이콘 색(회색) */
+.master-bookmark {
+  font-size: 1.2rem;      /* 원하는 크기로 조정 */
+  color: #bbb;            /* 기본(회색) */
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+/* 클릭 후 'bookmarked' 클래스가 붙었을 때 골드색 */
+.master-bookmark.bookmarked {
+  color: #FFD700;         /* 골드 컬러 */
+}

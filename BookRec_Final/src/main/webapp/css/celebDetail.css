@@ -1,0 +1,138 @@
+@charset "UTF-8";
+
+/* celebDetail.css입니다.  */
+body {
+	font-family: 'Arial', sans-serif;
+	margin: 0;
+	padding: 0;
+	background-color: #fff;
+}
+
+.container {
+	max-width: 1000px;
+	margin: 30px auto;
+	padding: 0 16px;
+}
+
+h1 {
+	font-size: 2rem;
+	margin-bottom: 10px;
+	color: #333;
+}
+
+.desc {
+	font-size: 1rem;
+	color: #666;
+	margin-bottom: 50px;
+}
+
+.thumbnail-container {
+	text-align: left;
+	margin: 30px 0;
+}
+
+.thumbnail-container img {
+	width: 400px;
+	height: auto;
+	border-radius: 5px;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.text-block {
+	text-align: left;
+	max-width: 1000px;
+	background-color: #fff;
+	border-radius: 10px;
+	padding: 18px;
+	margin: 40px auto;
+	margin-bottom: 50px;
+	font-size: 1rem;
+	line-height: 1.6;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.img-block {
+	text-align: center;
+	margin: 20px 0;
+}
+
+.img-block img {
+	max-width: 600px;
+	width: 100%;
+	height: auto;
+	border-radius: 6px;
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.book-card {
+	max-width: 500px;
+	margin: 30px auto;
+	display: flex;
+	gap: 20px;
+	align-items: center;
+	border: 1px solid #ddd;
+	padding: 16px;
+	border-radius: 10px;
+	cursor: pointer;
+	background-color: #fafafa;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+	transition: box-shadow 0.2s ease;
+}
+
+.book-card:hover {
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.book-card img {
+	width: 90px;
+	height: auto;
+	border-radius: 6px;
+}
+
+.book-info {
+	flex-grow: 1;
+}
+
+.book-title {
+	font-size: 1.2rem;
+	font-weight: bold;
+	margin-bottom: 4px;
+}
+
+.book-meta {
+	font-size: 0.9rem;
+	color: #555;
+	margin: 2px 0;
+}
+
+.book-desc {
+	margin-top: 8px;
+	font-size: 0.95rem;
+	color: #333;
+}
+
+.back-btn {
+	display: block;
+	width: fit-content;
+	margin: 60px auto;
+	padding: 10px 20px;
+	font-size: 1rem;
+	background-color: #e6f0d7;
+	color: black;
+	border: none;
+	border-radius: 6px;
+	cursor: pointer;
+	text-align: center;
+}
+
+/* celebDetail.css 끝에 추가 */
+.bookmark-icon {
+	font-size: 1.5rem;
+	color: #444; /* 기본 검은색 */
+	cursor: pointer;
+	transition: color 0.2s;
+}
+
+.bookmark-icon.bookmarked {
+	color: #FFD700; /* 골드 컬러 */
+}

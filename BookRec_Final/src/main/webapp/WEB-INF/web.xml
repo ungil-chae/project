@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
+	version="4.0">
+
+	<display-name>WITHUS_BookRec</display-name>
+
+	<context-param>
+		<param-name>J_KN25avSMSi7_dSKzMc</param-name>
+		<param-value>J_KN25avSMSi7_dSKzMc</param-value>
+	</context-param>
+	<context-param>
+		<param-name>EL3xr_EnHO</param-name>
+		<param-value>EL3xr_EnHO</param-value>
+	</context-param>
+
+	<session-config>
+		<session-timeout>30</session-timeout>
+	</session-config>
+
+	<welcome-file-list>
+		<welcome-file>main.jsp</welcome-file>
+		<welcome-file>index.jsp</welcome-file>
+	</welcome-file-list>
+
+	<filter>
+		<filter-name>CharacterEncodingFilter</filter-name>
+		<filter-class>org.apache.catalina.filters.SetCharacterEncodingFilter</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>UTF-8</param-value>
+		</init-param>
+		<init-param>
+			<param-name>forceEncoding</param-name>
+			<param-value>true</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>CharacterEncodingFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	
+    <servlet>
+        <servlet-name>WishlistToggleServlet</servlet-name>
+        <servlet-class>servlet.WishlistToggleServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>WishlistToggleServlet</servlet-name>
+        <url-pattern>/wishlist/toggle</url-pattern>
+    </servlet-mapping>
+	
+
+	<servlet>
+		<servlet-name>ImageProxyServlet</servlet-name>
+		<servlet-class>servlet.ImageProxyServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ImageProxyServlet</servlet-name>
+		<url-pattern>/imageProxy</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>SearchBookServlet</servlet-name>
+		<servlet-class>servlet.SearchBookServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>SearchBookServlet</servlet-name>
+		<url-pattern>/searchBook</url-pattern>
+	</servlet-mapping>
+
+	<error-page>
+		<error-code>404</error-code>
+		<location>/WEB-INF/views/error/error404.jsp</location>
+	</error-page>
+
+	<error-page>
+		<error-code>500</error-code>
+		<location>/WEB-INF/views/error/error500.jsp</location>
+	</error-page>
+
+	<error-page>
+		<exception-type>java.lang.Throwable</exception-type>
+		<location>/WEB-INF/views/error/error.jsp</location>
+	</error-page>
+	
+	
+
+</web-app>
