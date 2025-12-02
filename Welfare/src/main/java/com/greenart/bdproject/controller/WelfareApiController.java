@@ -82,10 +82,27 @@ public class WelfareApiController {
 
             con = dataSource.getConnection();
 
+            // member_id 조회
+            Long memberId = null;
+            String memberSql = "SELECT member_id FROM member WHERE email = ?";
+            try (PreparedStatement memberPstmt = con.prepareStatement(memberSql)) {
+                memberPstmt.setString(1, userId);
+                try (ResultSet memberRs = memberPstmt.executeQuery()) {
+                    if (memberRs.next()) {
+                        memberId = memberRs.getLong("member_id");
+                    }
+                }
+            }
+            if (memberId == null) {
+                response.put("success", false);
+                response.put("message", "회원 정보를 찾을 수 없습니다.");
+                return response;
+            }
+
             // 중복 확인
-            String checkSql = "SELECT COUNT(*) FROM favorite_welfare_services WHERE user_id = ? AND service_id = ?";
+            String checkSql = "SELECT COUNT(*) FROM favorite_welfare_services WHERE member_id = ? AND service_id = ?";
             pstmt = con.prepareStatement(checkSql);
-            pstmt.setString(1, userId);
+            pstmt.setLong(1, memberId);
             pstmt.setString(2, serviceId);
             rs = pstmt.executeQuery();
 
@@ -100,11 +117,11 @@ public class WelfareApiController {
 
             // 저장
             String sql = "INSERT INTO favorite_welfare_services " +
-                    "(user_id, service_id, service_name, service_purpose, department, apply_method, support_type, lifecycle_code) " +
+                    "(member_id, service_id, service_name, service_purpose, department, apply_method, support_type, lifecycle_code) " +
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
             pstmt = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            pstmt.setString(1, userId);
+            pstmt.setLong(1, memberId);
             pstmt.setString(2, serviceId);
             pstmt.setString(3, serviceName);
             pstmt.setString(4, servicePurpose);
@@ -123,6 +140,11 @@ public class WelfareApiController {
                     response.put("favoriteId", favoriteId);
                     response.put("message", "관심 서비스로 등록되었습니다.");
                     logger.info("관심 서비스 등록 성공 - favoriteId: {}", favoriteId);
+                } else {
+                    // 생성된 키를 가져오지 못했지만 insert는 성공
+                    response.put("success", true);
+                    response.put("message", "관심 서비스로 등록되었습니다.");
+                    logger.info("관심 서비스 등록 성공 (generated key 없음)");
                 }
             } else {
                 response.put("success", false);
@@ -172,9 +194,26 @@ public class WelfareApiController {
 
             con = dataSource.getConnection();
 
-            String sql = "DELETE FROM favorite_welfare_services WHERE user_id = ? AND service_id = ?";
+            // member_id 조회
+            Long memberId = null;
+            String memberSql = "SELECT member_id FROM member WHERE email = ?";
+            try (PreparedStatement memberPstmt = con.prepareStatement(memberSql)) {
+                memberPstmt.setString(1, userId);
+                try (ResultSet memberRs = memberPstmt.executeQuery()) {
+                    if (memberRs.next()) {
+                        memberId = memberRs.getLong("member_id");
+                    }
+                }
+            }
+            if (memberId == null) {
+                response.put("success", false);
+                response.put("message", "회원 정보를 찾을 수 없습니다.");
+                return response;
+            }
+
+            String sql = "DELETE FROM favorite_welfare_services WHERE member_id = ? AND service_id = ?";
             pstmt = con.prepareStatement(sql);
-            pstmt.setString(1, userId);
+            pstmt.setLong(1, memberId);
             pstmt.setString(2, serviceId);
 
             int result = pstmt.executeUpdate();
@@ -299,9 +338,25 @@ public class WelfareApiController {
 
             con = dataSource.getConnection();
 
-            String sql = "SELECT COUNT(*) FROM favorite_welfare_services WHERE user_id = ? AND service_id = ?";
+            // member_id 조회
+            Long memberId = null;
+            String memberSql = "SELECT member_id FROM member WHERE email = ?";
+            try (PreparedStatement memberPstmt = con.prepareStatement(memberSql)) {
+                memberPstmt.setString(1, userId);
+                try (ResultSet memberRs = memberPstmt.executeQuery()) {
+                    if (memberRs.next()) {
+                        memberId = memberRs.getLong("member_id");
+                    }
+                }
+            }
+            if (memberId == null) {
+                response.put("isFavorite", false);
+                return response;
+            }
+
+            String sql = "SELECT COUNT(*) FROM favorite_welfare_services WHERE member_id = ? AND service_id = ?";
             pstmt = con.prepareStatement(sql);
-            pstmt.setString(1, userId);
+            pstmt.setLong(1, memberId);
             pstmt.setString(2, serviceId);
             rs = pstmt.executeQuery();
 
@@ -369,49 +424,85 @@ public class WelfareApiController {
 
             con = dataSource.getConnection();
 
+            // member_id 조회
+            Long memberId = null;
+            String memberSql = "SELECT member_id FROM member WHERE email = ?";
+            try (PreparedStatement memberPstmt = con.prepareStatement(memberSql)) {
+                memberPstmt.setString(1, userId);
+                try (ResultSet memberRs = memberPstmt.executeQuery()) {
+                    if (memberRs.next()) {
+                        memberId = memberRs.getLong("member_id");
+                    }
+                }
+            }
+            if (memberId == null) {
+                response.put("success", false);
+                response.put("message", "회원 정보를 찾을 수 없습니다.");
+                return response;
+            }
+
+            // 나이 계산
+            java.time.LocalDate birthLocalDate = java.time.LocalDate.parse(birthdate);
+            int age = java.time.Period.between(birthLocalDate, java.time.LocalDate.now()).getYears();
+
+            // income 값을 ENUM 형식으로 변환 (LEVEL_1, LEVEL_2, LEVEL_3, LEVEL_4, LEVEL_5)
+            String incomeLevel = convertToIncomeLevel(income);
+            if (incomeLevel == null) {
+                response.put("success", false);
+                response.put("message", "잘못된 소득 수준입니다. (1-5 또는 LEVEL_1-LEVEL_5)");
+                return response;
+            }
+
+            // schema.sql에 맞춤: member_id, age, matched_services 사용
             String sql = "INSERT INTO welfare_diagnoses " +
-                    "(user_id, birth_date, gender, household_size, income_level, marital_status, " +
+                    "(member_id, birth_date, age, gender, household_size, income_level, marital_status, " +
                     "children_count, employment_status, sido, sigungu, is_pregnant, is_disabled, " +
-                    "is_multicultural, is_veteran, is_single_parent, matched_services_json, save_consent) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    "is_multicultural, is_veteran, is_single_parent, matched_services, save_consent) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
             pstmt = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            pstmt.setString(1, userId);
+            pstmt.setLong(1, memberId);
             pstmt.setDate(2, java.sql.Date.valueOf(birthdate));
-            pstmt.setString(3, gender);
-            pstmt.setInt(4, householdSize);
-            pstmt.setString(5, income);
-            pstmt.setString(6, maritalStatus);
-            pstmt.setInt(7, childrenCount);
-            pstmt.setString(8, employmentStatus);
-            pstmt.setString(9, sido);
-            pstmt.setString(10, sigungu);
-            pstmt.setBoolean(11, isPregnant);
-            pstmt.setBoolean(12, isDisabled);
-            pstmt.setBoolean(13, isMulticultural);
-            pstmt.setBoolean(14, isVeteran);
-            pstmt.setBoolean(15, isSingleParent);
-            pstmt.setString(16, matchedServicesJson);
-            pstmt.setBoolean(17, saveConsent);
+            pstmt.setInt(3, age);  // 나이 추가
+            pstmt.setString(4, gender.toUpperCase()); // ENUM: MALE, FEMALE, OTHER
+            pstmt.setInt(5, householdSize);
+            pstmt.setString(6, incomeLevel);
+            pstmt.setString(7, maritalStatus.toUpperCase()); // ENUM
+            pstmt.setInt(8, childrenCount);
+            pstmt.setString(9, employmentStatus.toUpperCase()); // ENUM
+            pstmt.setString(10, sido);
+            pstmt.setString(11, sigungu);
+            pstmt.setBoolean(12, isPregnant);
+            pstmt.setBoolean(13, isDisabled);
+            pstmt.setBoolean(14, isMulticultural);
+            pstmt.setBoolean(15, isVeteran);
+            pstmt.setBoolean(16, isSingleParent);
+            pstmt.setString(17, matchedServicesJson);
+            pstmt.setBoolean(18, saveConsent);
 
             int result = pstmt.executeUpdate();
 
             if (result > 0) {
                 rs = pstmt.getGeneratedKeys();
+                long diagnosisId = 0;
                 if (rs.next()) {
-                    long diagnosisId = rs.getLong(1);
-                    response.put("success", true);
-                    response.put("diagnosisId", diagnosisId);
-                    response.put("message", "진단 결과가 저장되었습니다.");
-                    logger.info("진단 저장 성공 - diagnosisId: {}", diagnosisId);
+                    diagnosisId = rs.getLong(1);
+                }
 
-                    // 선행온도 증가
-                    if (temperatureService != null) {
-                        try {
-                            temperatureService.increaseForWelfareDiagnosis(userId);
-                        } catch (Exception e) {
-                            logger.warn("선행온도 증가 실패 (진단 저장은 성공): {}", e.getMessage());
-                        }
+                // INSERT 성공 시 항상 success = true 설정
+                response.put("success", true);
+                if (diagnosisId > 0) {
+                    response.put("diagnosisId", diagnosisId);
+                }
+                response.put("message", "진단 결과가 저장되었습니다.");
+                logger.info("진단 저장 성공 - diagnosisId: {}", diagnosisId);
+
+                // 선행온도 증가
+                if (temperatureService != null) {
+                    try {
+                        temperatureService.increaseForWelfareDiagnosis(userId);
+                    } catch (Exception e) {
+                        logger.warn("선행온도 증가 실패 (진단 저장은 성공): {}", e.getMessage());
                     }
                 }
             } else {
@@ -503,9 +594,7 @@ public class WelfareApiController {
                 dto.setSaveConsent(rs.getBoolean("save_consent"));
                 dto.setPrivacyConsent(rs.getBoolean("privacy_consent"));
                 dto.setMarketingConsent(rs.getBoolean("marketing_consent"));
-                dto.setIpAddress(rs.getString("ip_address"));
-                dto.setUserAgent(rs.getString("user_agent"));
-                dto.setReferrerUrl(rs.getString("referrer_url"));
+                // ip_address, user_agent, referrer_url 컬럼은 스키마에서 제거됨
                 dto.setCreatedAt(rs.getTimestamp("created_at"));
 
                 diagnoses.add(dto);
@@ -558,8 +647,25 @@ public class WelfareApiController {
 
             con = dataSource.getConnection();
 
+            // member_id 조회
+            Long memberId = null;
+            String memberSql = "SELECT member_id FROM member WHERE email = ?";
+            try (PreparedStatement memberPstmt = con.prepareStatement(memberSql)) {
+                memberPstmt.setString(1, userId);
+                try (ResultSet memberRs = memberPstmt.executeQuery()) {
+                    if (memberRs.next()) {
+                        memberId = memberRs.getLong("member_id");
+                    }
+                }
+            }
+            if (memberId == null) {
+                response.put("success", false);
+                response.put("message", "회원 정보를 찾을 수 없습니다.");
+                return response;
+            }
+
             // 소유권 확인
-            String checkSql = "SELECT user_id FROM welfare_diagnoses WHERE diagnosis_id = ?";
+            String checkSql = "SELECT member_id FROM welfare_diagnoses WHERE diagnosis_id = ?";
             pstmt = con.prepareStatement(checkSql);
             pstmt.setLong(1, diagnosisId);
             rs = pstmt.executeQuery();
@@ -570,8 +676,8 @@ public class WelfareApiController {
                 return response;
             }
 
-            String ownerId = rs.getString("user_id");
-            if (!userId.equals(ownerId)) {
+            Long ownerId = rs.getLong("member_id");
+            if (!memberId.equals(ownerId)) {
                 response.put("success", false);
                 response.put("message", "삭제 권한이 없습니다.");
                 return response;
@@ -581,10 +687,10 @@ public class WelfareApiController {
             pstmt.close();
 
             // 삭제 실행
-            String deleteSql = "DELETE FROM welfare_diagnoses WHERE diagnosis_id = ? AND user_id = ?";
+            String deleteSql = "DELETE FROM welfare_diagnoses WHERE diagnosis_id = ? AND member_id = ?";
             pstmt = con.prepareStatement(deleteSql);
             pstmt.setLong(1, diagnosisId);
-            pstmt.setString(2, userId);
+            pstmt.setLong(2, memberId);
 
             int result = pstmt.executeUpdate();
 
@@ -622,6 +728,68 @@ public class WelfareApiController {
                     logger.error("Resource close error", e);
                 }
             }
+        }
+    }
+
+    /**
+     * income 값을 ENUM 형식으로 변환
+     * @param income - 입력된 소득 수준 (1, 2, 3, 4, 5 또는 LEVEL_1, LEVEL_2, LEVEL_3, LEVEL_4, LEVEL_5)
+     * @return LEVEL_1 ~ LEVEL_5 형식의 문자열, 유효하지 않으면 null
+     */
+    private String convertToIncomeLevel(String income) {
+        if (income == null || income.trim().isEmpty()) {
+            return "LEVEL_3"; // 기본값: 중간 수준
+        }
+
+        income = income.trim();
+
+        // 이미 LEVEL_X 형식인 경우
+        if (income.matches("LEVEL_[1-5]")) {
+            return income;
+        }
+
+        // 숫자만 있는 경우 (1, 2, 3, 4, 5)
+        if (income.matches("[1-5]")) {
+            return "LEVEL_" + income;
+        }
+
+        // 한글 또는 기타 형식을 숫자로 변환
+        switch (income.toLowerCase()) {
+            case "저소득층":
+            case "기초생활수급자":
+            case "차상위계층":
+            case "1":
+            case "level_1":
+                return "LEVEL_1";
+            case "저소득":
+            case "2":
+            case "level_2":
+                return "LEVEL_2";
+            case "중산층":
+            case "보통":
+            case "중간":
+            case "3":
+            case "level_3":
+                return "LEVEL_3";
+            case "중상층":
+            case "4":
+            case "level_4":
+                return "LEVEL_4";
+            case "고소득층":
+            case "상위층":
+            case "5":
+            case "level_5":
+                return "LEVEL_5";
+            case "none":
+            case "unknown":
+            case "미선택":
+            case "미입력":
+            case "선택안함":
+                logger.info("소득 수준 미선택, 기본값(LEVEL_3) 사용: {}", income);
+                return "LEVEL_3"; // 기본값: 중간 수준
+            default:
+                logger.warn("알 수 없는 소득 수준: {}, 기본값(LEVEL_3) 사용", income);
+                return "LEVEL_3"; // 알 수 없는 값도 기본값으로 저장 허용
         }
     }
 }

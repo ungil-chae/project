@@ -577,7 +577,7 @@
     <%@ include file="footer.jsp" %>
 
     <script>
-      // 카테고리별 아이콘 및 색상 매핑
+      // 카테고리별 아이콘 및 색상 매핑 (기부하기 9개 카테고리만 표시)
       const categoryConfig = {
         '위기가정': { icon: 'fa-home', color: '#e74c3c' },
         '화재피해': { icon: 'fa-fire', color: '#e67e22' },
@@ -587,8 +587,11 @@
         '가정폭력': { icon: 'fa-hand-holding-heart', color: '#f39c12' },
         '한부모': { icon: 'fa-baby', color: '#e91e63' },
         '노숙인': { icon: 'fa-bed', color: '#795548' },
-        '자살고위험': { icon: 'fa-hands-helping', color: '#2ecc71' }
+        '자살고위험군': { icon: 'fa-hands-helping', color: '#2ecc71' }
       };
+
+      // 허용된 카테고리 목록 (기부하기의 9개 카테고리만 표시)
+      const allowedCategories = Object.keys(categoryConfig);
 
       // 기본 설정 (매칭되지 않는 카테고리용)
       const defaultConfig = { icon: 'fa-heart', color: '#95a5a6' };
@@ -618,46 +621,61 @@
           })
           .then(data => {
             console.log('📡 API 데이터:', data);
-            if (data.success && data.data && data.data.length > 0) {
-              const grid = document.getElementById('categoryStatisticsGrid');
-              let html = '';
+            const grid = document.getElementById('categoryStatisticsGrid');
+            let html = '';
 
+            // API 데이터를 맵으로 변환
+            const apiDataMap = {};
+            if (data.success && data.data) {
               data.data.forEach(stat => {
-                const config = categoryConfig[stat.category] || defaultConfig;
-                const percentage = stat.percentage || 0;
-                const formattedAmount = formatAmount(stat.totalAmount || 0);
-
-                html += '<div class="distribution-item">' +
-                  '<div class="distribution-header">' +
-                    '<div class="distribution-icon" style="background: ' + config.color + '">' +
-                      '<i class="fas ' + config.icon + '"></i>' +
-                    '</div>' +
-                    '<div class="distribution-title">' + stat.category + ' 지원</div>' +
-                  '</div>' +
-                  '<div class="distribution-percentage">' + percentage + '%</div>' +
-                  '<div class="distribution-bar-container">' +
-                    '<div class="distribution-bar" style="width: ' + percentage + '%; background: linear-gradient(135deg, ' + config.color + ' 0%, ' + config.color + 'dd 100%);"></div>' +
-                  '</div>' +
-                  '<div class="distribution-amount">' + formattedAmount + '</div>' +
-                '</div>';
+                if (allowedCategories.includes(stat.category)) {
+                  apiDataMap[stat.category] = stat;
+                }
               });
-
-              grid.innerHTML = html;
-
-              console.log('========================================');
-              console.log('📊 분야별 통계 로드 완료');
-              console.log('카테고리 수:', data.data.length);
-              data.data.forEach(stat => {
-                console.log('  ' + stat.category + ': ' + formatAmount(stat.totalAmount) + ' (' + stat.percentage + '%)');
-              });
-              console.log('========================================');
-            } else {
-              document.getElementById('categoryStatisticsGrid').innerHTML =
-                '<div style="text-align: center; padding: 60px 20px; grid-column: 1 / -1;">' +
-                '<i class="fas fa-exclamation-circle" style="font-size: 48px; color: #e74c3c; margin-bottom: 20px;"></i>' +
-                '<p style="font-size: 16px; color: #6c757d;">분야별 기금 데이터가 없습니다.</p>' +
-                '</div>';
             }
+
+            // 9개 카테고리 모두 표시 (기부 내역이 없어도 0원으로 표시)
+            allowedCategories.forEach(category => {
+              const stat = apiDataMap[category] || {
+                category: category,
+                totalAmount: 0,
+                percentage: 0,
+                donationCount: 0
+              };
+
+              const config = categoryConfig[category];
+              const percentage = stat.percentage || 0;
+              const formattedAmount = formatAmount(stat.totalAmount || 0);
+
+              html += '<div class="distribution-item">' +
+                '<div class="distribution-header">' +
+                  '<div class="distribution-icon" style="background: ' + config.color + '">' +
+                    '<i class="fas ' + config.icon + '"></i>' +
+                  '</div>' +
+                  '<div class="distribution-title">' + category + ' 지원</div>' +
+                '</div>' +
+                '<div class="distribution-percentage">' + percentage + '%</div>' +
+                '<div class="distribution-bar-container">' +
+                  '<div class="distribution-bar" style="width: ' + percentage + '%; background: linear-gradient(135deg, ' + config.color + ' 0%, ' + config.color + 'dd 100%);"></div>' +
+                '</div>' +
+                '<div class="distribution-amount">' + formattedAmount + '</div>' +
+              '</div>';
+            });
+
+            grid.innerHTML = html;
+
+            console.log('========================================');
+            console.log('📊 분야별 통계 로드 완료');
+            console.log('표시된 카테고리 수 (전체 9개):', allowedCategories.length);
+            allowedCategories.forEach(category => {
+              const stat = apiDataMap[category];
+              if (stat) {
+                console.log('  ' + category + ': ' + formatAmount(stat.totalAmount) + ' (' + stat.percentage + '%)');
+              } else {
+                console.log('  ' + category + ': 기부 내역 없음 (0원)');
+              }
+            });
+            console.log('========================================');
           })
           .catch(error => {
             console.error('분야별 통계 API 호출 오류:', error);

@@ -165,7 +165,7 @@
         display: block;
     }
 
-    /* Google Translate */
+    /* Google Translate Widget 스타일 */
     .language-selector {
         position: relative;
         display: inline-block;
@@ -181,13 +181,78 @@
         border-radius: 12px;
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
         z-index: 9999;
+        min-width: 180px;
     }
 
-    .goog-te-banner-frame { display: none !important; }
+    .goog-te-banner-frame {
+        display: none !important;
+    }
+
+    body {
+        top: 0 !important;
+    }
+
+    .goog-te-gadget {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+        font-size: 0 !important;
+    }
+
+    .goog-te-gadget-simple {
+        background-color: white !important;
+        border: 2px solid #e9ecef !important;
+        border-radius: 8px !important;
+        font-size: 14px !important;
+        padding: 10px 15px !important;
+        display: inline-block !important;
+        cursor: pointer !important;
+        transition: all 0.2s !important;
+    }
+
+    .goog-te-gadget-simple:hover {
+        border-color: #4A90E2 !important;
+        background-color: #f8f9fa !important;
+    }
+
+    .goog-te-gadget-icon {
+        display: none !important;
+    }
+
+    .goog-te-menu-value {
+        color: #2c3e50 !important;
+        font-weight: 500 !important;
+    }
+
+    .goog-te-menu-value span {
+        color: #2c3e50 !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+    }
+
+    .goog-te-menu-value span:first-child {
+        display: none !important;
+    }
+
+    .goog-te-menu-value > span:before {
+        content: '🌐 ' !important;
+    }
+
+    .goog-te-menu2 {
+        border: none !important;
+        border-radius: 12px !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+        max-height: 450px !important;
+        overflow-y: auto !important;
+        padding: 8px 0 !important;
+        background: white !important;
+    }
 
     .goog-te-menu2-item {
         padding: 12px 20px !important;
+        font-size: 14px !important;
+        color: #2c3e50 !important;
+        transition: all 0.2s !important;
         border-left: 3px solid transparent !important;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
     }
 
     .goog-te-menu2-item:hover {
@@ -200,6 +265,33 @@
         color: #4A90E2 !important;
         font-weight: 600 !important;
         border-left-color: #4A90E2 !important;
+    }
+
+    .goog-te-menu2-item div {
+        color: inherit !important;
+    }
+
+    .goog-te-menu2::-webkit-scrollbar {
+        width: 8px !important;
+    }
+
+    .goog-te-menu2::-webkit-scrollbar-track {
+        background: #f1f1f1 !important;
+        border-radius: 10px !important;
+    }
+
+    .goog-te-menu2::-webkit-scrollbar-thumb {
+        background: #4A90E2 !important;
+        border-radius: 10px !important;
+    }
+
+    .goog-te-menu2::-webkit-scrollbar-thumb:hover {
+        background: #357ABD !important;
+    }
+
+    iframe.goog-te-menu-frame {
+        border-radius: 12px !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2) !important;
     }
 </style>
 

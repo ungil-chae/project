@@ -29,6 +29,15 @@ public class VolunteerApplicationDto {
     private Timestamp createdAt;
     private Timestamp updatedAt;
 
+    // 배정된 시설 정보
+    private String assignedFacilityName;
+    private String assignedFacilityAddress;
+    private Double assignedFacilityLat;
+    private Double assignedFacilityLng;
+    private String adminNote;
+    private Long approvedBy;
+    private Timestamp approvedAt;
+
     // 리뷰 작성 가능 여부 (3일 이내)
     private boolean canWriteReview;
 
@@ -244,6 +253,62 @@ public class VolunteerApplicationDto {
 
     public void setHasReview(boolean hasReview) {
         this.hasReview = hasReview;
+    }
+
+    public String getAssignedFacilityName() {
+        return assignedFacilityName;
+    }
+
+    public void setAssignedFacilityName(String assignedFacilityName) {
+        this.assignedFacilityName = assignedFacilityName;
+    }
+
+    public String getAssignedFacilityAddress() {
+        return assignedFacilityAddress;
+    }
+
+    public void setAssignedFacilityAddress(String assignedFacilityAddress) {
+        this.assignedFacilityAddress = assignedFacilityAddress;
+    }
+
+    public Double getAssignedFacilityLat() {
+        return assignedFacilityLat;
+    }
+
+    public void setAssignedFacilityLat(Double assignedFacilityLat) {
+        this.assignedFacilityLat = assignedFacilityLat;
+    }
+
+    public Double getAssignedFacilityLng() {
+        return assignedFacilityLng;
+    }
+
+    public void setAssignedFacilityLng(Double assignedFacilityLng) {
+        this.assignedFacilityLng = assignedFacilityLng;
+    }
+
+    public String getAdminNote() {
+        return adminNote;
+    }
+
+    public void setAdminNote(String adminNote) {
+        this.adminNote = adminNote;
+    }
+
+    public Long getApprovedBy() {
+        return approvedBy;
+    }
+
+    public void setApprovedBy(Long approvedBy) {
+        this.approvedBy = approvedBy;
+    }
+
+    public Timestamp getApprovedAt() {
+        return approvedAt;
+    }
+
+    public void setApprovedAt(Timestamp approvedAt) {
+        this.approvedAt = approvedAt;
     }
 
     @Override

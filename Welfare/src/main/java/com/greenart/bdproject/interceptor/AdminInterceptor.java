@@ -34,10 +34,13 @@ public class AdminInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        // 로그인 정보 확인
-        Member member = (Member) session.getAttribute("member");
+        // 로그인 정보 확인 (세션에서 개별 속성으로 저장된 정보 확인)
+        String userId = (String) session.getAttribute("id");
+        String role = (String) session.getAttribute("role");
 
-        if (member == null) {
+        logger.info("세션 정보 - userId: {}, role: {}", userId, role);
+
+        if (userId == null || userId.isEmpty()) {
             logger.warn("로그인 정보가 없습니다.");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json;charset=UTF-8");
@@ -46,15 +49,15 @@ public class AdminInterceptor implements HandlerInterceptor {
         }
 
         // 관리자 권한 확인
-        if (!"ADMIN".equals(member.getRole())) {
-            logger.warn("관리자 권한이 없습니다. 사용자: {}, 권한: {}", member.getEmail(), member.getRole());
+        if (!"ADMIN".equals(role)) {
+            logger.warn("관리자 권한이 없습니다. 사용자: {}, 권한: {}", userId, role);
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.setContentType("application/json;charset=UTF-8");
             response.getWriter().write("{\"success\": false, \"error\": \"관리자 권한이 필요합니다.\"}");
             return false;
         }
 
-        logger.info("관리자 권한 검증 성공: {}", member.getEmail());
+        logger.info("관리자 권한 검증 성공: {}", userId);
         return true;
     }
 }

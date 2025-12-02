@@ -31,6 +31,14 @@ public class FaqService {
     }
 
     /**
+     * 활성화된 FAQ만 조회
+     * @return 활성화된 FAQ 리스트
+     */
+    public List<FaqDto> getActiveFaqs() {
+        return faqDao.selectActiveFaqs();
+    }
+
+    /**
      * 카테고리별 FAQ 조회
      * @param category 카테고리
      * @return 카테고리별 FAQ 리스트
@@ -46,6 +54,40 @@ public class FaqService {
      */
     public FaqDto getFaqById(Long faqId) {
         return faqDao.selectById(faqId);
+    }
+
+    /**
+     * FAQ 등록
+     * @param faq FAQ 정보
+     * @return 등록된 FAQ ID
+     */
+    public Long createFaq(FaqDto faq) {
+        if (faq.getOrderNum() == null) {
+            faq.setOrderNum(0);
+        }
+        if (faq.getIsActive() == null) {
+            faq.setIsActive(true);
+        }
+        faqDao.insert(faq);
+        return faq.getFaqId();
+    }
+
+    /**
+     * FAQ 수정
+     * @param faq FAQ 정보
+     * @return 수정 성공 여부
+     */
+    public boolean updateFaq(FaqDto faq) {
+        return faqDao.update(faq) > 0;
+    }
+
+    /**
+     * FAQ 삭제
+     * @param faqId FAQ ID
+     * @return 삭제 성공 여부
+     */
+    public boolean deleteFaq(Long faqId) {
+        return faqDao.deleteById(faqId) > 0;
     }
 
     /**

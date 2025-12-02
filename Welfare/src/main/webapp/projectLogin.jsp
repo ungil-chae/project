@@ -139,7 +139,30 @@
             background-color: #b2dffc;
             cursor: not-allowed;
         }
-        
+
+        /* 로그인 상태 유지 체크박스 스타일 */
+        .remember-me {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            margin: 16px 0;
+            gap: 8px;
+        }
+
+        .remember-me input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #4A90E2;
+        }
+
+        .remember-me label {
+            font-size: 14px;
+            color: #333;
+            cursor: pointer;
+            user-select: none;
+        }
+
         .divider {
             display: flex;
             align-items: center;
@@ -253,6 +276,11 @@
                     <input type="password" class="form-input" name="password" placeholder="비밀번호를 입력하세요" required>
                 </div>
 
+                <div class="remember-me">
+                    <input type="checkbox" id="rememberMe" name="rememberMe">
+                    <label for="rememberMe">로그인 상태 유지</label>
+                </div>
+
                 <button type="submit" class="login-btn">로그인</button>
             </form>
             
@@ -313,14 +341,18 @@
                 const formData = new FormData(this);
                 const email = formData.get('email');
                 const password = formData.get('password');
+                const rememberMe = document.getElementById('rememberMe').checked;
 
                 console.log('email:', email);
                 console.log('password:', password ? '***' : 'null');
+                console.log('rememberMe:', rememberMe);
 
                 const loginUrl = contextPath + '/api/auth/login';
                 console.log('Login URL:', loginUrl);
 
-                const requestBody = 'email=' + encodeURIComponent(email) + '&password=' + encodeURIComponent(password);
+                const requestBody = 'email=' + encodeURIComponent(email) +
+                                  '&password=' + encodeURIComponent(password) +
+                                  '&rememberMe=' + encodeURIComponent(rememberMe);
                 console.log('Request body:', requestBody);
 
                 // AJAX 요청으로 로그인 처리
@@ -340,13 +372,20 @@
                     console.log('Login response:', data);
 
                     if (data.success) {
-                        alert('로그인 성공! 메인 페이지로 이동합니다.');
-                        // 페이지 이동
+                        // 로그인 성공 시 이전 사용자의 로컬 데이터 클리어
+                        // (새로 가입한 경우나 다른 사용자가 로그인한 경우를 대비)
+                        const lastLoggedInUser = localStorage.getItem('lastLoggedInUser');
+                        if (lastLoggedInUser !== email) {
+                            // 다른 사용자가 로그인하면 로컬 스토리지 클리어
+                            localStorage.clear();
+                            sessionStorage.clear();
+                            localStorage.setItem('lastLoggedInUser', email);
+                        }
+
+                        // 메인 페이지로 이동
                         const redirectUrl = contextPath + '/project.jsp';
                         console.log('Redirecting to:', redirectUrl);
-                        setTimeout(function() {
-                            window.location.href = redirectUrl;
-                        }, 500);
+                        window.location.href = redirectUrl;
                     } else {
                         console.error('Login failed:', data.message);
 

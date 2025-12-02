@@ -26,6 +26,12 @@ public interface FaqDao {
     List<FaqDto> selectAll();
 
     /**
+     * 활성화된 FAQ만 조회 (is_active = TRUE)
+     * @return List<FaqDto> 활성화된 FAQ 목록
+     */
+    List<FaqDto> selectActiveFaqs();
+
+    /**
      * 카테고리별 FAQ 조회
      * @param category 카테고리
      * @return List<FaqDto> FAQ 목록

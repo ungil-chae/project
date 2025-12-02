@@ -469,9 +469,12 @@ pageEncoding="UTF-8" isELIgnored="false"%>
 
         initMap();
 
-        // 광화문을 기본 중심으로 설정하고 반경 원 표시
+        // 광화문을 기본 중심으로 설정 (검색은 버튼 생성 후)
         userGpsPosition = Gwanghwamun;
-        updateCenter(Gwanghwamun, true);
+        map.setCenter(Gwanghwamun);
+        centerMarker.setPosition(Gwanghwamun);
+        document.querySelector(".radius-options").style.display = "flex";
+        drawRadiusCircle();
 
         try {
           // 1. API를 통해 시설 종류 데이터를 가져옵니다.
@@ -493,30 +496,23 @@ pageEncoding="UTF-8" isELIgnored="false"%>
         }
       };
 
-      // ============== [수정] 시설 종류 코드를 '서버 프록시'를 통해 가져오는 함수 ==============
+      // ============== [카카오 방식] 시설 종류를 직접 정의 ==============
       async function fetchFacilityTypes() {
-        // [수정] 외부 API가 아닌, 우리 서버의 프록시 주소를 호출합니다.
-        const apiUrl = CONTEXT_PATH + "/api/facility-types";
-        console.log("내부 서버 프록시 API 호출:", apiUrl);
+        console.log("시설 종류 데이터 로드 (카카오 검색 키워드 기반)");
 
-        try {
-          const response = await fetch(apiUrl);
-          if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`API 호출 실패: ${response.status} - ${errorText}`);
-          }
-
-          const data = await response.json();
-          console.log("시설 종류 API 응답 (서버 경유):", data);
-
-          if (data.response && data.response.body && data.response.body.items) {
-            return data.response.body.items.item;
-          }
-          return [];
-        } catch (error) {
-          console.error("시설 종류 코드를 가져오는 중 오류 발생:", error);
-          throw error;
-        }
+        // 카카오 Places API로 검색할 복지시설 키워드 목록
+        return [
+          { fcltKindCd: "01", fcltKindNm: "노인복지시설", keyword: "노인복지" },
+          { fcltKindCd: "02", fcltKindNm: "장애인복지시설", keyword: "장애인복지" },
+          { fcltKindCd: "03", fcltKindNm: "아동복지시설", keyword: "어린이집" },
+          { fcltKindCd: "04", fcltKindNm: "여성복지시설", keyword: "여성복지" },
+          { fcltKindCd: "05", fcltKindNm: "지역아동센터", keyword: "지역아동센터" },
+          { fcltKindCd: "06", fcltKindNm: "사회복지관", keyword: "사회복지관" },
+          { fcltKindCd: "07", fcltKindNm: "노숙인복지시설", keyword: "노숙인" },
+          { fcltKindCd: "08", fcltKindNm: "정신건강복지센터", keyword: "정신건강" },
+          { fcltKindCd: "09", fcltKindNm: "보건소", keyword: "보건소" },
+          { fcltKindCd: "10", fcltKindNm: "주민센터", keyword: "주민센터" }
+        ];
       }
 
       // ============== API 데이터로 버튼을 동적으로 생성하는 함수 (중복 제거 버전) ==============
@@ -593,24 +589,17 @@ pageEncoding="UTF-8" isELIgnored="false"%>
         map.panTo(position);
         centerMarker.setPosition(position);
 
-        if (isGps) {
-          userGpsPosition = position;
-          document.querySelector(".radius-options").style.display = "flex";
-          drawRadiusCircle();
-        } else {
-          if (userGpsPosition) {
-            userGpsPosition = position;
-            drawRadiusCircle();
-          } else {
-            if (radiusCircle) radiusCircle.setMap(null);
-            document.querySelector(".radius-options").style.display = "none";
-          }
-        }
+        // 항상 위치를 업데이트하고 반경 원 표시
+        userGpsPosition = position;
+        document.querySelector(".radius-options").style.display = "flex";
+        drawRadiusCircle();
 
+        // 활성화된 시설 버튼이 있으면 자동으로 검색
         const activeButton = document.querySelector(
           ".facility-options button.active"
         );
         if (activeButton) {
+          console.log("지도 중심 변경 → 자동 검색 실행:", activeButton.textContent);
           searchFacilities(activeButton.dataset.code);
         }
       }
@@ -676,9 +665,9 @@ pageEncoding="UTF-8" isELIgnored="false"%>
       }
 
       function getDistance(lat1, lng1, lat2, lng2) {
-        const R = 6371;
-        const dLat = ((lat2 - lat1) * Math.PI) / 180,
-          dLng = ((lng2 - lng1) * Math.PI) / 180;
+        const R = 6371; // 지구 반지름 (km)
+        const dLat = ((lat2 - lat1) * Math.PI) / 180;
+        const dLng = ((lng2 - lng1) * Math.PI) / 180;
         const a =
           Math.sin(dLat / 2) * Math.sin(dLat / 2) +
           Math.cos((lat1 * Math.PI) / 180) *
@@ -686,7 +675,8 @@ pageEncoding="UTF-8" isELIgnored="false"%>
             Math.sin(dLng / 2) *
             Math.sin(dLng / 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return parseFloat((R * c).toFixed(2));
+        // 반올림 전 정확한 거리 반환 후 필터링 시점에 비교
+        return R * c;
       }
 
       function adjustMapLevel(radius) {
@@ -698,256 +688,128 @@ pageEncoding="UTF-8" isELIgnored="false"%>
         map.setLevel(level);
       }
 
-      async function fetchFacilitiesFromPublicAPI(params) {
-        console.log("복지시설 목록 API 호출 시작, 파라미터:", params);
 
-        try {
-          const endpoint = CONTEXT_PATH + "/api/facilities";
-
-          const urlParams = new URLSearchParams();
-          if (params.fcltKindCd)
-            urlParams.append("fcltKindCd", params.fcltKindCd);
-          if (params.jrsdSggCd) urlParams.append("jrsdSggCd", params.jrsdSggCd);
-          if (params.fcltNm) urlParams.append("fcltNm", params.fcltNm);
-          urlParams.append("pageNo", params.pageNo || 1);
-          urlParams.append("numOfRows", params.numOfRows || 100);
-
-          const url = `${"${endpoint}"}?${"${urlParams.toString()}"}`;
-
-          const response = await fetch(url);
-          if (!response.ok)
-            throw new Error(`서버 API 오류: ${response.status}`);
-
-          const data = await response.json();
-          console.log("복지시설 목록", data);
-          if (data.response && data.response.body && data.response.body.items) {
-            const items = Array.isArray(data.response.body.items.item)
-              ? data.response.body.items.item
-              : [data.response.body.items.item];
-            console.log(items);
-            return items.map((item) => ({
-              fcltNm: item.fcltNm || "",
-              fcltAddr: item.fcltAddr || "",
-              fcltTelNo: item.fcltTelNo || item.telNo || "",
-              fcltCd: item.fcltCd || "",
-              fcltKindNm: item.fcltKindNm || "",
-            }));
-          } else {
-            return [];
-          }
-        } catch (error) {
-          console.error("복지시설 목록 조회 중 오류:", error);
-          throw error;
-        }
-      }
-
-      async function searchFacilities(facilityCode, searchTerm = "") {
+      // ============== [카카오 방식] 카카오 Places API로 직접 검색 (페이지네이션 지원) ==============
+      function searchFacilities(facilityCode, searchTerm = "") {
         const searchPosition = map.getCenter();
-        document.querySelector(".results-list").innerHTML =
-          '<li class="loading">검색 중...</li>';
+        document.querySelector(".results-list").innerHTML = '<li class="loading">검색 중...</li>';
 
-        searchAddrFromCoords(searchPosition, async (result, status) => {
-          if (status === kakao.maps.services.Status.OK) {
-            const districtCode = result[0].code.substr(0, 4) + "000000";
-            console.log("거리 코드", districtCode);
+        // 선택된 시설 종류의 검색 키워드 찾기
+        fetchFacilityTypes().then(facilityTypes => {
+          const selectedType = facilityTypes.find(t => t.fcltKindCd === facilityCode);
+          const keyword = searchTerm || (selectedType ? selectedType.keyword : "복지");
 
-            const params = {
-              fcltKindCd: facilityCode || "",
-              jrsdSggCd: districtCode,
-              fcltNm: searchTerm || "",
-              numOfRows: 100,
-              pageNo: 1,
-            };
-            console.log("매개변수", params);
-            try {
-              allFacilities = await fetchFacilitiesFromPublicAPI(params);
-              console.log("API에서 받은 시설 수:", allFacilities.length);
-              console.log("모든 시설 데이터:", allFacilities);
+          console.log("=== 카카오 Places API 검색 시작 ===");
+          console.log("키워드:", keyword, "| 위치:", searchPosition.getLat().toFixed(4), searchPosition.getLng().toFixed(4), "| 반경:", currentRadius + "km");
 
-              // 좌표 변환 및 필터링 수행
-              if (userGpsPosition) {
-                await filterAndDisplayFacilities(allFacilities, userGpsPosition);
-              } else {
-                await filterAndDisplayFacilities(allFacilities, searchPosition);
-              }
-            } catch (error) {
-              console.error("시설 검색 실패:", error);
-              document.querySelector(".results-list").innerHTML =
-                "<li>시설 정보를 불러올 수 없습니다.</li>";
-            }
-          } else {
-            document.querySelector(".results-list").innerHTML =
-              "<li>주소 정보를 찾을 수 없습니다.</li>";
-          }
-        });
-      }
-
-      async function filterAndDisplayFacilities(facilities, centerPoint) {
-        const centerLat = centerPoint.getLat();
-        const centerLng = centerPoint.getLng();
-        let facilitiesWithCoords = [];
-
-        console.log(`총 ${facilities.length}개 시설에 대해 좌표 검색 시작`);
-        document.querySelector(".results-list").innerHTML =
-          `<li class="loading">좌표 변환 중... (0/${facilities.length})</li>`;
-
-        for (let i = 0; i < facilities.length; i++) {
-          const facility = facilities[i];
-
-          // 진행 상황 표시
-          if (i % 5 === 0) {
-            document.querySelector(".results-list").innerHTML =
-              `<li class="loading">좌표 변환 중... (${i}/${facilities.length})</li>`;
-          }
-
-          if (!facility.fcltAddr && !facility.fcltNm) continue;
-
-          // API가 이미 좌표를 제공한 경우 (하드코딩된 데이터)
-          if (facility.lat && facility.lng) {
-            const lat = parseFloat(facility.lat);
-            const lng = parseFloat(facility.lng);
-            const distance = calculateDistance(centerLat, centerLng, lat, lng);
-
-            facilitiesWithCoords.push({
-              ...facility,
-              lat: lat,
-              lng: lng,
-              distance: distance,
-              kakaoAddr: facility.fcltAddr,
-              kakaoPhone: facility.fcltTelNo
-            });
-            console.log(`✓ 하드코딩 좌표 사용 [${facilitiesWithCoords.length}/${facilities.length}]: ${facility.fcltNm}`);
-            continue;
-          }
-
-          // 좌표가 없는 경우에만 Geocoder 사용
-          const result = await tryMultipleGeocodingMethods(facility, centerLat, centerLng);
-
-          if (result) {
-            facilitiesWithCoords.push(result);
-            console.log(`✓ 좌표 변환 성공 [${facilitiesWithCoords.length}/${facilities.length}]: ${result.fcltNm}`);
-          } else {
-            console.log(`✗ 좌표 변환 실패 [${i+1}/${facilities.length}]: ${facility.fcltNm} - ${facility.fcltAddr}`);
-          }
-          await new Promise((resolve) => setTimeout(resolve, 200)); // API 제한 방지 (간격 증가)
-        }
-
-        console.log(`좌표 검색 완료: ${facilitiesWithCoords.length}/${facilities.length}개 성공`);
-        console.log("변환 성공 시설 목록:", facilitiesWithCoords.map(f => f.fcltNm));
-
-        const validFacilities = facilitiesWithCoords.filter(
-          (f) => f && (!userGpsPosition || f.distance <= currentRadius)
-        );
-        validFacilities.sort((a, b) => a.distance - b.distance);
-
-        console.log(`반경 필터링 완료: ${validFacilities.length}개 시설 표시`);
-        updateResultListAndMarkers(validFacilities);
-      }
-
-      // 여러 방법으로 좌표를 찾는 함수
-      async function tryMultipleGeocodingMethods(facility, centerLat, centerLng) {
-        // 방법 1: 원본 주소로 검색
-        if (facility.fcltAddr) {
-          let result = await searchByAddress(facility.fcltAddr, facility, centerLat, centerLng);
-          if (result) return result;
-
-          // 방법 2: "서울특별시" → "서울"로 변환
-          let addr2 = facility.fcltAddr.replace('서울특별시', '서울');
-          if (addr2 !== facility.fcltAddr) {
-            result = await searchByAddress(addr2, facility, centerLat, centerLng);
-            if (result) return result;
-          }
-
-          // 방법 3: 괄호 제거
-          let addr3 = facility.fcltAddr.replace(/\(.*?\)/g, '').trim();
-          result = await searchByAddress(addr3, facility, centerLat, centerLng);
-          if (result) return result;
-
-          // 방법 4: 번지수 제거 (동/로까지만)
-          let parts = facility.fcltAddr.split(' ');
-          for (let i = parts.length - 1; i >= 2; i--) {
-            let addr4 = parts.slice(0, i).join(' ');
-            result = await searchByAddress(addr4, facility, centerLat, centerLng);
-            if (result) return result;
-          }
-
-          // 방법 5: 구 이름 + 시설명으로 장소 검색
-          let guMatch = facility.fcltAddr.match(/(종로구|중구|용산구|서대문구|성북구|동대문구|마포구|영등포구|도봉구)/);
-          if (guMatch) {
-            let searchQuery = guMatch[1] + ' ' + facility.fcltNm;
-            result = await searchByKeyword(searchQuery, facility, centerLat, centerLng);
-            if (result) return result;
-          }
-        }
-
-        // 방법 6: 시설명만으로 장소 검색
-        if (facility.fcltNm) {
-          let result = await searchByKeyword(facility.fcltNm, facility, centerLat, centerLng);
-          if (result) return result;
-
-          // 방법 7: 시설명에서 괄호/특수문자 제거
-          let cleanName = facility.fcltNm.replace(/\(.*?\)/g, '').replace(/[^\w가-힣\s]/g, '').trim();
-          if (cleanName !== facility.fcltNm && cleanName.length > 2) {
-            result = await searchByKeyword(cleanName, facility, centerLat, centerLng);
-            if (result) return result;
-          }
-
-          // 방법 8: 시설명 앞부분만 검색
-          let shortName = facility.fcltNm.split(/[\s(]/)[0];
-          if (shortName !== facility.fcltNm && shortName.length > 2) {
-            result = await searchByKeyword(shortName, facility, centerLat, centerLng);
-            if (result) return result;
-          }
-        }
-
-        return null;
-      }
-
-      // 주소로 좌표 검색
-      function searchByAddress(address, facility, centerLat, centerLng) {
-        return new Promise((resolve) => {
-          geocoder.addressSearch(address, function(result, status) {
-            if (status === kakao.maps.services.Status.OK && result.length > 0) {
-              const lat = parseFloat(result[0].y);
-              const lng = parseFloat(result[0].x);
-              const distance = getDistance(centerLat, centerLng, lat, lng);
-              resolve({
-                ...facility,
-                lat,
-                lng,
-                distance,
-              });
-            } else {
-              resolve(null);
-            }
-          });
-        });
-      }
-
-      // 키워드로 장소 검색
-      function searchByKeyword(keyword, facility, centerLat, centerLng) {
-        return new Promise((resolve) => {
+          // 카카오 Places 서비스 생성
           const ps = new kakao.maps.services.Places();
-          ps.keywordSearch(keyword, (result, status) => {
-            if (status === kakao.maps.services.Status.OK && result.length > 0) {
-              const place = result[0];
-              const lat = parseFloat(place.y);
-              const lng = parseFloat(place.x);
-              const distance = getDistance(centerLat, centerLng, lat, lng);
-              resolve({
-                ...facility,
-                lat,
-                lng,
-                distance,
-                kakaoAddr: place.road_address_name || place.address_name,
-                kakaoPhone: place.phone,
-              });
-            } else {
-              resolve(null);
-            }
-          });
+
+          // 검색 옵션 설정
+          const options = {
+            location: searchPosition,
+            radius: currentRadius * 1000, // km를 m로 변환
+            size: 15 // 페이지당 15개
+          };
+
+          const centerLat = searchPosition.getLat();
+          const centerLng = searchPosition.getLng();
+          let allResults = [];
+
+          // 재귀적으로 페이지 가져오기 (최대 100개)
+          function fetchAllPages(pageNum) {
+            ps.keywordSearch(keyword, function(data, status, pagination) {
+              if (status === kakao.maps.services.Status.OK) {
+                console.log(`${pageNum}페이지 검색 성공: ${data.length}개 시설 (누적: ${allResults.length + data.length}개)`);
+                allResults = allResults.concat(data);
+
+                // 100개 미만이고 다음 페이지가 있으면 계속 가져오기
+                if (allResults.length < 100 && pagination.hasNextPage) {
+                  setTimeout(() => {
+                    pagination.nextPage();
+                    fetchAllPages(pageNum + 1);
+                  }, 50);
+                } else {
+                  // 수집 완료 (100개 도달 또는 더 이상 페이지 없음)
+                  if (allResults.length >= 100) {
+                    allResults = allResults.slice(0, 100); // 정확히 100개만
+                    console.log(`✅ 최대 100개 제한 도달 (${pageNum}페이지)`);
+                  } else {
+                    console.log(`✅ 총 ${allResults.length}개 시설 데이터 수집 완료 (${pageNum}페이지)`);
+                  }
+                  processSearchResults(allResults, centerLat, centerLng, selectedType);
+                }
+              } else if (status === kakao.maps.services.Status.ZERO_RESULT) {
+                if (pageNum === 1) {
+                  console.log("검색 결과 없음");
+                  document.querySelector(".results-list").innerHTML =
+                    `<li>반경 ${currentRadius}km 내에 "${keyword}" 검색 결과가 없습니다.</li>`;
+                  allFacilities = [];
+                  clearMap();
+                } else {
+                  // 중간 페이지에서 결과 없으면 현재까지 수집한 데이터 처리
+                  console.log(`✅ 총 ${allResults.length}개 시설 데이터 수집 완료 (${pageNum-1}페이지)`);
+                  processSearchResults(allResults, centerLat, centerLng, selectedType);
+                }
+              } else {
+                console.error("카카오 검색 실패:", status);
+                if (allResults.length > 0) {
+                  // 이미 수집한 데이터라도 표시
+                  console.log(`일부 데이터만 표시: ${allResults.length}개`);
+                  processSearchResults(allResults, centerLat, centerLng, selectedType);
+                } else {
+                  document.querySelector(".results-list").innerHTML =
+                    "<li>검색 중 오류가 발생했습니다. 다시 시도해주세요.</li>";
+                }
+              }
+            }, options);
+          }
+
+          // 첫 페이지부터 시작
+          fetchAllPages(1);
         });
       }
+
+      // 검색 결과 처리 함수
+      function processSearchResults(data, centerLat, centerLng, selectedType) {
+        if (data.length === 0) return;
+
+        console.log(`총 ${data.length}개 시설 데이터 처리 시작`);
+
+        // 카카오 데이터를 우리 포맷으로 변환
+        allFacilities = data.map(place => {
+          const lat = parseFloat(place.y);
+          const lng = parseFloat(place.x);
+          const distance = getDistance(centerLat, centerLng, lat, lng);
+
+          return {
+            fcltNm: place.place_name,
+            fcltAddr: place.road_address_name || place.address_name,
+            fcltTelNo: place.phone || "전화번호 없음",
+            fcltKindNm: selectedType ? selectedType.fcltKindNm : "복지시설",
+            fcltCd: place.id,
+            lat: lat,
+            lng: lng,
+            distance: distance, // 정확한 거리 (소수점)
+            distanceDisplay: distance.toFixed(2), // 표시용 거리 (소수점 2자리)
+            kakaoAddr: place.road_address_name || place.address_name,
+            kakaoPhone: place.phone
+          };
+        });
+
+        // 반경 내 시설만 필터링 (거리가 선택한 반경 이하인 것만)
+        // 약간의 여유(0.01km = 10m)를 두지 않고 정확히 반경 내부만 표시
+        const filteredFacilities = allFacilities.filter(f => f.distance < currentRadius);
+
+        // 거리순 정렬
+        filteredFacilities.sort((a, b) => a.distance - b.distance);
+
+        console.log(`✅ 반경 ${currentRadius}km 내 시설: ${filteredFacilities.length}개 표시`);
+
+        // 결과 표시
+        updateResultListAndMarkers(filteredFacilities);
+      }
+
 
       function updateResultListAndMarkers(facilities) {
         clearMap();
@@ -970,6 +832,21 @@ pageEncoding="UTF-8" isELIgnored="false"%>
         }
 
         facilities.forEach((facility) => {
+          // 반경 내 시설인지 재확인 (이중 검증)
+          const centerPos = map.getCenter();
+          const actualDistance = getDistance(
+            centerPos.getLat(),
+            centerPos.getLng(),
+            facility.lat,
+            facility.lng
+          );
+
+          // 실제 거리가 반경을 초과하면 스킵
+          if (actualDistance > currentRadius) {
+            console.warn(`시설 제외: ${facility.fcltNm} (거리: ${actualDistance}km > ${currentRadius}km)`);
+            return;
+          }
+
           const coords = new kakao.maps.LatLng(facility.lat, facility.lng);
           const marker = new kakao.maps.Marker({ map, position: coords });
 
@@ -981,8 +858,8 @@ pageEncoding="UTF-8" isELIgnored="false"%>
           infoContent += '<div style="font-size:13px; color:#666; line-height:1.6;">';
           infoContent += '<div style="margin-bottom:4px;">📍 ' + displayAddr + '</div>';
           infoContent += '<div style="margin-bottom:4px;">📞 ' + displayPhone + '</div>';
-          if (facility.distance) {
-            infoContent += '<div style="color:#4A90E2; font-weight:500;">📏 거리: ' + facility.distance + 'km</div>';
+          if (facility.distanceDisplay) {
+            infoContent += '<div style="color:#4A90E2; font-weight:500;">📏 거리: ' + facility.distanceDisplay + 'km</div>';
           }
           infoContent += '</div></div>';
 
@@ -1005,7 +882,7 @@ pageEncoding="UTF-8" isELIgnored="false"%>
           const listItem = document.createElement("li");
           listItem.className = "result-item";
           let distanceHTML = userGpsPosition
-            ? `<p style="color: #4A90E2; font-weight: 500;">거리: ${"${facility.distance}"}km</p>`
+            ? `<p style="color: #4A90E2; font-weight: 500;">거리: ${"${facility.distanceDisplay}"}km</p>`
             : "";
 
           listItem.innerHTML = `
@@ -1079,12 +956,11 @@ pageEncoding="UTF-8" isELIgnored="false"%>
             if (userGpsPosition) {
               drawRadiusCircle();
               adjustMapLevel(currentRadius);
-              filterAndDisplayFacilities(allFacilities, userGpsPosition);
-            } else {
-              const activeButton = document.querySelector(
-                ".facility-options button.active"
-              );
-              if (activeButton) searchFacilities(activeButton.dataset.code);
+            }
+            // 반경 변경 시 현재 선택된 시설 종류로 재검색
+            const activeButton = document.querySelector(".facility-options button.active");
+            if (activeButton) {
+              searchFacilities(activeButton.dataset.code);
             }
           });
         });

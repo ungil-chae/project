@@ -28,6 +28,11 @@ public class Member {
     private Date birth;  // DATE
     private String gender;  // ENUM('MALE', 'FEMALE', 'OTHER')
 
+    // 주소 정보
+    private String postcode;  // VARCHAR(10) - 우편번호
+    private String address;  // VARCHAR(255) - 기본 주소
+    private String detailAddress;  // VARCHAR(255) - 상세 주소
+
     // 권한 및 상태
     private String role;  // ENUM('USER', 'ADMIN')
     private String status;  // ENUM('ACTIVE', 'SUSPENDED', 'DORMANT')
@@ -131,6 +136,30 @@ public class Member {
 
     public void setGender(String gender) {
         this.gender = gender;
+    }
+
+    public String getPostcode() {
+        return postcode;
+    }
+
+    public void setPostcode(String postcode) {
+        this.postcode = postcode;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getDetailAddress() {
+        return detailAddress;
+    }
+
+    public void setDetailAddress(String detailAddress) {
+        this.detailAddress = detailAddress;
     }
 
     public String getRole() {

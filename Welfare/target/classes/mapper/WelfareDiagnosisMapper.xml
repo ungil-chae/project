@@ -7,11 +7,13 @@
     <!-- resultMap: WelfareDiagnosisResult → WelfareDiagnosisDto -->
     <resultMap id="WelfareDiagnosisResult" type="com.greenart.bdproject.dto.WelfareDiagnosisDto">
         <id property="diagnosisId" column="diagnosis_id"/>
-        <result property="userId" column="user_id"/>
+        <result property="memberId" column="member_id"/>
         <result property="birthDate" column="birth_date"/>
+        <result property="age" column="age"/>
         <result property="gender" column="gender"/>
         <result property="householdSize" column="household_size"/>
         <result property="incomeLevel" column="income_level"/>
+        <result property="monthlyIncome" column="monthly_income"/>
         <result property="maritalStatus" column="marital_status"/>
         <result property="childrenCount" column="children_count"/>
         <result property="employmentStatus" column="employment_status"/>
@@ -19,59 +21,76 @@
         <result property="sigungu" column="sigungu"/>
         <result property="isPregnant" column="is_pregnant"/>
         <result property="isDisabled" column="is_disabled"/>
+        <result property="disabilityGrade" column="disability_grade"/>
         <result property="isMulticultural" column="is_multicultural"/>
         <result property="isVeteran" column="is_veteran"/>
         <result property="isSingleParent" column="is_single_parent"/>
-        <result property="matchedServicesJson" column="matched_services_json"/>
+        <result property="isElderlyLivingAlone" column="is_elderly_living_alone"/>
+        <result property="isLowIncome" column="is_low_income"/>
+        <result property="matchedServices" column="matched_services" typeHandler="org.apache.ibatis.type.StringTypeHandler"/>
+        <result property="matchedServicesCount" column="matched_services_count"/>
+        <result property="totalMatchingScore" column="total_matching_score"/>
         <result property="saveConsent" column="save_consent"/>
+        <result property="privacyConsent" column="privacy_consent"/>
+        <result property="marketingConsent" column="marketing_consent"/>
         <result property="createdAt" column="created_at"/>
     </resultMap>
 
     <!-- insert: INSERT INTO welfare_diagnoses -->
     <insert id="insert" parameterType="com.greenart.bdproject.dto.WelfareDiagnosisDto" useGeneratedKeys="true" keyProperty="diagnosisId">
         INSERT INTO welfare_diagnoses (
-            user_id, birth_date, gender, household_size, income_level,
+            member_id, birth_date, age, gender, household_size, income_level, monthly_income,
             marital_status, children_count, employment_status, sido, sigungu,
-            is_pregnant, is_disabled, is_multicultural, is_veteran, is_single_parent,
-            matched_services_json, save_consent, created_at
+            is_pregnant, is_disabled, disability_grade, is_multicultural, is_veteran, is_single_parent,
+            is_elderly_living_alone, is_low_income,
+            matched_services, matched_services_count, total_matching_score,
+            save_consent, privacy_consent, marketing_consent, created_at
         )
         VALUES (
-            #{userId}, #{birthDate}, #{gender}, #{householdSize}, #{incomeLevel},
+            #{memberId}, #{birthDate}, #{age}, #{gender}, #{householdSize}, #{incomeLevel}, #{monthlyIncome},
             #{maritalStatus}, #{childrenCount}, #{employmentStatus}, #{sido}, #{sigungu},
-            #{isPregnant}, #{isDisabled}, #{isMulticultural}, #{isVeteran}, #{isSingleParent},
-            #{matchedServicesJson}, #{saveConsent}, NOW()
+            #{isPregnant}, #{isDisabled}, #{disabilityGrade}, #{isMulticultural}, #{isVeteran}, #{isSingleParent},
+            #{isElderlyLivingAlone}, #{isLowIncome},
+            #{matchedServices}, #{matchedServicesCount}, #{totalMatchingScore},
+            #{saveConsent}, #{privacyConsent}, #{marketingConsent}, NOW()
         )
     </insert>
 
-    <!-- selectByUserId: SELECT * FROM welfare_diagnoses WHERE user_id = #{userId} ORDER BY created_at DESC -->
-    <select id="selectByUserId" parameterType="string" resultMap="WelfareDiagnosisResult">
-        SELECT diagnosis_id, user_id, birth_date, gender, household_size, income_level,
+    <!-- selectByMemberId: SELECT * FROM welfare_diagnoses WHERE member_id = #{memberId} ORDER BY created_at DESC -->
+    <select id="selectByMemberId" parameterType="long" resultMap="WelfareDiagnosisResult">
+        SELECT diagnosis_id, member_id, birth_date, age, gender, household_size, income_level, monthly_income,
                marital_status, children_count, employment_status, sido, sigungu,
-               is_pregnant, is_disabled, is_multicultural, is_veteran, is_single_parent,
-               matched_services_json, save_consent, created_at
+               is_pregnant, is_disabled, disability_grade, is_multicultural, is_veteran, is_single_parent,
+               is_elderly_living_alone, is_low_income,
+               matched_services, matched_services_count, total_matching_score,
+               save_consent, privacy_consent, marketing_consent, created_at
         FROM welfare_diagnoses
-        WHERE user_id = #{userId}
+        WHERE member_id = #{memberId}
         ORDER BY created_at DESC
     </select>
 
     <!-- selectById: SELECT * FROM welfare_diagnoses WHERE diagnosis_id = #{diagnosisId} -->
     <select id="selectById" parameterType="long" resultMap="WelfareDiagnosisResult">
-        SELECT diagnosis_id, user_id, birth_date, gender, household_size, income_level,
+        SELECT diagnosis_id, member_id, birth_date, age, gender, household_size, income_level, monthly_income,
                marital_status, children_count, employment_status, sido, sigungu,
-               is_pregnant, is_disabled, is_multicultural, is_veteran, is_single_parent,
-               matched_services_json, save_consent, created_at
+               is_pregnant, is_disabled, disability_grade, is_multicultural, is_veteran, is_single_parent,
+               is_elderly_living_alone, is_low_income,
+               matched_services, matched_services_count, total_matching_score,
+               save_consent, privacy_consent, marketing_consent, created_at
         FROM welfare_diagnoses
         WHERE diagnosis_id = #{diagnosisId}
     </select>
 
-    <!-- selectLatestByUserId: SELECT * FROM welfare_diagnoses WHERE user_id = #{userId} ORDER BY created_at DESC LIMIT 1 -->
-    <select id="selectLatestByUserId" parameterType="string" resultMap="WelfareDiagnosisResult">
-        SELECT diagnosis_id, user_id, birth_date, gender, household_size, income_level,
+    <!-- selectLatestByMemberId: SELECT * FROM welfare_diagnoses WHERE member_id = #{memberId} ORDER BY created_at DESC LIMIT 1 -->
+    <select id="selectLatestByMemberId" parameterType="long" resultMap="WelfareDiagnosisResult">
+        SELECT diagnosis_id, member_id, birth_date, age, gender, household_size, income_level, monthly_income,
                marital_status, children_count, employment_status, sido, sigungu,
-               is_pregnant, is_disabled, is_multicultural, is_veteran, is_single_parent,
-               matched_services_json, save_consent, created_at
+               is_pregnant, is_disabled, disability_grade, is_multicultural, is_veteran, is_single_parent,
+               is_elderly_living_alone, is_low_income,
+               matched_services, matched_services_count, total_matching_score,
+               save_consent, privacy_consent, marketing_consent, created_at
         FROM welfare_diagnoses
-        WHERE user_id = #{userId}
+        WHERE member_id = #{memberId}
         ORDER BY created_at DESC
         LIMIT 1
     </select>

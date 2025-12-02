@@ -24,7 +24,25 @@
 	<!-- 관리자 권한 검증 Interceptor -->
 	<beans:bean id="adminInterceptor" class="com.greenart.bdproject.interceptor.AdminInterceptor" />
 
+	<!-- 자동 로그인 Interceptor -->
+	
+	<beans:bean id="autoLoginInterceptor" class="com.greenart.bdproject.interceptor.AutoLoginInterceptor">
+		<beans:property name="memberDao" ref="projectMemberDaoImpl" />
+		<beans:property name="dataSource" ref="dataSource" />
+	</beans:bean>
+
 	<interceptors>
+		<!-- 자동 로그인 인터셉터 -->
+		<interceptor>
+			<mapping path="/**"/>
+			<exclude-mapping path="/resources/**"/>
+			<exclude-mapping path="/api/auth/login"/>
+			<exclude-mapping path="/api/auth/logout"/>
+			<exclude-mapping path="/api/auth/register"/>
+			<beans:ref bean="autoLoginInterceptor"/>
+		</interceptor>
+
+		<!-- 관리자 권한 인터셉터 -->
 		<interceptor>
 			<mapping path="/api/admin/**"/>
 			<beans:ref bean="adminInterceptor"/>

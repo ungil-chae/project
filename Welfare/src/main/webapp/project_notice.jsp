@@ -84,10 +84,24 @@
 
         .notice-header {
             display: flex;
-            align-items: center;
-            gap: 12px;
+            flex-direction: column;
+            gap: 8px;
             margin-bottom: 8px;
             position: relative;
+        }
+
+        .notice-header-top {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .notice-header-bottom {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 14px;
+            color: #6c757d;
         }
 
         .notice-arrow {
@@ -128,6 +142,11 @@
         }
 
         .notice-date {
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        .notice-views {
             font-size: 14px;
             color: #6c757d;
         }
@@ -422,6 +441,16 @@
 
         // 페이징과 함께 공지사항 표시
         function displayNoticesWithPagination(page) {
+            console.log('displayNoticesWithPagination called with page:', page);
+            console.log('allNoticesData length:', allNoticesData.length);
+
+            if (!allNoticesData || allNoticesData.length === 0) {
+                console.error('allNoticesData is empty or undefined');
+                displayNotices([]);
+                document.getElementById('paginationContainer').style.display = 'none';
+                return;
+            }
+
             const totalNotices = allNoticesData.length;
             const totalPages = Math.ceil(totalNotices / itemsPerPage);
 
@@ -429,6 +458,9 @@
             const startIndex = (page - 1) * itemsPerPage;
             const endIndex = startIndex + itemsPerPage;
             const pageNotices = allNoticesData.slice(startIndex, endIndex);
+
+            console.log('Displaying notices from index', startIndex, 'to', endIndex);
+            console.log('pageNotices length:', pageNotices.length);
 
             displayNotices(pageNotices);
 
@@ -445,13 +477,19 @@
         function displayNotices(notices) {
             const noticeList = document.getElementById('noticeList');
 
-            if (!noticeList) return;
+            if (!noticeList) {
+                console.error('noticeList element not found');
+                return;
+            }
+
+            if (!notices || notices.length === 0) {
+                noticeList.innerHTML = '<div style="text-align: center; padding: 50px; color: #6c757d;">등록된 공지사항이 없습니다.</div>';
+                return;
+            }
 
             noticeList.innerHTML = notices.map(notice => {
                 const isPinned = notice.isPinned || false;
-                const isImportant = notice.isImportant || false;
-                const itemClass = isPinned ? 'notice-item pinned' : (isImportant ? 'notice-item important' : 'notice-item');
-                const badge = isImportant ? '<span class="notice-badge important">중요</span>' : '';
+                const itemClass = isPinned ? 'notice-item pinned' : 'notice-item';
                 const pinBadge = isPinned ? '<span class="pin-badge">📌 공지</span>' : '';
                 const createdDate = new Date(notice.createdAt).toLocaleDateString('ko-KR', {
                     year: 'numeric',
@@ -459,16 +497,20 @@
                     day: '2-digit'
                 }).replace(/\. /g, '.').replace(/\.$/, '');
 
-                return '<div class="' + itemClass + '" data-id="' + notice.noticeId + '" onclick="toggleContent(this)">' +
+                return '<div class="' + itemClass + '" data-id="' + notice.noticeId + '" data-views="' + (notice.views || 0) + '" onclick="toggleContent(this)">' +
                         '<div class="notice-header">' +
-                            badge +
-                            pinBadge +
-                            '<span class="notice-title">' + escapeHtml(notice.title) + '</span>' +
-                            '<span class="notice-date">' + createdDate + '</span>' +
-                            '<i class="fas fa-chevron-down notice-arrow"></i>' +
+                            '<div class="notice-header-top">' +
+                                pinBadge +
+                                '<span class="notice-title">' + escapeHtml(notice.title) + '</span>' +
+                                '<i class="fas fa-chevron-down notice-arrow"></i>' +
+                            '</div>' +
+                            '<div class="notice-header-bottom">' +
+                                '<span class="notice-date">' + createdDate + '</span>' +
+                                '<span class="notice-views">조회 <span class="views-count">' + (notice.views || 0) + '</span></span>' +
+                            '</div>' +
                         '</div>' +
                         '<div class="notice-content">' +
-                            escapeHtml(notice.content || '') +
+                            escapeHtml(notice.content || '').replace(/\n/g, '<br>') +
                         '</div>' +
                     '</div>';
             }).join('');
@@ -483,7 +525,7 @@
 
             // 이전 버튼
             if (currentPage > 1) {
-                paginationHTML += `<button class="page-btn" onclick="goToPage(${currentPage - 1})">&laquo;</button>`;
+                paginationHTML += '<button class="page-btn" onclick="goToPage(' + (currentPage - 1) + ')">&laquo;</button>';
             }
 
             // 페이지 번호 (최대 5개만 표시)
@@ -497,12 +539,12 @@
 
             for (let i = startPage; i <= endPage; i++) {
                 const activeClass = i === currentPage ? 'active' : '';
-                paginationHTML += `<button class="page-btn ${activeClass}" onclick="goToPage(${i})">${i}</button>`;
+                paginationHTML += '<button class="page-btn ' + activeClass + '" onclick="goToPage(' + i + ')">' + i + '</button>';
             }
 
             // 다음 버튼
             if (currentPage < totalPages) {
-                paginationHTML += `<button class="page-btn" onclick="goToPage(${currentPage + 1})">&raquo;</button>`;
+                paginationHTML += '<button class="page-btn" onclick="goToPage(' + (currentPage + 1) + ')">&raquo;</button>';
             }
 
             paginationContainer.innerHTML = paginationHTML;
@@ -510,6 +552,14 @@
 
         // 페이지 이동
         function goToPage(page) {
+            console.log('goToPage called with page:', page);
+            console.log('allNoticesData length:', allNoticesData ? allNoticesData.length : 'undefined');
+
+            if (!allNoticesData || allNoticesData.length === 0) {
+                console.error('allNoticesData is empty or undefined in goToPage');
+                return;
+            }
+
             currentPage = page;
             displayNoticesWithPagination(page);
             // 페이지 상단으로 스크롤
@@ -581,12 +631,16 @@
         function useSampleNotices() {
             const noticeList = document.getElementById('noticeList');
             noticeList.innerHTML = `
-            <div class="notice-item important" onclick="toggleContent(this)">
+            <div class="notice-item important" data-id="1" onclick="toggleContent(this)">
                 <div class="notice-header">
-                    <span class="notice-badge important">중요</span>
-                    <span class="notice-title">2025년 복지 혜택 확대 안내</span>
-                    <span class="notice-date">2025.10.08</span>
-                    <i class="fas fa-chevron-down notice-arrow"></i>
+                    <div class="notice-header-top">
+                        <span class="notice-title">2025년 복지 혜택 확대 안내</span>
+                        <i class="fas fa-chevron-down notice-arrow"></i>
+                    </div>
+                    <div class="notice-header-bottom">
+                        <span class="notice-date">2025.10.08</span>
+                        <span class="notice-views">조회 <span class="views-count">523</span></span>
+                    </div>
                 </div>
                 <div class="notice-content">
                     2025년부터 복지 혜택이 대폭 확대됩니다. 기존 소득 기준이 완화되어 더 많은 분들이 혜택을 받으실 수 있게 되었습니다.
@@ -594,11 +648,16 @@
                 </div>
             </div>
 
-            <div class="notice-item" onclick="toggleContent(this)">
+            <div class="notice-item" data-id="2" onclick="toggleContent(this)">
                 <div class="notice-header">
-                    <span class="notice-title">복지 지도 서비스 오픈</span>
-                    <span class="notice-date">2025.10.05</span>
-                    <i class="fas fa-chevron-down notice-arrow"></i>
+                    <div class="notice-header-top">
+                        <span class="notice-title">복지 지도 서비스 오픈</span>
+                        <i class="fas fa-chevron-down notice-arrow"></i>
+                    </div>
+                    <div class="notice-header-bottom">
+                        <span class="notice-date">2025.10.05</span>
+                        <span class="notice-views">조회 <span class="views-count">312</span></span>
+                    </div>
                 </div>
                 <div class="notice-content">
                     주변 복지시설을 한눈에 확인할 수 있는 복지 지도 서비스가 오픈되었습니다.
@@ -606,11 +665,16 @@
                 </div>
             </div>
 
-            <div class="notice-item" onclick="toggleContent(this)">
+            <div class="notice-item" data-id="3" onclick="toggleContent(this)">
                 <div class="notice-header">
-                    <span class="notice-title">복지24 모바일 앱 출시 예정</span>
-                    <span class="notice-date">2025.10.01</span>
-                    <i class="fas fa-chevron-down notice-arrow"></i>
+                    <div class="notice-header-top">
+                        <span class="notice-title">복지24 모바일 앱 출시 예정</span>
+                        <i class="fas fa-chevron-down notice-arrow"></i>
+                    </div>
+                    <div class="notice-header-bottom">
+                        <span class="notice-date">2025.10.01</span>
+                        <span class="notice-views">조회 <span class="views-count">789</span></span>
+                    </div>
                 </div>
                 <div class="notice-content">
                     언제 어디서나 복지 혜택을 확인하고 신청할 수 있는 복지24 모바일 앱이 11월 중 출시 예정입니다.
@@ -618,11 +682,16 @@
                 </div>
             </div>
 
-            <div class="notice-item" onclick="toggleContent(this)">
+            <div class="notice-item" data-id="4" onclick="toggleContent(this)">
                 <div class="notice-header">
-                    <span class="notice-title">추석 연휴 고객센터 운영 안내</span>
-                    <span class="notice-date">2025.09.25</span>
-                    <i class="fas fa-chevron-down notice-arrow"></i>
+                    <div class="notice-header-top">
+                        <span class="notice-title">추석 연휴 고객센터 운영 안내</span>
+                        <i class="fas fa-chevron-down notice-arrow"></i>
+                    </div>
+                    <div class="notice-header-bottom">
+                        <span class="notice-date">2025.09.25</span>
+                        <span class="notice-views">조회 <span class="views-count">456</span></span>
+                    </div>
                 </div>
                 <div class="notice-content">
                     추석 연휴 기간(9/28~10/3) 동안 고객센터 운영이 일부 제한됩니다.
@@ -630,11 +699,16 @@
                 </div>
             </div>
 
-            <div class="notice-item" onclick="toggleContent(this)">
+            <div class="notice-item" data-id="5" onclick="toggleContent(this)">
                 <div class="notice-header">
-                    <span class="notice-title">개인정보 처리방침 개정 안내</span>
-                    <span class="notice-date">2025.09.15</span>
-                    <i class="fas fa-chevron-down notice-arrow"></i>
+                    <div class="notice-header-top">
+                        <span class="notice-title">개인정보 처리방침 개정 안내</span>
+                        <i class="fas fa-chevron-down notice-arrow"></i>
+                    </div>
+                    <div class="notice-header-bottom">
+                        <span class="notice-date">2025.09.15</span>
+                        <span class="notice-views">조회 <span class="views-count">234</span></span>
+                    </div>
                 </div>
                 <div class="notice-content">
                     개인정보 보호를 강화하기 위해 개인정보 처리방침이 개정되었습니다.
@@ -642,11 +716,16 @@
                 </div>
             </div>
 
-            <div class="notice-item" onclick="toggleContent(this)">
+            <div class="notice-item" data-id="6" onclick="toggleContent(this)">
                 <div class="notice-header">
-                    <span class="notice-title">복지24 서비스 점검 안내</span>
-                    <span class="notice-date">2025.09.10</span>
-                    <i class="fas fa-chevron-down notice-arrow"></i>
+                    <div class="notice-header-top">
+                        <span class="notice-title">복지24 서비스 점검 안내</span>
+                        <i class="fas fa-chevron-down notice-arrow"></i>
+                    </div>
+                    <div class="notice-header-bottom">
+                        <span class="notice-date">2025.09.10</span>
+                        <span class="notice-views">조회 <span class="views-count">167</span></span>
+                    </div>
                 </div>
                 <div class="notice-content">
                     서비스 안정화를 위한 시스템 점검이 9월 12일 새벽 2시~5시에 진행됩니다.
@@ -660,8 +739,32 @@
         function toggleContent(element) {
             const content = element.querySelector('.notice-content');
             const arrow = element.querySelector('.notice-arrow');
+            const wasActive = content.classList.contains('active');
+
             content.classList.toggle('active');
             arrow.classList.toggle('active');
+
+            // 처음 펼칠 때만 조회수 증가 (닫을 때는 증가 안함)
+            if (!wasActive && !element.dataset.viewed) {
+                const noticeId = element.dataset.id;
+                if (noticeId) {
+                    // 조회수 증가 API 호출
+                    fetch('/bdproject/api/notices/' + noticeId)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success && data.data) {
+                                // 화면의 조회수 업데이트
+                                const viewsCountElement = element.querySelector('.views-count');
+                                if (viewsCountElement) {
+                                    viewsCountElement.textContent = data.data.views || 0;
+                                }
+                                // 중복 조회 방지
+                                element.dataset.viewed = 'true';
+                            }
+                        })
+                        .catch(error => console.error('조회수 증가 오류:', error));
+                }
+            }
         }
 
         // 공지사항 상세 페이지로 이동 (선택적 기능)

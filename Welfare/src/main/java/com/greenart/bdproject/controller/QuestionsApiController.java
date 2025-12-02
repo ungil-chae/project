@@ -23,6 +23,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
 import com.greenart.bdproject.dao.MemberDao;
 import com.greenart.bdproject.dto.Member;
 import com.greenart.bdproject.service.NotificationService;
@@ -118,6 +121,68 @@ public class QuestionsApiController {
             logger.error("질문 목록 조회 중 오류 발생", e);
             response.put("success", false);
             response.put("message", "질문 목록 조회 중 오류가 발생했습니다.");
+        } finally {
+            close(rs, pstmt, con);
+        }
+
+        return response;
+    }
+
+    /**
+     * 내가 작성한 질문 목록 조회 (/{id}보다 먼저 선언해야 함)
+     * @GetMapping("/api/questions/my-questions")
+     */
+    @GetMapping("/my-questions")
+    public Map<String, Object> getMyQuestions(HttpSession session) {
+        Map<String, Object> response = new HashMap<>();
+        Connection con = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try {
+            logger.info("=== 내 질문 목록 조회 시작 ===");
+
+            String userId = (String) session.getAttribute("id");
+            logger.info("세션 userId: {}", userId);
+
+            if (userId == null || userId.isEmpty()) {
+                logger.warn("로그인하지 않은 사용자의 내 질문 조회 요청");
+                response.put("success", false);
+                response.put("message", "로그인이 필요합니다.");
+                return response;
+            }
+
+            con = dataSource.getConnection();
+
+            String sql = "SELECT question_id, title, content, status, created_at, answered_at " +
+                    "FROM user_questions " +
+                    "WHERE user_id = ? " +
+                    "ORDER BY created_at DESC";
+
+            pstmt = con.prepareStatement(sql);
+            pstmt.setString(1, userId);
+            rs = pstmt.executeQuery();
+
+            List<Map<String, Object>> questions = new ArrayList<>();
+            while (rs.next()) {
+                Map<String, Object> question = new HashMap<>();
+                question.put("questionId", rs.getLong("question_id"));
+                question.put("title", rs.getString("title"));
+                question.put("content", rs.getString("content"));
+                question.put("status", rs.getString("status"));
+                question.put("createdAt", rs.getTimestamp("created_at"));
+                question.put("answeredAt", rs.getTimestamp("answered_at"));
+                questions.add(question);
+            }
+
+            response.put("success", true);
+            response.put("data", questions);
+            logger.info("내 질문 목록 조회 성공 - userId: {}, count: {}", userId, questions.size());
+
+        } catch (Exception e) {
+            logger.error("내 질문 목록 조회 중 오류 발생", e);
+            response.put("success", false);
+            response.put("message", "질문 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
         } finally {
             close(rs, pstmt, con);
         }
@@ -332,7 +397,7 @@ public class QuestionsApiController {
      * @PostMapping("/api/questions/{id}/answer")
      */
     @PostMapping("/{id}/answer")
-    public Map<String, Object> answerQuestion(
+    public ResponseEntity<Map<String, Object>> answerQuestion(
             @PathVariable("id") Long id,
             @RequestParam("answer") String answer,
             HttpSession session) {
@@ -354,23 +419,32 @@ public class QuestionsApiController {
                 response.put("success", false);
                 response.put("message", "로그인이 필요합니다.");
                 logger.warn("로그인 필요 - 세션에 userId 없음");
-                return response;
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
             }
 
             if (memberDao == null) {
                 logger.error("MemberDao is null!");
                 response.put("success", false);
                 response.put("message", "시스템 오류: MemberDao가 초기화되지 않았습니다.");
-                return response;
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
             }
 
             logger.info("MemberDao.select 호출 - userId: {}", userId);
-            Member member = memberDao.select(userId);
+            Member member = null;
+            try {
+                member = memberDao.select(userId);
+            } catch (Exception e) {
+                logger.error("회원 조회 중 오류 발생", e);
+                response.put("success", false);
+                response.put("message", "회원 정보 조회 중 오류가 발생했습니다.");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            }
+
             logger.info("조회된 Member: {}", member);
             if (member == null || !"ADMIN".equals(member.getRole())) {
                 response.put("success", false);
                 response.put("message", "관리자 권한이 필요합니다.");
-                return response;
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
             }
 
             logger.info("데이터베이스 연결 시작");
@@ -405,11 +479,25 @@ public class QuestionsApiController {
                         String questionUserId = selectRs.getString("user_id");
                         String questionTitle = selectRs.getString("title");
 
+                        logger.info("=== FAQ 알림 생성 시도 ===");
+                        logger.info("questionUserId: '{}', questionTitle: '{}'", questionUserId, questionTitle);
+
                         // 질문 작성자에게 알림 생성 (로그인한 사용자만)
                         if (questionUserId != null && !questionUserId.isEmpty()) {
-                            notificationService.createFaqAnswerNotification(questionUserId, id, questionTitle);
-                            logger.info("FAQ 답변 알림 생성 완료 - questionUserId: {}, questionId: {}", questionUserId, id);
+                            try {
+                                Long notificationId = notificationService.createFaqAnswerNotification(questionUserId, id, questionTitle);
+                                logger.info("FAQ 답변 알림 생성 결과 - notificationId: {}", notificationId);
+                                if (notificationId == null) {
+                                    logger.warn("알림 생성 실패 - notificationId가 null입니다.");
+                                }
+                            } catch (Exception notifyEx) {
+                                logger.error("알림 서비스 호출 중 오류", notifyEx);
+                            }
+                        } else {
+                            logger.warn("알림 생성 건너뜀 - questionUserId가 null이거나 비어있음");
                         }
+                    } else {
+                        logger.warn("질문 정보 조회 실패 - questionId: {}", id);
                     }
 
                     selectRs.close();
@@ -424,18 +512,24 @@ public class QuestionsApiController {
                 logger.info("답변 등록 성공 - questionId: {}", id);
             } else {
                 response.put("success", false);
-                response.put("message", "답변 등록에 실패했습니다.");
+                response.put("message", "답변 등록에 실패했습니다. 해당 질문을 찾을 수 없습니다.");
             }
 
+        } catch (SQLException e) {
+            logger.error("SQL 오류 발생", e);
+            response.put("success", false);
+            response.put("message", "데이터베이스 오류가 발생했습니다: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         } catch (Exception e) {
             logger.error("답변 등록 중 오류 발생", e);
             response.put("success", false);
             response.put("message", "답변 등록 중 오류가 발생했습니다: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         } finally {
             close(null, pstmt, con);
         }
 
-        return response;
+        return ResponseEntity.ok(response);
     }
 
     // 자원 해제 메서드

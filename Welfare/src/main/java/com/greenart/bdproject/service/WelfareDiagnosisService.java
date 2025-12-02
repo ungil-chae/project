@@ -32,20 +32,20 @@ public class WelfareDiagnosisService {
     }
 
     /**
-     * 사용자별 진단 내역 조회
-     * @param userId 사용자 ID
+     * 회원별 진단 내역 조회
+     * @param memberId 회원 ID
      * @return 진단 내역 리스트
      */
-    public List<WelfareDiagnosisDto> getUserDiagnoses(Long userId) {
-        return welfareDiagnosisDao.selectByUserId(userId);
+    public List<WelfareDiagnosisDto> getUserDiagnoses(Long memberId) {
+        return welfareDiagnosisDao.selectByMemberId(memberId);
     }
 
     /**
-     * 사용자 최근 진단 결과 조회
-     * @param userId 사용자 ID
+     * 회원 최근 진단 결과 조회
+     * @param memberId 회원 ID
      * @return 최근 진단 정보
      */
-    public WelfareDiagnosisDto getLatestDiagnosis(Long userId) {
-        return welfareDiagnosisDao.selectLatestByUserId(userId);
+    public WelfareDiagnosisDto getLatestDiagnosis(Long memberId) {
+        return welfareDiagnosisDao.selectLatestByMemberId(memberId);
     }
 }

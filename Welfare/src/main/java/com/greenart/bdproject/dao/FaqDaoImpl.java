@@ -32,6 +32,11 @@ public class FaqDaoImpl implements FaqDao {
     }
 
     @Override
+    public List<FaqDto> selectActiveFaqs() {
+        return sqlSession.selectList(NAMESPACE + ".selectActiveFaqs");
+    }
+
+    @Override
     public List<FaqDto> selectByCategory(String category) {
         return sqlSession.selectList(NAMESPACE + ".selectByCategory", category);
     }

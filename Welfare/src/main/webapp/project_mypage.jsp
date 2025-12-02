@@ -1,9 +1,19 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%
+    // 로그인 체크 - 비로그인 시 로그인 페이지로 리다이렉트
+    String userId = (String) session.getAttribute("id");
+    if (userId == null || userId.isEmpty()) {
+        userId = (String) session.getAttribute("userId");
+    }
+    if (userId == null || userId.isEmpty()) {
+        response.sendRedirect("projectLogin.jsp?redirect=mypage");
+        return;
+    }
+
     // 관리자인 경우 관리자 페이지로 리다이렉트
     String userRole = (String) session.getAttribute("role");
     if ("ADMIN".equals(userRole)) {
-        response.sendRedirect("admin");
+        response.sendRedirect("/bdproject/project_admin.jsp");
         return;
     }
 %>
@@ -15,2364 +25,7 @@
     <title>마이페이지 - 복지24</title>
     <link rel="icon" type="image/png" href="resources/image/복지로고.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f8f9fa;
-            color: #333;
-        }
-
-        /* 네비게이션 바 */
-        #main-header {
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            background-color: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-
-        .navbar {
-            background-color: transparent;
-            padding: 0 40px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            height: 60px;
-        }
-
-        .navbar-left {
-            flex-shrink: 0;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
-            color: #333;
-            width: fit-content;
-            transition: opacity 0.2s ease;
-        }
-
-        .logo:hover {
-            opacity: 0.7;
-        }
-
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background-image: url('resources/image/복지로고.png');
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-        }
-
-        .logo-text {
-            font-size: 24px;
-            font-weight: 700;
-            color: #333;
-        }
-
-        .nav-menu {
-            display: flex;
-            gap: 50px;
-            align-items: center;
-            justify-content: center;
-            flex-grow: 1;
-        }
-
-        .navbar-right {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .navbar-icon {
-            width: 22px;
-            height: 22px;
-            cursor: pointer;
-            color: #333;
-            transition: color 0.2s;
-        }
-
-        .navbar-icon:hover {
-            color: #4A90E2;
-        }
-
-        .nav-item {
-            height: 100%;
-            display: flex;
-            align-items: center;
-        }
-
-        .nav-link {
-            color: #333;
-            text-decoration: none;
-            font-size: 15px;
-            font-weight: 600;
-            transition: all 0.2s ease;
-            padding: 18px 15px;
-            border-radius: 8px;
-        }
-
-        .nav-link:hover,
-        .nav-link.active {
-            background-color: #f5f5f5;
-            color: #4A90E2;
-        }
-
-        /* 메가 메뉴 */
-        #mega-menu-wrapper {
-            position: absolute;
-            width: 100%;
-            background-color: white;
-            color: #333;
-            left: 0;
-            top: 60px;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease-in-out, padding 0.4s ease-in-out, border-top 0.4s ease-in-out;
-            border-top: 1px solid transparent;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
-        }
-
-        #mega-menu-wrapper.active {
-            max-height: 500px;
-            padding: 30px 0 40px 0;
-            border-top: 1px solid #e0e0e0;
-        }
-
-        .mega-menu-content {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 0 40px;
-            display: flex;
-            justify-content: flex-start;
-            gap: 60px;
-        }
-
-        .menu-column {
-            display: none;
-            flex-direction: column;
-            gap: 25px;
-        }
-
-        .menu-column.active {
-            display: flex;
-        }
-
-        .dropdown-link {
-            color: #333;
-            text-decoration: none;
-            display: block;
-        }
-
-        .dropdown-link-title {
-            font-weight: 700;
-            font-size: 15px;
-            display: inline-block;
-            position: relative;
-            padding-bottom: 5px;
-            color: #000000;
-        }
-
-        .dropdown-link-title::after {
-            content: "";
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background-color: #4A90E2;
-            transition: width 0.3s ease;
-        }
-
-        .dropdown-link:hover .dropdown-link-title::after {
-            width: 100%;
-        }
-
-        .dropdown-link-desc {
-            font-size: 13px;
-            color: #555;
-            margin-top: 6px;
-            display: block;
-        }
-
-        /* 메인 컨테이너 */
-        .main-container {
-            display: flex;
-            max-width: 1400px;
-            margin: 0 auto;
-            min-height: calc(100vh - 60px);
-        }
-
-        /* 사이드바 */
-        .sidebar {
-            width: 280px;
-            background: white;
-            border-right: 1px solid #e9ecef;
-            padding: 30px 0;
-        }
-
-        .sidebar-header {
-            padding: 0 30px 20px;
-            border-bottom: 1px solid #e9ecef;
-        }
-
-        .user-profile {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .user-avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 24px;
-            font-weight: 700;
-            position: relative;
-            overflow: hidden;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .user-avatar:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
-        }
-
-        .user-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .avatar-upload-btn {
-            position: absolute;
-            bottom: -2px;
-            right: -2px;
-            width: 24px;
-            height: 24px;
-            background: white;
-            border-radius: 50%;
-            border: 2px solid #4A90E2;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            z-index: 10;
-        }
-
-        .avatar-upload-btn:hover {
-            background: #4A90E2;
-            transform: scale(1.1);
-        }
-
-        .avatar-upload-btn i {
-            font-size: 12px;
-            color: #4A90E2;
-            transition: color 0.2s ease;
-        }
-
-        .avatar-upload-btn:hover i {
-            color: white;
-        }
-
-        #profileImageInput {
-            display: none;
-        }
-
-        .user-info h3 {
-            font-size: 18px;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 5px;
-        }
-
-        .user-info p {
-            font-size: 13px;
-            color: #6c757d;
-        }
-
-        /* 온도 시스템 */
-        .user-temperature {
-            margin-top: 12px;
-            padding: 10px;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-radius: 8px;
-            border: 1px solid #dee2e6;
-        }
-
-        .temperature-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 8px;
-        }
-
-        .temperature-label {
-            font-size: 12px;
-            color: #6c757d;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .temperature-value {
-            font-size: 18px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .temperature-icon {
-            font-size: 16px;
-        }
-
-        .temperature-bar-container {
-            height: 12px;
-            background: #e9ecef;
-            border-radius: 20px;
-            overflow: hidden;
-            position: relative;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .temperature-bar {
-            height: 100%;
-            border-radius: 20px;
-            transition: width 0.5s ease, background 0.5s ease;
-            position: relative;
-            background: linear-gradient(90deg, #4A90E2 0%, #357ABD 100%);
-        }
-
-        .temperature-bar::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
-            animation: shimmer 2s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-
-        /* 온도 레벨별 색상 */
-        .temperature-bar.level-cold {
-            background: linear-gradient(90deg, #17a2b8 0%, #0e7c8e 100%);
-        }
-
-        .temperature-bar.level-cool {
-            background: linear-gradient(90deg, #4A90E2 0%, #357ABD 100%);
-        }
-
-        .temperature-bar.level-warm {
-            background: linear-gradient(90deg, #28a745 0%, #1e7e34 100%);
-        }
-
-        .temperature-bar.level-hot {
-            background: linear-gradient(90deg, #fd7e14 0%, #dc6502 100%);
-        }
-
-        .temperature-bar.level-fire {
-            background: linear-gradient(90deg, #dc3545 0%, #c82333 100%);
-            box-shadow: 0 0 10px rgba(220, 53, 69, 0.5);
-        }
-
-        .temperature-value.level-cold { color: #17a2b8; }
-        .temperature-value.level-cool { color: #4A90E2; }
-        .temperature-value.level-warm { color: #28a745; }
-        .temperature-value.level-hot { color: #fd7e14; }
-        .temperature-value.level-fire { color: #dc3545; }
-
-        .temperature-message {
-            font-size: 11px;
-            color: #6c757d;
-            margin-top: 6px;
-            text-align: center;
-            font-weight: 500;
-        }
-
-        /* 모달 스타일 */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 9998;
-            animation: fadeIn 0.2s ease;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .modal-container {
-            background: white;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 500px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-            animation: slideUp 0.3s ease;
-        }
-
-        @keyframes slideUp {
-            from {
-                transform: translateY(50px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .modal-header {
-            padding: 20px 25px;
-            border-bottom: 2px solid #e9ecef;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .modal-header h3 {
-            font-size: 20px;
-            font-weight: 700;
-            color: #2c3e50;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .modal-header h3 i {
-            color: #4A90E2;
-        }
-
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 24px;
-            color: #6c757d;
-            cursor: pointer;
-            padding: 0;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-
-        .modal-close:hover {
-            background: #f8f9fa;
-            color: #dc3545;
-        }
-
-        .modal-body {
-            padding: 25px;
-        }
-
-        .modal-date-info {
-            display: none;
-        }
-
-        .date-selection-row {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .date-box {
-            flex: 1;
-        }
-
-        .date-box-label {
-            font-size: 13px;
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 8px;
-            display: block;
-        }
-
-        .date-display {
-            background: white;
-            border: 2px solid #e9ecef;
-            padding: 12px 15px;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 500;
-            color: #2c3e50;
-            text-align: center;
-            transition: all 0.2s;
-        }
-
-        .date-display:hover {
-            border-color: #4A90E2;
-        }
-
-        .date-input-field {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-
-        .date-input-field:focus {
-            outline: none;
-            border-color: #4A90E2;
-            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
-        }
-
-        .event-form-group {
-            margin-bottom: 20px;
-        }
-
-        .event-form-label {
-            display: block;
-            font-size: 14px;
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 8px;
-        }
-
-        .event-form-input,
-        .event-form-textarea {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: all 0.2s;
-            font-family: inherit;
-        }
-
-        .event-form-input:focus,
-        .event-form-textarea:focus {
-            outline: none;
-            border-color: #4A90E2;
-            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
-        }
-
-        .event-form-textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .event-list {
-            margin-top: 25px;
-        }
-
-        .event-list-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .event-item {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            border-left: 4px solid #4A90E2;
-        }
-
-        .event-item-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 8px;
-        }
-
-        .event-item-title {
-            font-weight: 600;
-            color: #2c3e50;
-            font-size: 15px;
-        }
-
-        .event-item-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .event-item-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 4px;
-            transition: all 0.2s;
-            font-size: 14px;
-        }
-
-        .event-item-btn.edit {
-            color: #4A90E2;
-        }
-
-        .event-item-btn.edit:hover {
-            background: #e3f2fd;
-        }
-
-        .event-item-btn.delete {
-            color: #dc3545;
-        }
-
-        .event-item-btn.delete:hover {
-            background: #f8d7da;
-        }
-
-        .event-item-content {
-            font-size: 14px;
-            color: #555;
-            line-height: 1.5;
-        }
-
-        .event-empty {
-            text-align: center;
-            padding: 30px;
-            color: #6c757d;
-            font-size: 14px;
-        }
-
-        .event-empty i {
-            font-size: 48px;
-            color: #dee2e6;
-            margin-bottom: 10px;
-        }
-
-        .modal-footer {
-            padding: 15px 25px;
-            border-top: 2px solid #e9ecef;
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-        }
-
-        .modal-btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .modal-btn-primary {
-            background: #4A90E2;
-            color: white;
-        }
-
-        .modal-btn-primary:hover {
-            background: #357ABD;
-        }
-
-        .modal-btn-secondary {
-            background: #e9ecef;
-            color: #555;
-        }
-
-        .modal-btn-secondary:hover {
-            background: #dee2e6;
-        }
-
-        .sidebar-menu {
-            padding: 20px 0;
-        }
-
-        .menu-section {
-            margin-bottom: 25px;
-        }
-
-        .menu-section-title {
-            padding: 0 30px;
-            font-size: 12px;
-            font-weight: 700;
-            color: #95a5a6;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 10px;
-        }
-
-        .menu-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 30px;
-            color: #555;
-            text-decoration: none;
-            transition: all 0.2s ease;
-            cursor: pointer;
-            border-left: 3px solid transparent;
-        }
-
-        .menu-item:hover {
-            background: #f8f9fa;
-            color: #4A90E2;
-        }
-
-        .menu-item.active {
-            background: #e3f2fd;
-            color: #4A90E2;
-            border-left-color: #4A90E2;
-            font-weight: 600;
-        }
-
-        .menu-item i {
-            width: 20px;
-            font-size: 18px;
-            text-align: center;
-        }
-
-        .menu-item span {
-            font-size: 15px;
-        }
-
-        .menu-badge {
-            margin-left: auto;
-            background: #333;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 50%;
-            min-width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        /* 메인 콘텐츠 */
-        .main-content {
-            flex: 1;
-            padding: 40px;
-        }
-
-        .page-header {
-            margin-bottom: 30px;
-        }
-
-        .page-title {
-            font-size: 32px;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-
-        .page-subtitle {
-            font-size: 16px;
-            color: #6c757d;
-        }
-
-        /* 콘텐츠 카드 */
-        .content-section {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            margin-bottom: 25px;
-        }
-
-        .section-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .section-title i {
-            color: #4A90E2;
-        }
-
-        /* 캘린더 스타일 */
-        .calendar-container {
-            background: white;
-            border-radius: 10px;
-            padding: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            margin-bottom: 18px;
-        }
-
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #e9ecef;
-        }
-
-        .calendar-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: #2c3e50;
-        }
-
-        .calendar-timezone {
-            font-size: 11px;
-            color: #6c757d;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .calendar-timezone i {
-            color: #4A90E2;
-        }
-
-        .calendar-nav-buttons {
-            display: flex;
-            gap: 6px;
-            align-items: center;
-        }
-
-        .calendar-nav-btn {
-            background: #4A90E2;
-            color: white;
-            border: none;
-            width: 28px;
-            height: 28px;
-            border-radius: 6px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            transition: all 0.2s;
-        }
-
-        .calendar-nav-btn:hover {
-            background: #357ABD;
-            transform: scale(1.1);
-        }
-
-        .calendar-today-btn {
-            background: #e3f2fd;
-            color: #4A90E2;
-            border: 2px solid #4A90E2;
-            padding: 4px 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 11px;
-            transition: all 0.2s;
-        }
-
-        .calendar-today-btn:hover {
-            background: #4A90E2;
-            color: white;
-        }
-
-        .calendar-weekdays {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 2px;
-            margin: 10px 0 6px 0;
-        }
-
-        .calendar-weekday {
-            text-align: center;
-            font-weight: 700;
-            color: #6c757d;
-            padding: 6px 0;
-            font-size: 11px;
-        }
-
-        .calendar-weekday.sunday {
-            color: #dc3545;
-        }
-
-        .calendar-weekday.saturday {
-            color: #4A90E2;
-        }
-
-        .calendar-days {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 2px;
-            margin-bottom: 0;
-        }
-
-        .calendar-day {
-            min-height: 80px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            font-size: 12px;
-            border-radius: 5px;
-            cursor: pointer;
-            position: relative;
-            transition: all 0.2s;
-            background: white;
-            padding: 5px 3px;
-            border: 1.5px solid transparent;
-        }
-
-        .calendar-day:hover {
-            background: #f0f0f0;
-            border-color: #dee2e6;
-        }
-
-        .calendar-day.other-month {
-            color: #dee2e6;
-            background: #fafafa;
-        }
-
-        .calendar-day.today {
-            background: #4A90E2;
-            color: white;
-            font-weight: 700;
-            border-color: #357ABD;
-        }
-
-        .calendar-day.today .calendar-day-number {
-            color: white;
-        }
-
-        .calendar-day.sunday .calendar-day-number {
-            color: #dc3545;
-        }
-
-        .calendar-day.saturday .calendar-day-number {
-            color: #4A90E2;
-        }
-
-        .calendar-day.has-event {
-            border-color: #dee2e6;
-            background: white;
-        }
-
-        .calendar-day.range-start,
-        .calendar-day.range-end {
-            background: #fff3cd;
-            border-color: #ffc107;
-            font-weight: 600;
-        }
-
-        .calendar-day.in-range {
-            background: #fff9e6;
-            border-color: #ffe69c;
-        }
-
-        .calendar-day-number {
-            font-weight: 700;
-            margin-bottom: 4px;
-            font-size: 13px;
-            width: 100%;
-            text-align: center;
-            color: #2c3e50;
-            display: block;
-        }
-
-        .calendar-event-text {
-            font-size: 10px;
-            color: #2c5282;
-            font-weight: 600;
-            width: 100%;
-            margin: 3px 0 0 0;
-            text-align: center;
-            line-height: 1.2;
-            padding: 4px 2px;
-            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-            border-radius: 3px;
-            border-left: 2px solid #4A90E2;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-            transition: all 0.2s ease;
-            word-break: break-all;
-            white-space: normal;
-            min-height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .calendar-date:hover .calendar-event-text {
-            background: linear-gradient(135deg, #bbdefb 0%, #90caf9 100%);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-        }
-
-        .calendar-events {
-            display: flex;
-            gap: 1.5px;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-top: auto;
-        }
-
-        .event-dot {
-            width: 4px;
-            height: 4px;
-            border-radius: 50%;
-        }
-
-        .event-dot.volunteer {
-            background: #28a745;
-        }
-
-        .event-dot.donation {
-            background: #dc3545;
-        }
-
-        .event-dot.diagnosis {
-            background: #ffc107;
-        }
-
-        .event-dot.notification {
-            background: #17a2b8;
-        }
-
-        .calendar-legend {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin-top: 25px;
-            padding-top: 20px;
-            border-top: 1px solid #e9ecef;
-            flex-wrap: wrap;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            color: #6c757d;
-            font-weight: 500;
-        }
-
-        .legend-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-        }
-
-        /* 통계 카드 - 작은 버전 */
-        .stats-grid-small {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-top: 12px;
-            padding: 12px;
-            background: #f8f9fa;
-            border-radius: 8px;
-        }
-
-        .stat-card-small {
-            background: white;
-            padding: 10px;
-            border-radius: 6px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.06);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            border-top: 2.5px solid #4A90E2;
-            text-align: center;
-        }
-
-        .stat-card-small:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-
-        .stat-card-small.green {
-            border-top-color: #28a745;
-        }
-
-        .stat-card-small.red {
-            border-top-color: #dc3545;
-        }
-
-        .stat-card-small.orange {
-            border-top-color: #fd7e14;
-        }
-
-        .stat-icon-small {
-            width: 28px;
-            height: 28px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            margin: 0 auto 6px;
-            background: #e3f2fd;
-            color: #4A90E2;
-        }
-
-        .stat-card-small.green .stat-icon-small {
-            background: #d4edda;
-            color: #28a745;
-        }
-
-        .stat-card-small.red .stat-icon-small {
-            background: #f8d7da;
-            color: #dc3545;
-        }
-
-        .stat-card-small.orange .stat-icon-small {
-            background: #ffe5d0;
-            color: #fd7e14;
-        }
-
-        .stat-value-small {
-            font-size: 18px;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 3px;
-        }
-
-        .stat-label-small {
-            font-size: 11px;
-            color: #6c757d;
-            font-weight: 500;
-        }
-
-        /* 리스트 아이템 */
-        .list-item {
-            padding: 20px;
-            border-bottom: 1px solid #e9ecef;
-            transition: background 0.2s;
-        }
-
-        .list-item:last-child {
-            border-bottom: none;
-        }
-
-        .list-item:hover {
-            background: #f8f9fa;
-        }
-
-        .list-item-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-
-        .list-item-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        .list-item-date {
-            font-size: 13px;
-            color: #6c757d;
-        }
-
-        .list-item-content {
-            font-size: 14px;
-            color: #555;
-            line-height: 1.6;
-        }
-
-        /* 관심 복지 서비스 카드 스타일 */
-        .welfare-favorite-card {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-        }
-
-        .welfare-favorite-card:hover {
-            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-            border-color: #4A90E2;
-            transform: translateY(-2px);
-        }
-
-        .favorite-card-header {
-            margin-bottom: 15px;
-        }
-
-        .favorite-card-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .favorite-badge {
-            color: #ffd700;
-            font-size: 20px;
-        }
-
-        .favorite-card-department {
-            margin-bottom: 8px;
-        }
-
-        .department-tag {
-            display: inline-block;
-            background: #e3f2fd;
-            color: #1976d2;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        .favorite-card-date {
-            font-size: 13px;
-            color: #6c757d;
-            margin-top: 8px;
-        }
-
-        .favorite-card-date i {
-            margin-right: 5px;
-        }
-
-        .favorite-card-description {
-            font-size: 14px;
-            color: #495057;
-            line-height: 1.6;
-            margin-bottom: 20px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border-left: 3px solid #4A90E2;
-        }
-
-        .favorite-card-actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .btn-delete {
-            background: white;
-            color: #dc3545;
-            border: 1px solid #dc3545;
-            padding: 8px 16px;
-            font-size: 13px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .btn-delete:hover {
-            background: #dc3545;
-            color: white;
-        }
-
-        .btn-delete i {
-            font-size: 12px;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .status-badge.completed {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .status-badge.pending {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .status-badge.cancelled {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        /* 폼 스타일 */
-        .form-group {
-            margin-bottom: 25px;
-        }
-
-        .form-label {
-            display: block;
-            font-size: 14px;
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 8px;
-        }
-
-        .form-input,
-        .form-select {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: all 0.2s;
-            background: white;
-        }
-
-        .form-input:focus,
-        .form-select:focus {
-            outline: none;
-            border-color: #4A90E2;
-            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
-        }
-
-        .form-input:disabled {
-            background: #f8f9fa;
-            color: #6c757d;
-            cursor: not-allowed;
-        }
-
-        .form-help {
-            font-size: 12px;
-            color: #6c757d;
-            margin-top: 5px;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        .address-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .address-row .form-input {
-            flex: 1;
-        }
-
-        /* 버튼 */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
-        }
-
-        .btn-primary {
-            background: #4A90E2;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #357ABD;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
-        }
-
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #5a6268;
-        }
-
-        .btn-outline {
-            background: white;
-            color: #4A90E2;
-            border: 2px solid #4A90E2;
-        }
-
-        .btn-outline:hover {
-            background: #4A90E2;
-            color: white;
-        }
-
-        .btn-danger {
-            background: #dc3545;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #c82333;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 30px;
-        }
-
-        /* 빈 상태 */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #6c757d;
-        }
-
-        .empty-state i {
-            font-size: 64px;
-            color: #dee2e6;
-            margin-bottom: 20px;
-        }
-
-        .empty-state h3 {
-            font-size: 20px;
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-
-        .empty-state p {
-            font-size: 14px;
-            margin-bottom: 20px;
-        }
-
-        /* 알림 메시지 */
-        .alert {
-            padding: 15px 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .alert i {
-            font-size: 20px;
-        }
-
-        .alert-info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border-left: 4px solid #17a2b8;
-        }
-
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border-left: 4px solid #28a745;
-        }
-
-        .alert-warning {
-            background: #fff3cd;
-            color: #856404;
-            border-left: 4px solid #ffc107;
-        }
-
-        /* 비밀번호 강도 표시 */
-        .password-strength {
-            height: 4px;
-            background: #e9ecef;
-            border-radius: 2px;
-            margin-top: 8px;
-            overflow: hidden;
-        }
-
-        .password-strength-bar {
-            height: 100%;
-            transition: all 0.3s;
-            border-radius: 2px;
-        }
-
-        .password-strength-bar.weak {
-            width: 33%;
-            background: #dc3545;
-        }
-
-        .password-strength-bar.medium {
-            width: 66%;
-            background: #ffc107;
-        }
-
-        .password-strength-bar.strong {
-            width: 100%;
-            background: #28a745;
-        }
-
-        /* 반응형 */
-        @media (max-width: 1024px) {
-            .sidebar {
-                width: 240px;
-            }
-
-            .main-content {
-                padding: 30px 20px;
-            }
-
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-
-            .stats-grid-small {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 12px;
-                padding: 15px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .navbar {
-                padding: 0 20px;
-            }
-
-            .nav-menu {
-                display: none;
-            }
-
-            .main-container {
-                flex-direction: column;
-            }
-
-            .sidebar {
-                width: 100%;
-                border-right: none;
-                border-bottom: 1px solid #e9ecef;
-            }
-
-            .main-content {
-                padding: 20px;
-            }
-
-            .stats-grid-small {
-                grid-template-columns: 1fr;
-                gap: 10px;
-                padding: 12px;
-            }
-
-            .btn-group {
-                flex-direction: column;
-            }
-
-            .btn-group .btn {
-                width: 100%;
-            }
-
-            .calendar-container {
-                padding: 15px;
-            }
-
-            .calendar-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 12px;
-            }
-
-            .calendar-title {
-                font-size: 15px;
-            }
-
-            .calendar-timezone {
-                font-size: 10px;
-            }
-
-            .calendar-nav-btn {
-                width: 26px;
-                height: 26px;
-                font-size: 12px;
-            }
-
-            .calendar-today-btn {
-                padding: 5px 10px;
-                font-size: 10px;
-            }
-
-            .calendar-weekday {
-                font-size: 10px;
-                padding: 6px 0;
-            }
-
-            .calendar-days {
-                gap: 3px;
-            }
-
-            .calendar-day {
-                padding: 4px 3px;
-                min-height: 70px;
-            }
-
-            .calendar-day-number {
-                font-size: 11px;
-                margin-bottom: 2px;
-            }
-
-            .calendar-event-text {
-                font-size: 9px;
-                padding: 3px 2px;
-                min-height: 26px;
-            }
-
-            .event-dot {
-                width: 3px;
-                height: 3px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .calendar-container {
-                padding: 12px;
-            }
-
-            .calendar-header {
-                gap: 8px;
-            }
-
-            .calendar-title {
-                font-size: 14px;
-            }
-
-            .calendar-nav-buttons {
-                gap: 6px;
-            }
-
-            .calendar-nav-btn {
-                width: 24px;
-                height: 24px;
-                font-size: 11px;
-            }
-
-            .calendar-today-btn {
-                padding: 4px 8px;
-                font-size: 10px;
-            }
-
-            .calendar-days {
-                gap: 2px;
-            }
-
-            .calendar-day {
-                padding: 3px 2px;
-                min-height: 65px;
-            }
-
-            .calendar-day-number {
-                font-size: 10px;
-            }
-
-            .calendar-event-text {
-                font-size: 8px;
-                padding: 3px 2px;
-                min-height: 24px;
-            }
-
-            .stat-value-small {
-                font-size: 16px;
-            }
-
-            .stat-label-small {
-                font-size: 10px;
-            }
-        }
-
-        /* 알림 설정 스타일 */
-        .notification-info-box {
-            background: #e3f2fd;
-            border-left: 4px solid #4A90E2;
-            padding: 15px 20px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-            display: flex;
-            gap: 15px;
-            align-items: flex-start;
-        }
-
-        .notification-info-box i {
-            color: #4A90E2;
-            font-size: 24px;
-            margin-top: 2px;
-        }
-
-        .notification-info-box strong {
-            font-size: 15px;
-            color: #2c3e50;
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .notification-info-box p {
-            font-size: 14px;
-            color: #555;
-            margin: 0;
-        }
-
-        .notification-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .notification-item {
-            background: white;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.2s;
-        }
-
-        .notification-item:hover {
-            border-color: #4A90E2;
-            box-shadow: 0 2px 8px rgba(74, 144, 226, 0.1);
-        }
-
-        .notification-item-content {
-            flex: 1;
-        }
-
-        .notification-item-title {
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 5px;
-        }
-
-        .notification-item-date {
-            font-size: 13px;
-            color: #6c757d;
-        }
-
-        .notification-item-badge {
-            background: #fff3cd;
-            color: #856404;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .notification-delete-btn {
-            background: none;
-            border: none;
-            color: #dc3545;
-            cursor: pointer;
-            padding: 6px 10px;
-            border-radius: 4px;
-            transition: all 0.2s;
-            font-size: 14px;
-        }
-
-        .notification-delete-btn:hover {
-            background: #fee;
-            color: #c82333;
-        }
-
-        /* 알림 필터 버튼 스타일 */
-        .notification-filter-btn {
-            padding: 8px 16px;
-            border: 2px solid #dee2e6;
-            background: white;
-            color: #495057;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 14px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .notification-filter-btn:hover {
-            background-color: #f8f9fa;
-            border-color: #4A90E2;
-        }
-
-        .notification-filter-btn.active {
-            background-color: #4A90E2;
-            color: white;
-            border-color: #4A90E2;
-        }
-
-        .badge-count {
-            background: rgba(255, 255, 255, 0.3);
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: 700;
-        }
-
-        .notification-filter-btn.active .badge-count {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        /* 알림 아이템 스타일 개선 */
-        .notification-item.unread {
-            background: #f0f8ff;
-            border-left: 4px solid #4A90E2;
-        }
-
-        .notification-item-type {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-right: 10px;
-        }
-
-        .type-faq_answer {
-            background: #e3f2fd;
-            color: #1976d2;
-        }
-
-        .type-schedule {
-            background: #f3e5f5;
-            color: #7b1fa2;
-        }
-
-        .type-donation {
-            background: #ffebee;
-            color: #c62828;
-        }
-
-        .type-volunteer {
-            background: #e8f5e9;
-            color: #2e7d32;
-        }
-
-        .type-system {
-            background: #fff3e0;
-            color: #e65100;
-        }
-
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #e9ecef;
-        }
-
-        .pagination-btn {
-            min-width: 36px;
-            height: 36px;
-            padding: 8px 12px;
-            border: 1px solid #dee2e6;
-            background: white;
-            color: #495057;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-
-        .pagination-btn:hover {
-            background: #f8f9fa;
-            border-color: #4A90E2;
-            color: #4A90E2;
-        }
-
-        .pagination-btn.active {
-            background: #4A90E2;
-            border-color: #4A90E2;
-            color: white;
-            font-weight: 600;
-        }
-
-        .pagination-btn.active:hover {
-            background: #357ABD;
-            border-color: #357ABD;
-        }
-
-        .settings-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-            background: white;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            margin-bottom: 15px;
-        }
-
-        .settings-label {
-            display: flex;
-            gap: 15px;
-            align-items: flex-start;
-        }
-
-        .settings-label i {
-            font-size: 24px;
-            color: #4A90E2;
-            margin-top: 3px;
-        }
-
-        .settings-label strong {
-            display: block;
-            font-size: 15px;
-            color: #2c3e50;
-            margin-bottom: 5px;
-        }
-
-        .settings-desc {
-            font-size: 13px;
-            color: #6c757d;
-            margin: 0;
-        }
-
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 50px;
-            height: 26px;
-        }
-
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .toggle-slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: 0.3s;
-            border-radius: 26px;
-        }
-
-        .toggle-slider:before {
-            position: absolute;
-            content: "";
-            height: 20px;
-            width: 20px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: 0.3s;
-            border-radius: 50%;
-        }
-
-        input:checked + .toggle-slider {
-            background-color: #4A90E2;
-        }
-
-        input:checked + .toggle-slider:before {
-            transform: translateX(24px);
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: #6c757d;
-        }
-
-        .empty-state i {
-            font-size: 48px;
-            color: #dee2e6;
-            margin-bottom: 15px;
-        }
-
-        .empty-state p {
-            font-size: 14px;
-            margin: 0;
-        }
-
-        /* Google Translate Widget 스타일 */
-        .language-selector {
-            position: relative;
-            display: inline-block;
-        }
-
-        #google_translate_element {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            margin-top: 10px;
-            background: white;
-            padding: 8px;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-            z-index: 9999;
-            min-width: 180px;
-        }
-
-        /* Google Translate 기본 스타일 숨기기 */
-        .goog-te-banner-frame {
-            display: none !important;
-        }
-
-        body {
-            top: 0 !important;
-        }
-
-        .goog-te-gadget {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-            font-size: 0 !important;
-        }
-
-        .goog-te-gadget-simple {
-            background-color: white !important;
-            border: 2px solid #e9ecef !important;
-            border-radius: 8px !important;
-            font-size: 14px !important;
-            padding: 10px 15px !important;
-            display: inline-block !important;
-            cursor: pointer !important;
-            transition: all 0.2s !important;
-        }
-
-        .goog-te-gadget-simple:hover {
-            border-color: #4A90E2 !important;
-            background-color: #f8f9fa !important;
-        }
-
-        .goog-te-gadget-icon {
-            display: none !important;
-        }
-
-        .goog-te-menu-value {
-            color: #2c3e50 !important;
-            font-weight: 500 !important;
-        }
-
-        .goog-te-menu-value span {
-            color: #2c3e50 !important;
-            font-size: 14px !important;
-            font-weight: 500 !important;
-        }
-
-        .goog-te-menu-value span:first-child {
-            display: none !important;
-        }
-
-        .goog-te-menu-value > span:before {
-            content: '🌐 ' !important;
-        }
-
-        /* 드롭다운 메뉴 스타일 */
-        .goog-te-menu2 {
-            border: none !important;
-            border-radius: 12px !important;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
-            max-height: 450px !important;
-            overflow-y: auto !important;
-            padding: 8px 0 !important;
-            background: white !important;
-        }
-
-        .goog-te-menu2-item {
-            padding: 12px 20px !important;
-            font-size: 14px !important;
-            color: #2c3e50 !important;
-            transition: all 0.2s !important;
-            border-left: 3px solid transparent !important;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-        }
-
-        .goog-te-menu2-item:hover {
-            background-color: #f8f9fa !important;
-            border-left-color: #4A90E2 !important;
-        }
-
-        .goog-te-menu2-item-selected {
-            background-color: #e3f2fd !important;
-            color: #4A90E2 !important;
-            font-weight: 600 !important;
-            border-left-color: #4A90E2 !important;
-        }
-
-        .goog-te-menu2-item div {
-            color: inherit !important;
-        }
-
-        /* 스크롤바 스타일 */
-        .goog-te-menu2::-webkit-scrollbar {
-            width: 8px !important;
-        }
-
-        .goog-te-menu2::-webkit-scrollbar-track {
-            background: #f1f1f1 !important;
-            border-radius: 10px !important;
-        }
-
-        .goog-te-menu2::-webkit-scrollbar-thumb {
-            background: #4A90E2 !important;
-            border-radius: 10px !important;
-        }
-
-        .goog-te-menu2::-webkit-scrollbar-thumb:hover {
-            background: #357ABD !important;
-        }
-
-        /* iframe 내부 스타일 (언어 선택 창) */
-        iframe.goog-te-menu-frame {
-            border-radius: 12px !important;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2) !important;
-        }
-
-        /* 스피너 애니메이션 */
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* 후기 작성 버튼 */
-        .review-write-btn {
-            background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-left: 12px;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
-        }
-
-        .review-write-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.4);
-        }
-
-        /* 후기 작성 모달 */
-        .review-modal {
-            display: none;
-            position: fixed;
-            z-index: 10000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            justify-content: center;
-            align-items: center;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .review-modal-content {
-            background: white;
-            border-radius: 20px;
-            width: 90%;
-            max-width: 600px;
-            max-height: 90vh;
-            overflow: hidden;
-            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.2);
-            animation: slideUp 0.3s ease;
-        }
-
-        .review-modal-header {
-            background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
-            color: white;
-            padding: 24px 32px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .review-modal-header h2 {
-            margin: 0;
-            font-size: 24px;
-            font-weight: 700;
-        }
-
-        .review-modal-close {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 20px;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .review-modal-close:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: rotate(90deg);
-        }
-
-        .review-modal-body {
-            padding: 32px;
-            overflow-y: auto;
-            max-height: calc(90vh - 96px);
-        }
-
-        .review-activity-info {
-            background: #f8f9fa;
-            padding: 16px 20px;
-            border-radius: 12px;
-            margin-bottom: 24px;
-            font-size: 16px;
-            font-weight: 600;
-            color: #333;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .review-activity-info i {
-            color: #4A90E2;
-            font-size: 20px;
-        }
-
-        .review-form-group {
-            margin-bottom: 24px;
-        }
-
-        .review-form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-            font-size: 15px;
-        }
-
-        .review-input,
-        .review-textarea,
-        .review-select {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            font-family: inherit;
-        }
-
-        .review-input:focus,
-        .review-textarea:focus,
-        .review-select:focus {
-            outline: none;
-            border-color: #4A90E2;
-            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
-        }
-
-        .review-textarea {
-            resize: vertical;
-            min-height: 150px;
-        }
-
-        .review-form-actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 32px;
-            padding-top: 24px;
-            border-top: 2px solid #f0f0f0;
-        }
-
-        .review-btn {
-            flex: 1;
-            padding: 16px 24px;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: none;
-        }
-
-        .review-btn-cancel {
-            background: #f5f5f5;
-            color: #666;
-            border: 2px solid #e0e0e0;
-        }
-
-        .review-btn-cancel:hover {
-            background: #eeeeee;
-        }
-
-        .review-btn-submit {
-            background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
-            color: white;
-            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
-        }
-
-        .review-btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(74, 144, 226, 0.4);
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes slideUp {
-            from {
-                transform: translateY(30px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-    </style>
-    <script type="text/javascript">
-        function googleTranslateElementInit() {
-            new google.translate.TranslateElement({
-                pageLanguage: 'ko',
-                includedLanguages: 'ko,en,ja,zh-CN,zh-TW,es,fr,de,ru,vi,th',
-                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-                autoDisplay: false
-            }, 'google_translate_element');
-        }
-    </script>
-    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <link rel="stylesheet" href="<%=request.getContextPath()%>/resources/css/project_mypage.css">
 </head>
 <body>
     <%@ include file="navbar.jsp" %>
@@ -2427,10 +80,6 @@
 
                 <div class="menu-section">
                     <div class="menu-section-title">복지 서비스</div>
-                    <a href="#" class="menu-item" data-content="diagnosis">
-                        <i class="fas fa-clipboard-list"></i>
-                        <span>복지 진단 내역</span>
-                    </a>
                     <a href="#" class="menu-item" data-content="favorites">
                         <i class="fas fa-star"></i>
                         <span>관심 복지 서비스</span>
@@ -2456,9 +105,8 @@
                         <span>내 정보 수정</span>
                     </a>
                     <a href="#" class="menu-item" data-content="notifications-list">
-                        <i class="fas fa-bell"></i>
-                        <span>알림</span>
-                        <span class="menu-badge" id="notificationBadge">0</span>
+                        <i class="fas fa-clock"></i>
+                        <span>최근 활동</span>
                     </a>
                     <a href="#" class="menu-item" data-content="settings">
                         <i class="fas fa-cog"></i>
@@ -2544,14 +192,49 @@
                     </div>
                 </div>
 
-                <!-- 최근 활동 -->
+                <!-- 알림 목록 -->
                 <div class="content-section">
                     <h2 class="section-title">
-                        <i class="fas fa-clock"></i>
-                        최근 활동
+                        <i class="fas fa-bell"></i>
+                        알림
                     </h2>
-                    <div id="recentActivityList">
-                        <!-- 동적으로 생성됨 -->
+
+                    <div class="notification-tabs" style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="notification-filter-btn active" data-filter="all" onclick="filterNotifications('all')">
+                                전체 <span class="badge-count" id="allCount">0</span>
+                            </button>
+                            <button class="notification-filter-btn" data-filter="unread" onclick="filterNotifications('unread')">
+                                읽지 않음 <span class="badge-count" id="unreadCount">0</span>
+                            </button>
+                            <button class="notification-filter-btn" data-filter="faq_answer" onclick="filterNotifications('faq_answer')">
+                                FAQ 답변
+                            </button>
+                            <button class="notification-filter-btn" data-filter="schedule" onclick="filterNotifications('schedule')">
+                                일정
+                            </button>
+                            <button class="notification-filter-btn" data-filter="donation" onclick="filterNotifications('donation')">
+                                기부
+                            </button>
+                            <button class="notification-filter-btn" data-filter="volunteer" onclick="filterNotifications('volunteer')">
+                                봉사
+                            </button>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <button onclick="markAllAsRead()" style="padding: 6px 12px; font-size: 13px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; cursor: pointer; color: #495057; transition: all 0.2s;" onmouseover="this.style.background='#e9ecef'" onmouseout="this.style.background='#f8f9fa'">
+                                <i class="fas fa-check-double"></i> 모두 읽음
+                            </button>
+                            <button onclick="deleteAllNotifications()" style="padding: 6px 12px; font-size: 13px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; cursor: pointer; color: #dc3545; transition: all 0.2s;" onmouseover="this.style.background='#fee'; this.style.borderColor='#dc3545'" onmouseout="this.style.background='#f8f9fa'; this.style.borderColor='#dee2e6'">
+                                <i class="fas fa-trash-alt"></i> 전체 삭제
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="notification-list" id="notificationList">
+                        <div class="empty-state">
+                            <i class="fas fa-bell"></i>
+                            <p>받은 알림이 없습니다</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2582,14 +265,14 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label class="form-label">이름</label>
-                                <input type="text" class="form-input" value="김철수" placeholder="이름을 입력하세요">
+                                <input type="text" class="form-input" id="profileName" placeholder="이름을 입력하세요">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">성별</label>
-                                <select class="form-select">
-                                    <option value="male" selected>남성</option>
-                                    <option value="female">여성</option>
-                                    <option value="other">선택 안함</option>
+                                <select class="form-select" id="profileGender">
+                                    <option value="OTHER" selected>선택 안함</option>
+                                    <option value="MALE">남성</option>
+                                    <option value="FEMALE">여성</option>
                                 </select>
                             </div>
                         </div>
@@ -2597,29 +280,29 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label class="form-label">생년월일</label>
-                                <input type="date" class="form-input" value="1990-01-15">
+                                <input type="date" class="form-input" id="profileBirth">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">전화번호</label>
-                                <input type="tel" class="form-input" value="010-1234-5678" placeholder="010-0000-0000">
+                                <input type="tel" class="form-input" id="profilePhone" placeholder="010-0000-0000">
                                 <div class="form-help">'-' 포함하여 입력해주세요</div>
                             </div>
                         </div>
 
                         <div class="form-group">
                             <label class="form-label">이메일</label>
-                            <input type="email" class="form-input" value="chulsoo@email.com" placeholder="example@email.com">
-                            <div class="form-help">로그인 및 알림 수신에 사용됩니다</div>
+                            <input type="email" class="form-input" id="profileEmail" placeholder="example@email.com" readonly>
+                            <div class="form-help">로그인 및 알림 수신에 사용됩니다 (변경 불가)</div>
                         </div>
 
                         <div class="form-group">
                             <label class="form-label">주소</label>
                             <div class="address-row">
-                                <input type="text" class="form-input" value="06234" placeholder="우편번호" style="max-width: 150px;" readonly>
+                                <input type="text" class="form-input" id="profilePostcode" placeholder="우편번호" style="max-width: 150px;" readonly>
                                 <button type="button" class="btn btn-outline" onclick="searchAddress()">주소 검색</button>
                             </div>
-                            <input type="text" class="form-input" value="서울특별시 강남구 테헤란로 123" placeholder="기본 주소" readonly style="margin-bottom: 10px;">
-                            <input type="text" class="form-input" value="복지빌딩 4층" placeholder="상세 주소">
+                            <input type="text" class="form-input" id="profileAddress" placeholder="기본 주소" readonly style="margin-bottom: 10px;">
+                            <input type="text" class="form-input" id="profileDetailAddress" placeholder="상세 주소">
                         </div>
 
                         <div class="btn-group">
@@ -2703,18 +386,6 @@
             </div>
 
             <!-- 기타 콘텐츠 페이지들 -->
-            <div id="content-diagnosis" class="content-page" style="display: none;">
-                <div class="page-header">
-                    <h1 class="page-title">복지 진단 내역</h1>
-                    <p class="page-subtitle">과거 진단 결과를 다시 확인할 수 있습니다</p>
-                </div>
-                <div id="diagnosisListContainer">
-                    <div class="empty-state">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p>진단 내역을 불러오는 중...</p>
-                    </div>
-                </div>
-            </div>
 
             <div id="content-favorites" class="content-page" style="display: none;">
                 <div class="page-header">
@@ -2767,45 +438,21 @@
                 </div>
             </div>
 
-            <!-- 알림 목록 페이지 -->
+            <!-- 최근 활동 페이지 -->
             <div id="content-notifications-list" class="content-page" style="display: none;">
                 <div class="page-header">
-                    <h1 class="page-title">알림</h1>
-                    <p class="page-subtitle">받은 알림을 확인하세요</p>
+                    <h1 class="page-title">최근 활동</h1>
+                    <p class="page-subtitle">최근 활동 내역을 확인하세요</p>
                 </div>
 
                 <div class="content-section">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <div class="notification-tabs" style="display: flex; gap: 10px;">
-                            <button class="notification-filter-btn active" data-filter="all" onclick="filterNotifications('all')">
-                                전체 <span class="badge-count" id="allCount">0</span>
-                            </button>
-                            <button class="notification-filter-btn" data-filter="unread" onclick="filterNotifications('unread')">
-                                읽지 않음 <span class="badge-count" id="unreadCount">0</span>
-                            </button>
-                            <button class="notification-filter-btn" data-filter="faq_answer" onclick="filterNotifications('faq_answer')">
-                                FAQ 답변
-                            </button>
-                            <button class="notification-filter-btn" data-filter="schedule" onclick="filterNotifications('schedule')">
-                                일정
-                            </button>
-                            <button class="notification-filter-btn" data-filter="donation" onclick="filterNotifications('donation')">
-                                기부
-                            </button>
-                            <button class="notification-filter-btn" data-filter="volunteer" onclick="filterNotifications('volunteer')">
-                                봉사
-                            </button>
-                        </div>
-                        <button class="btn-secondary" onclick="markAllAsRead()" style="padding: 8px 16px; font-size: 14px;">
-                            <i class="fas fa-check-double"></i> 모두 읽음 처리
+                    <div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
+                        <button onclick="deleteAllRecentActivities()" style="padding: 6px 12px; font-size: 13px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; cursor: pointer; color: #dc3545; transition: all 0.2s;" onmouseover="this.style.background='#fee'; this.style.borderColor='#dc3545'" onmouseout="this.style.background='#f8f9fa'; this.style.borderColor='#dee2e6'">
+                            <i class="fas fa-trash-alt"></i> 전체 삭제
                         </button>
                     </div>
-
-                    <div class="notification-list" id="notificationList">
-                        <div class="empty-state">
-                            <i class="fas fa-bell"></i>
-                            <p>받은 알림이 없습니다</p>
-                        </div>
+                    <div id="recentActivityList">
+                        <!-- 동적으로 생성됨 -->
                     </div>
                 </div>
             </div>
@@ -2832,7 +479,7 @@
                             </div>
                         </div>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="eventNotification" checked onchange="saveNotificationSettings()">
+                            <input type="checkbox" id="eventNotification" onchange="saveNotificationSettings()">
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
@@ -2845,7 +492,7 @@
                             </div>
                         </div>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="donationNotification" checked onchange="saveNotificationSettings()">
+                            <input type="checkbox" id="donationNotification" onchange="saveNotificationSettings()">
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
@@ -2858,7 +505,7 @@
                             </div>
                         </div>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="volunteerNotification" checked onchange="saveNotificationSettings()">
+                            <input type="checkbox" id="volunteerNotification" onchange="saveNotificationSettings()">
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
@@ -2871,7 +518,7 @@
                             </div>
                         </div>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="faqAnswerNotification" checked onchange="saveNotificationSettings()">
+                            <input type="checkbox" id="faqAnswerNotification" onchange="saveNotificationSettings()">
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
@@ -2897,47 +544,14 @@
                     </div>
                     <div class="settings-item">
                         <div class="settings-label">
-                            <i class="fas fa-diagnoses"></i>
-                            <div>
-                                <strong>복지 진단 내역</strong>
-                                <p class="settings-desc">복지 진단 결과 저장 및 표시</p>
-                            </div>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="diagnosisHistoryEnabled" checked onchange="saveSecuritySettings()">
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    <div class="settings-item">
-                        <div class="settings-label">
-                            <i class="fas fa-calendar-check"></i>
-                            <div>
-                                <strong>캘린더 일정 저장</strong>
-                                <p class="settings-desc">등록한 일정을 로컬에 저장</p>
-                            </div>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="calendarStorageEnabled" checked onchange="saveSecuritySettings()">
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="content-section">
-                    <h2 class="section-title">
-                        <i class="fas fa-lock"></i>
-                        보안 설정
-                    </h2>
-                    <div class="settings-item">
-                        <div class="settings-label">
                             <i class="fas fa-key"></i>
                             <div>
-                                <strong>자동 로그아웃</strong>
-                                <p class="settings-desc">30분 동안 활동이 없으면 자동 로그아웃</p>
+                                <strong>로그인 상태 유지</strong>
+                                <p class="settings-desc">로그인 상태를 30일간 유지합니다 (자동 로그인)</p>
                             </div>
                         </div>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="autoLogoutEnabled" checked onchange="saveSecuritySettings()">
+                            <input type="checkbox" id="autoLoginEnabled" onchange="toggleAutoLogin()">
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
@@ -2945,26 +559,70 @@
 
                 <div class="content-section">
                     <h2 class="section-title">
-                        <i class="fas fa-trash-alt"></i>
-                        데이터 관리
+                        <i class="fas fa-user-times"></i>
+                        회원 탈퇴
                     </h2>
                     <div class="list-item">
                         <div class="list-item-header">
-                            <span class="list-item-title" style="color: #dc3545;">모든 데이터 삭제</span>
+                            <span class="list-item-title" style="color: #dc3545;">회원 탈퇴</span>
                         </div>
                         <div class="list-item-content">
                             <p style="color: #856404; background: #fff3cd; padding: 10px; border-radius: 4px; margin-bottom: 10px;">
                                 <i class="fas fa-exclamation-triangle"></i>
-                                경고: 이 작업은 되돌릴 수 없습니다. 모든 일정, 설정, 활동 기록이 영구적으로 삭제됩니다.
+                                경고: 탈퇴 시 모든 개인 정보 및 활동 내역이 영구적으로 삭제되며 복구할 수 없습니다.
                             </p>
-                            <button class="btn-primary" onclick="deleteAllData()" style="margin-top: 10px; padding: 8px 16px; font-size: 14px; background: #dc3545; border-color: #dc3545;">
-                                <i class="fas fa-trash-alt"></i> 모든 데이터 삭제
+                            <button class="btn-primary" onclick="showWithdrawModal()" style="margin-top: 10px; padding: 8px 16px; font-size: 14px; background: #dc3545; border-color: #dc3545;">
+                                <i class="fas fa-user-times"></i> 회원 탈퇴
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- 회원 탈퇴 확인 모달 -->
+    <div id="withdrawModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 10000; justify-content: center; align-items: center;">
+        <div style="background: white; padding: 40px; border-radius: 16px; max-width: 450px; width: 90%; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);">
+            <div style="text-align: center; margin-bottom: 25px;">
+                <div style="font-size: 50px; margin-bottom: 15px;">⚠️</div>
+                <h2 style="font-size: 24px; font-weight: 700; color: #dc3545; margin-bottom: 10px;">회원 탈퇴</h2>
+                <p style="font-size: 14px; color: #6c757d; line-height: 1.6;">
+                    본인 확인을 위해 비밀번호를 입력해주세요.<br>
+                    탈퇴 시 모든 정보가 영구적으로 삭제됩니다.
+                </p>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #333; margin-bottom: 8px;">
+                    비밀번호
+                </label>
+                <input
+                    type="password"
+                    id="withdrawPassword"
+                    placeholder="현재 비밀번호를 입력하세요"
+                    style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;"
+                    onkeypress="if(event.key === 'Enter') processWithdraw();"
+                />
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button
+                    onclick="closeWithdrawModal()"
+                    style="flex: 1; padding: 12px; background: #6c757d; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s;"
+                    onmouseover="this.style.background='#5a6268'"
+                    onmouseout="this.style.background='#6c757d'">
+                    취소
+                </button>
+                <button
+                    onclick="processWithdraw()"
+                    style="flex: 1; padding: 12px; background: #dc3545; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s;"
+                    onmouseover="this.style.background='#c82333'"
+                    onmouseout="this.style.background='#dc3545'">
+                    탈퇴하기
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- 일정 추가/편집 모달 -->
@@ -3028,11 +686,109 @@
             </div>
         </div>
     </div>
+
+    <!-- FAQ 질문/답변 상세 모달 -->
+    <div class="modal-overlay" id="faqDetailModal" style="display: none;">
+        <div class="modal-container" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 style="margin: 0; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-question-circle" style="color: #9b59b6;"></i>
+                    <span>질문/답변 상세</span>
+                </h3>
+                <button class="modal-close" onclick="closeFaqDetailModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <div id="faqDetailContent">
+                    <div class="loading-spinner" style="text-align: center; padding: 40px;">
+                        <i class="fas fa-spinner fa-spin fa-2x"></i>
+                        <p>로딩 중...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="modal-btn modal-btn-secondary" onclick="closeFaqDetailModal()">닫기</button>
+            </div>
+        </div>
+    </div>
+
        <%@ include file="footer.jsp" %>
     <!-- Daum 주소 API -->
     <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 
     <script>
+        // 전역 변수
+        const contextPath = '<%= request.getContextPath() %>';
+        let currentUserId = '<%= session.getAttribute("id") != null ? session.getAttribute("id") : "" %>';
+
+        // 회원 정보 로드 함수
+        async function loadMemberInfo() {
+            try {
+                const response = await fetch('/bdproject/api/member/info');
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    const data = result.data;
+
+                    // 현재 사용자 ID 설정 (email)
+                    if (data.email) {
+                        currentUserId = data.email;
+                        console.log('currentUserId 설정됨:', currentUserId);
+
+                        // 회원가입 후 1시간 이내인 경우 localStorage 데이터 정리
+                        if (data.createdAt) {
+                            const createdAt = new Date(data.createdAt);
+                            const now = new Date();
+                            const hoursSinceCreation = (now - createdAt) / (1000 * 60 * 60);
+
+                            if (hoursSinceCreation < 1) {
+                                console.log('신규 가입 계정 감지 (가입 후 ' + hoursSinceCreation.toFixed(2) + '시간), localStorage 데이터 정리');
+
+                                // 이전 데이터 정리 (userEvents는 DB 기반이므로 제외)
+                                localStorage.removeItem('userActivityLog_' + currentUserId);
+                                localStorage.removeItem('profileImage_' + currentUserId);
+
+                                console.log('localStorage 정리 완료');
+                            }
+                        }
+                    }
+
+                    // 프로필 폼에 데이터 채우기
+                    const nameInput = document.getElementById('profileName');
+                    const genderSelect = document.getElementById('profileGender');
+                    const birthInput = document.getElementById('profileBirth');
+                    const phoneInput = document.getElementById('profilePhone');
+                    const emailInput = document.getElementById('profileEmail');
+                    const postcodeInput = document.getElementById('profilePostcode');
+                    const addressInput = document.getElementById('profileAddress');
+                    const detailAddressInput = document.getElementById('profileDetailAddress');
+
+                    if (nameInput && data.name) nameInput.value = data.name;
+                    if (genderSelect && data.gender) genderSelect.value = data.gender;
+                    if (birthInput && data.birth) birthInput.value = data.birth;
+                    if (phoneInput && data.phone) {
+                        // 전화번호 포맷팅 (01012345678 -> 010-1234-5678)
+                        let phone = data.phone;
+                        if (phone && phone.length === 11 && !phone.includes('-')) {
+                            phone = phone.substring(0, 3) + '-' + phone.substring(3, 7) + '-' + phone.substring(7);
+                        }
+                        phoneInput.value = phone;
+                    }
+                    if (emailInput && data.email) emailInput.value = data.email;
+                    if (postcodeInput && data.postcode) postcodeInput.value = data.postcode;
+                    if (addressInput && data.address) addressInput.value = data.address;
+                    if (detailAddressInput && data.detailAddress) detailAddressInput.value = data.detailAddress;
+
+                    console.log('회원 정보 로드 성공:', data);
+                } else {
+                    console.warn('회원 정보 조회 실패:', result.message);
+                }
+            } catch (error) {
+                console.error('회원 정보 로드 오류:', error);
+            }
+        }
+
         // 온도 시스템
         const temperatureData = {
             current: 36.5,  // 현재 온도 (DB에서 가져옴)
@@ -3074,10 +830,10 @@
                     temperatureData.current = parseFloat(result.temperature);
                     updateTemperatureDisplay(temperatureData.current);
 
-                    // 성공 메시지 표시
-                    if (result.message) {
-                        showTemperatureToast(result.message);
-                    }
+                    // 성공 메시지 표시 제거 - 보라색 토스트 알림 비활성화
+                    // if (result.message) {
+                    //     showTemperatureToast(result.message);
+                    // }
                 }
 
                 return result;
@@ -3227,7 +983,7 @@
             // 더미 데이터 제거 - 사용자가 직접 등록한 일정만 표시됨
         }
 
-        // 사용자 일정 저장소 (localStorage 사용)
+        // 사용자 일정 저장소 (DB 기반)
         let userEvents = {};
         let selectedDate = '';
         let editingEventId = null;
@@ -3238,31 +994,124 @@
             return year + '년 ' + parseInt(month) + '월 ' + parseInt(day) + '일';
         }
 
-        // localStorage에서 사용자 일정 불러오기 (계정별 분리)
-        function loadUserEvents() {
-            const userId = '<%= session.getAttribute("id") != null ? session.getAttribute("id") : "" %>';
-            if (!userId) {
-                userEvents = {};
-                return;
-            }
-            const key = 'userEvents_' + userId;
-            const stored = localStorage.getItem(key);
-            if (stored) {
-                try {
-                    userEvents = JSON.parse(stored);
-                } catch (e) {
-                    console.error('Failed to parse user events:', e);
-                    userEvents = {};
+        // DB에서 사용자 일정 불러오기
+        async function loadUserEvents() {
+            try {
+                console.log('DB에서 일정 불러오기 시작');
+                const response = await fetch('/bdproject/api/calendar/events');
+                console.log('일정 API 응답 상태:', response.status);
+                const result = await response.json();
+                console.log('일정 API 응답 데이터:', result);
+
+                if (result.success && result.events) {
+                    // DB 데이터를 window.userEvents 객체로 변환 (날짜별 그룹화)
+                    window.userEvents = {};
+                    result.events.forEach(event => {
+                        console.log('=== DB 이벤트 원본 데이터 ===');
+                        console.log('전체 이벤트 객체:', event);
+                        console.log('title 필드:', event.title);
+                        console.log('description 필드:', event.description);
+                        console.log('event_date 필드:', event.event_date);
+                        console.log('eventDate 필드:', event.eventDate);
+
+                        const dateKey = event.event_date || event.eventDate;
+                        console.log('최종 날짜 키:', dateKey);
+
+                        if (!window.userEvents[dateKey]) {
+                            window.userEvents[dateKey] = [];
+                        }
+
+                        // DB 데이터를 프론트엔드 형식으로 변환
+                        const convertedEvent = {
+                            id: event.event_id || event.eventId,
+                            title: event.title,
+                            description: event.description,
+                            type: 'single',
+                            startDate: event.event_date || event.eventDate,
+                            endDate: event.event_date || event.eventDate,
+                            createdAt: event.created_at || event.createdAt
+                        };
+                        console.log('변환된 이벤트:', convertedEvent);
+                        window.userEvents[dateKey].push(convertedEvent);
+                    });
+                    console.log('일정 불러오기 성공, window.userEvents:', window.userEvents);
+                    console.log('userEvents 키들:', Object.keys(window.userEvents));
+                } else {
+                    console.log('일정이 없거나 조회 실패:', result);
+                    window.userEvents = {};
                 }
+
+                // 일정 로드 후 최근 활동 업데이트
+                updateRecentActivity();
+            } catch (error) {
+                console.error('일정 불러오기 오류:', error);
+                window.userEvents = {};
             }
         }
 
+        // 시간대 변환 함수 (상세 시간 포함)
+        function formatVolunteerTime(time) {
+            if (!time) return '미정';
+            const timeMap = {
+                '오전': '오전 (09:00~12:00)',
+                '오후': '오후 (13:00~18:00)',
+                '종일': '종일 (09:00~18:00)',
+                '조율가능': '조율가능',
+                'AM': '오전 (09:00~12:00)',
+                'PM': '오후 (13:00~18:00)',
+                'MORNING': '오전 (09:00~12:00)',
+                'AFTERNOON': '오후 (13:00~18:00)',
+                'EVENING': '저녁 (18:00~21:00)',
+                'ALLDAY': '종일 (09:00~18:00)',
+                'FLEXIBLE': '조율가능'
+            };
+            return timeMap[time] || timeMap[time.toUpperCase()] || time;
+        }
+
+        // 경험 수준 변환 함수 (DB 실제 값: NONE, LESS_THAN_1YEAR, 1_TO_3_YEARS, MORE_THAN_3YEARS)
+        function formatVolunteerExperience(experience) {
+            if (!experience) return '미정';
+
+            // 디버깅: 실제 받은 경험 데이터 출력
+            console.log('받은 경험 데이터:', experience, '(타입:', typeof experience + ')');
+
+            const expMap = {
+                'NONE': '경험 없음',
+                'LESS_THAN_1YEAR': '1년 미만',
+                '1_TO_3_YEARS': '1-3년',
+                'MORE_THAN_3YEARS': '3년 이상'
+            };
+
+            const result = expMap[experience] || experience;
+            console.log('변환 결과:', result);
+            return result;
+        }
+
         // 봉사 신청 내역 불러오기
-        function loadVolunteerApplications() {
+        async function loadVolunteerApplications() {
             const container = document.getElementById('volunteerListContainer');
 
-            fetch('/bdproject/api/volunteer/my-applications')
+            return fetch('/bdproject/api/volunteer/my-applications')
                 .then(response => response.json())
+                .then(data => {
+                    // 디버깅: 전체 응답 데이터 구조 확인
+                    console.log('=== 봉사활동 내역 전체 응답 ===');
+                    console.log('응답 데이터:', data);
+
+                    if (data.success && data.data && data.data.length > 0) {
+                        console.log('총 봉사활동 수:', data.data.length);
+                        console.log('첫 번째 봉사활동 상세 데이터:', data.data[0]);
+                        console.log('첫 번째 봉사활동 경험 필드:', data.data[0].volunteerExperience);
+                        console.log('모든 필드 이름:', Object.keys(data.data[0]));
+
+                        // 전역 변수에 저장 (최근 활동에서 사용)
+                        window.volunteerApplications = data.data;
+                    } else {
+                        window.volunteerApplications = [];
+                    }
+
+                    return data;
+                })
                 .then(data => {
                     if (data.success && data.data && data.data.length > 0) {
                         let html = '';
@@ -3280,31 +1129,107 @@
                                 dateStr += ' ~ ' + endDateStr;
                             }
 
-                            // 후기 작성 가능 여부 확인 (volunteer_end_date 기준)
+                            // 후기 작성 가능 여부 확인 (volunteer_end_date 및 시간대 고려)
                             let canWriteReview = false;
                             if (app.volunteerEndDate && !app.hasReview) {
+                                const now = new Date();
                                 const endDate = new Date(app.volunteerEndDate);
-                                endDate.setHours(0, 0, 0, 0);
-                                const daysPassed = Math.floor((today - endDate) / (1000 * 60 * 60 * 24));
 
-                                // 봉사 종료일이 지났고, 3일 이내인 경우만 후기 작성 가능
-                                canWriteReview = daysPassed >= 0 && daysPassed <= 3;
+                                // 시간대별 종료 시간 설정
+                                const timeEndMap = {
+                                    '오전': 12,
+                                    'AM': 12,
+                                    'MORNING': 12,
+                                    '오후': 18,
+                                    'PM': 18,
+                                    'AFTERNOON': 18,
+                                    '저녁': 21,
+                                    'EVENING': 21,
+                                    '종일': 18,
+                                    'ALLDAY': 18,
+                                    '조율가능': 18,
+                                    'FLEXIBLE': 18
+                                };
+
+                                const endHour = timeEndMap[app.volunteerTime] || 18;
+                                endDate.setHours(endHour, 0, 0, 0);
+
+                                // 봉사 종료 시간이 지났는지 확인
+                                const timePassed = now >= endDate;
+
+                                // 종료 후 3일 이내인지 확인
+                                const daysPassed = Math.floor((now - endDate) / (1000 * 60 * 60 * 24));
+
+                                // 봉사 종료 시간이 지났고, 3일 이내인 경우만 후기 작성 가능
+                                canWriteReview = timePassed && daysPassed <= 3;
                             }
 
                             const reviewButton = canWriteReview
-                                ? '<button class="review-write-btn" onclick="openReviewModal(' + app.applicationId + ', \'' + app.selectedCategory.replace(/'/g, "\\'") + '\')">후기 작성</button>'
+                                ? '<button class="review-write-btn" onclick="event.stopPropagation(); openReviewModal(' + app.applicationId + ', \'' + app.selectedCategory.replace(/'/g, "\\'") + '\')">후기 작성</button>'
                                 : '';
 
-                            html += '<div class="list-item">' +
-                                '<div class="list-item-header">' +
-                                    '<span class="list-item-title">' + app.selectedCategory + '</span>' +
-                                    '<span class="list-item-date">' + dateStr + '</span>' +
+                            // 취소 가능 여부 확인 (PENDING 또는 APPLIED 상태일 때만)
+                            const canCancel = (app.status === 'PENDING' || app.status === 'APPLIED' || app.status === 'CONFIRMED');
+                            const cancelButton = canCancel
+                                ? '<button class="cancel-btn" style="background: #e74c3c; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; margin-left: 8px;" onclick="event.stopPropagation(); cancelVolunteerApplication(' + app.applicationId + ', \'' + app.volunteerDate + '\', \'' + (app.volunteerTime || 'MORNING') + '\')">취소하기</button>'
+                                : '';
+
+                            // 시간대와 경험 수준 변환
+                            const timeText = formatVolunteerTime(app.volunteerTime);
+                            const experienceText = formatVolunteerExperience(app.volunteerExperience);
+
+                            // 배정된 시설 정보 HTML 생성
+                            let facilityHtml = '';
+                            if (app.assignedFacilityName && (app.status === 'CONFIRMED' || app.status === 'COMPLETED')) {
+                                facilityHtml = '<div style="background: #e8f5e9; padding: 12px; border-radius: 8px; border-left: 3px solid #4caf50; margin-bottom: 12px;">' +
+                                    '<div style="font-weight: 600; color: #2e7d32; margin-bottom: 6px; font-size: 14px;">' +
+                                        '<i class="fas fa-building" style="margin-right: 6px;"></i>배정된 시설' +
+                                    '</div>' +
+                                    '<div style="font-size: 14px; color: #333;">' +
+                                        '<strong>' + app.assignedFacilityName + '</strong>' +
+                                        (app.assignedFacilityAddress ? '<br><span style="color: #666; font-size: 13px;">' + app.assignedFacilityAddress + '</span>' : '') +
+                                    '</div>' +
+                                    (app.adminNote ? '<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #c8e6c9; font-size: 13px; color: #555;"><i class="fas fa-sticky-note" style="color: #4caf50; margin-right: 4px;"></i>' + app.adminNote + '</div>' : '') +
+                                '</div>';
+                            }
+
+                            html += '<div class="list-item" style="background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: all 0.3s ease; cursor: pointer;" onclick="showVolunteerDetail(' + app.applicationId + ')" onmouseenter="this.style.boxShadow=\'0 4px 16px rgba(0,0,0,0.12)\'; this.style.transform=\'translateY(-2px)\'" onmouseleave="this.style.boxShadow=\'0 2px 8px rgba(0,0,0,0.06)\'; this.style.transform=\'translateY(0)\'">' +
+                                '<div class="list-item-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">' +
+                                    '<div style="flex: 1;">' +
+                                        '<h4 style="font-size: 18px; font-weight: 600; color: #2c3e50; margin: 0 0 8px 0;"><i class="fas fa-hands-helping" style="color: #4A90E2; margin-right: 8px;"></i>' + app.selectedCategory + '</h4>' +
+                                        '<span style="font-size: 14px; color: #7f8c8d;"><i class="far fa-calendar-alt" style="margin-right: 6px;"></i>' + dateStr + '</span>' +
+                                    '</div>' +
+                                    '<span class="status-badge ' + statusClass + '" style="padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600;">' + statusText + '</span>' +
                                 '</div>' +
-                                '<div class="list-item-content">' +
-                                    '시간대: ' + app.volunteerTime + ' | 경험: ' + app.volunteerExperience +
-                                    '<span class="status-badge ' + statusClass + '">' + statusText + '</span>' +
-                                    reviewButton +
+                                '<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 12px; padding: 12px; background: #f8f9fa; border-radius: 8px;">' +
+                                    '<div style="display: flex; align-items: center; gap: 8px;">' +
+                                        '<i class="far fa-clock" style="color: #4A90E2; font-size: 16px;"></i>' +
+                                        '<span style="font-size: 14px; color: #555;"><strong>시간대:</strong> ' + timeText + '</span>' +
+                                    '</div>' +
+                                    (experienceText ?
+                                        '<div style="display: flex; align-items: center; gap: 8px;">' +
+                                            '<i class="fas fa-star" style="color: #f39c12; font-size: 16px;"></i>' +
+                                            '<span style="font-size: 14px; color: #555;"><strong>경험:</strong> ' + experienceText + '</span>' +
+                                        '</div>' : '') +
+                                    (app.applicantAddress ?
+                                        '<div style="display: flex; align-items: center; gap: 8px;">' +
+                                            '<i class="fas fa-map-marker-alt" style="color: #e74c3c; font-size: 16px;"></i>' +
+                                            '<span style="font-size: 14px; color: #555;"><strong>위치:</strong> ' + app.applicantAddress.substring(0, 20) + (app.applicantAddress.length > 20 ? '...' : '') + '</span>' +
+                                        '</div>' : '') +
+                                    (app.actualHours > 0 ?
+                                        '<div style="display: flex; align-items: center; gap: 8px;">' +
+                                            '<i class="fas fa-hourglass-half" style="color: #9b59b6; font-size: 16px;"></i>' +
+                                            '<span style="font-size: 14px; color: #555;"><strong>활동시간:</strong> ' + app.actualHours + '시간</span>' +
+                                        '</div>' : '') +
                                 '</div>' +
+                                facilityHtml +
+                                (app.motivation ?
+                                    '<div style="background: #e8f4fd; padding: 12px; border-radius: 8px; border-left: 3px solid #4A90E2; margin-bottom: 12px;">' +
+                                        '<p style="margin: 0; font-size: 14px; color: #555; line-height: 1.6;"><i class="fas fa-quote-left" style="color: #4A90E2; margin-right: 6px; font-size: 12px;"></i>' +
+                                        (app.motivation.length > 100 ? app.motivation.substring(0, 100) + '...' : app.motivation) + '</p>' +
+                                    '</div>' : '') +
+                                ((reviewButton || cancelButton) ?
+                                    '<div style="text-align: right; display: flex; justify-content: flex-end; gap: 8px;">' + reviewButton + cancelButton + '</div>' : '') +
                             '</div>';
                         });
                         container.innerHTML = html;
@@ -3323,47 +1248,136 @@
                             volunteerCountElement.textContent = '0건';
                         }
                     }
+                    // 최근 활동 업데이트
+                    updateRecentActivity();
                 })
                 .catch(error => {
                     console.error('봉사 내역 로드 오류:', error);
                     container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>봉사 내역을 불러오지 못했습니다</p></div>';
+                    // 오류 발생 시에도 최근 활동 업데이트
+                    updateRecentActivity();
                 });
         }
 
         // 기부 내역 불러오기
-        function loadDonations() {
+        async function loadDonations() {
             const container = document.getElementById('donationListContainer');
 
-            fetch('/bdproject/api/donation/my')
+            return fetch('/bdproject/api/donation/my')
                 .then(response => response.json())
                 .then(data => {
+                    // 디버깅: 전체 응답 데이터 구조 확인
+                    console.log('=== 기부 내역 전체 응답 ===');
+                    console.log('응답 데이터:', data);
+
                     if (data.success && data.data && data.data.length > 0) {
+                        console.log('총 기부 수:', data.data.length);
+                        console.log('첫 번째 기부 상세 데이터:', data.data[0]);
+                        console.log('모든 필드 이름:', Object.keys(data.data[0]));
+
+                        // 전역 변수에 저장 (최근 활동에서 사용)
+                        window.donationHistory = data.data;
+
                         let html = '';
                         let totalAmount = 0;
 
-                        data.data.forEach(donation => {
-                            const typeText = donation.donationType === 'regular' ? '정기 후원' : '일시 후원';
+                        data.data.forEach((donation, index) => {
+                            console.log('=== 기부 #' + (index + 1) + ' 상세 분석 ===');
+                            console.log('전체 기부 객체:', donation);
+                            console.log('기부 유형 필드 (donationType):', donation.donationType);
+                            console.log('결제 방법 필드 (paymentMethod):', donation.paymentMethod);
+                            console.log('서명 필드들:');
+                            console.log('  - signature:', donation.signature);
+                            console.log('  - signatureImageUrl:', donation.signatureImageUrl);
+                            console.log('  - signatureImage:', donation.signatureImage);
+                            console.log('  - donorSignature:', donation.donorSignature);
+
+                            // 기부 유형 매핑 (DB 실제 값: REGULAR, ONETIME)
+                            const donationTypeMap = {
+                                'REGULAR': '정기 후원',
+                                'ONETIME': '일시 후원'
+                            };
+                            const typeText = donationTypeMap[donation.donationType] || '일시 후원';
+                            console.log('변환된 기부 유형:', typeText);
+
+                            // 결제 방법 매핑 (DB 실제 값: CREDIT_CARD, BANK_TRANSFER, KAKAO_PAY, NAVER_PAY, TOSS_PAY)
+                            const paymentMethodMap = {
+                                'CREDIT_CARD': '신용카드',
+                                'BANK_TRANSFER': '계좌이체',
+                                'KAKAO_PAY': '카카오페이',
+                                'NAVER_PAY': '네이버페이',
+                                'TOSS_PAY': '토스페이'
+                            };
+                            const paymentText = paymentMethodMap[donation.paymentMethod] || donation.paymentMethod || '-';
+                            console.log('변환된 결제 방법:', paymentText);
+
                             const dateStr = new Date(donation.createdAt).toLocaleDateString('ko-KR');
-                            const amountStr = donation.amount.toLocaleString();
-                            totalAmount += donation.amount;
+                            const amountStr = (donation.amount || 0).toLocaleString();
+                            totalAmount += (donation.amount || 0);
 
-                            // 패키지명이 있으면 표시, 없으면 카테고리만 표시
-                            const titleText = donation.packageName
-                                ? `\${typeText} - \${donation.packageName}`
-                                : `\${typeText} - \${donation.category}`;
+                            // 패키지명이 있으면 표시, 없으면 카테고리명 표시
+                            const titleText = (donation.packageName && donation.packageName !== 'undefined' && donation.packageName !== 'null')
+                                ? donation.packageName
+                                : (donation.categoryName || donation.category || '일반 기부');
 
-                            html += `
-                                <div class="list-item">
-                                    <div class="list-item-header">
-                                        <span class="list-item-title">\${titleText}</span>
-                                        <span class="list-item-date">\${dateStr}</span>
-                                    </div>
-                                    <div class="list-item-content">
-                                        금액: \${amountStr}원
-                                        <span class="status-badge completed">완료</span>
-                                    </div>
-                                </div>
-                            `;
+                            // 정기 기부 시작일 포맷팅
+                            const regularStartDateStr = donation.regularStartDate ?
+                                new Date(donation.regularStartDate).toLocaleDateString('ko-KR') : null;
+
+                            html += '<div class="list-item" style="background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: all 0.3s ease; cursor: pointer;" onclick="showDonationDetail(' + donation.donationId + ')" onmouseenter="this.style.boxShadow=\'0 4px 16px rgba(0,0,0,0.12)\'; this.style.transform=\'translateY(-2px)\'" onmouseleave="this.style.boxShadow=\'0 2px 8px rgba(0,0,0,0.06)\'; this.style.transform=\'translateY(0)\'">' +
+                                '<div class="list-item-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">' +
+                                    '<div style="flex: 1;">' +
+                                        '<h4 style="font-size: 18px; font-weight: 600; color: #2c3e50; margin: 0 0 8px 0;"><i class="fas fa-heart" style="color: #e74c3c; margin-right: 8px;"></i>' + titleText + '</h4>' +
+                                        '<span style="font-size: 14px; color: #7f8c8d;"><i class="far fa-calendar-alt" style="margin-right: 6px;"></i>' + dateStr + '</span>' +
+                                    '</div>' +
+                                    '<span class="status-badge completed" style="background: #27ae60; color: white; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600;">완료</span>' +
+                                '</div>' +
+                                '<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 12px; background: #f8f9fa; border-radius: 8px;">' +
+                                    '<div style="display: flex; align-items: center; gap: 8px;">' +
+                                        '<i class="fas fa-won-sign" style="color: #27ae60; font-size: 16px;"></i>' +
+                                        '<span style="font-size: 14px; color: #555;"><strong>금액:</strong> ' + amountStr + '원</span>' +
+                                    '</div>' +
+                                    '<div style="display: flex; align-items: center; gap: 8px;">' +
+                                        '<i class="fas fa-sync-alt" style="color: #3498db; font-size: 16px;"></i>' +
+                                        '<span style="font-size: 14px; color: #555;"><strong>유형:</strong> ' + typeText + '</span>' +
+                                    '</div>' +
+                                    (donation.paymentMethod ?
+                                        '<div style="display: flex; align-items: center; gap: 8px;">' +
+                                            '<i class="fas fa-credit-card" style="color: #9b59b6; font-size: 16px;"></i>' +
+                                            '<span style="font-size: 14px; color: #555;"><strong>결제:</strong> ' + paymentText + '</span>' +
+                                        '</div>' : '') +
+                                    (regularStartDateStr ?
+                                        '<div style="display: flex; align-items: center; gap: 8px;">' +
+                                            '<i class="fas fa-calendar-check" style="color: #f39c12; font-size: 16px;"></i>' +
+                                            '<span style="font-size: 14px; color: #555;"><strong>시작일:</strong> ' + regularStartDateStr + '</span>' +
+                                        '</div>' : '') +
+                                    (donation.categoryName ?
+                                        '<div style="display: flex; align-items: center; gap: 8px;">' +
+                                            '<i class="fas fa-tag" style="color: #1abc9c; font-size: 16px;"></i>' +
+                                            '<span style="font-size: 14px; color: #555;"><strong>분야:</strong> ' + donation.categoryName + '</span>' +
+                                        '</div>' : '') +
+                                '</div>' +
+                                (donation.message && donation.message !== 'false' && donation.message.trim() !== '' ?
+                                    '<div style="background: #fff5f5; padding: 12px; border-radius: 8px; border-left: 3px solid #e74c3c; margin-top: 12px;">' +
+                                        '<p style="margin: 0; font-size: 14px; color: #555; line-height: 1.6;"><i class="fas fa-quote-left" style="color: #e74c3c; margin-right: 6px; font-size: 12px;"></i>' +
+                                        (donation.message.length > 100 ? donation.message.substring(0, 100) + '...' : donation.message) + '</p>' +
+                                    '</div>' : '') +
+                                (donation.signatureImage && donation.signatureImage !== 'null' && donation.signatureImage !== '' && donation.signatureImage.length > 10 ?
+                                    '<div style="background: #e8f5e9; padding: 8px 12px; border-radius: 6px; margin-top: 12px; display: inline-flex; align-items: center; gap: 6px;">' +
+                                        '<i class="fas fa-signature" style="color: #27ae60;"></i>' +
+                                        '<span style="font-size: 13px; color: #27ae60; font-weight: 600;">서명 포함</span>' +
+                                    '</div>' : '') +
+                                // 버튼 영역 추가 (리뷰 작성, 환불)
+                                '<div style="display: flex; gap: 10px; margin-top: 15px; justify-content: flex-end;">' +
+                                    (!donation.hasReview ?
+                                        '<button onclick="event.stopPropagation(); openDonationReviewModal(' + donation.donationId + ', \'' + (titleText || '').replace(/'/g, "\\'") + '\', ' + (donation.amount || 0) + ')" style="padding: 8px 16px; background: #3498db; color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px;"><i class="fas fa-pen"></i>리뷰 작성</button>' :
+                                        '<span style="padding: 8px 16px; background: #95a5a6; color: white; border-radius: 6px; font-size: 13px; display: flex; align-items: center; gap: 6px;"><i class="fas fa-check"></i>리뷰 작성완료</span>') +
+                                    (canRefund(donation.createdAt) && donation.paymentStatus !== 'REFUNDED' ?
+                                        '<button onclick="event.stopPropagation(); requestRefund(' + donation.donationId + ', ' + (donation.amount || 0) + ', \'' + donation.createdAt + '\')" style="padding: 8px 16px; background: #e74c3c; color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px;"><i class="fas fa-undo"></i>환불 요청</button>' : '') +
+                                    (donation.paymentStatus === 'REFUNDED' ?
+                                        '<span style="padding: 8px 16px; background: #95a5a6; color: white; border-radius: 6px; font-size: 13px; display: flex; align-items: center; gap: 6px;"><i class="fas fa-ban"></i>환불완료</span>' : '') +
+                                '</div>' +
+                            '</div>';
                         });
 
                         container.innerHTML = html;
@@ -3374,6 +1388,9 @@
                             totalDonationElement.textContent = totalAmount.toLocaleString() + '원';
                         }
                     } else {
+                        // 전역 변수 초기화
+                        window.donationHistory = [];
+
                         container.innerHTML = '<div class="empty-state"><i class="fas fa-heart"></i><p>기부 내역이 없습니다</p></div>';
 
                         // 데이터 없을 때 0으로 표시
@@ -3382,11 +1399,33 @@
                             totalDonationElement.textContent = '0원';
                         }
                     }
+                    // 최근 활동 업데이트
+                    updateRecentActivity();
                 })
                 .catch(error => {
                     console.error('기부 내역 로드 오류:', error);
                     container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>기부 내역을 불러오지 못했습니다</p></div>';
+                    // 오류 발생 시에도 최근 활동 업데이트
+                    updateRecentActivity();
                 });
+        }
+
+        // FAQ 질문 내역 불러오기
+        async function loadMyQuestions() {
+            try {
+                const response = await fetch('/bdproject/api/questions/my-questions');
+                const data = await response.json();
+
+                if (data.success && data.data) {
+                    window.userQuestions = data.data;
+                    console.log('FAQ 질문 로드 완료:', window.userQuestions.length, '개');
+                } else {
+                    window.userQuestions = [];
+                }
+            } catch (error) {
+                console.error('FAQ 질문 로드 오류:', error);
+                window.userQuestions = [];
+            }
         }
 
         // 관심 복지 서비스 불러오기
@@ -3449,7 +1488,7 @@
                                 <i class="fas fa-star"></i>
                                 <h3>등록된 관심 서비스가 없습니다</h3>
                                 <p>복지 혜택 검색에서 마음에 드는 서비스를 즐겨찾기해보세요</p>
-                                <a href="/bdproject/project_information.jsp" class="btn btn-primary">복지 혜택 찾기</a>
+                                <a href="/bdproject/project_detail.jsp" class="btn btn-primary">복지 혜택 찾기</a>
                             </div>
                         `;
 
@@ -3596,6 +1635,11 @@
         function loadDiagnosisHistory() {
             const container = document.getElementById('diagnosisListContainer');
 
+            if (!container) {
+                console.warn('diagnosisListContainer 요소를 찾을 수 없습니다.');
+                return;
+            }
+
             fetch('/bdproject/api/welfare/diagnosis/my')
                 .then(response => response.json())
                 .then(data => {
@@ -3616,8 +1660,8 @@
                             // 매칭된 서비스 파싱
                             let services = [];
                             try {
-                                if (diagnosis.matchedServicesJson) {
-                                    services = JSON.parse(diagnosis.matchedServicesJson);
+                                if (diagnosis.matchedServices) {
+                                    services = JSON.parse(diagnosis.matchedServices);
                                 }
                             } catch (e) {
                                 console.error('JSON 파싱 오류:', e);
@@ -3818,13 +1862,22 @@
 
         // 상태 텍스트 변환
         function getStatusText(status) {
+            if (!status) return '-';
             const statusMap = {
                 'applied': '신청완료',
+                'APPLIED': '신청완료',
                 'confirmed': '확인완료',
+                'CONFIRMED': '확인완료',
+                'approved': '승인완료',
+                'APPROVED': '승인완료',
                 'completed': '완료',
-                'cancelled': '취소'
+                'COMPLETED': '완료',
+                'cancelled': '취소',
+                'CANCELLED': '취소',
+                'pending': '대기중',
+                'PENDING': '대기중'
             };
-            return statusMap[status] || status;
+            return statusMap[status] || statusMap[status.toUpperCase()] || status;
         }
 
         // 상태 클래스 변환
@@ -3839,16 +1892,7 @@
         }
 
         // localStorage에 사용자 일정 저장 (계정별 분리)
-        function saveUserEvents() {
-            try {
-                const userId = '<%= session.getAttribute("id") != null ? session.getAttribute("id") : "" %>';
-                if (!userId) return;
-                const key = 'userEvents_' + userId;
-                localStorage.setItem(key, JSON.stringify(userEvents));
-            } catch (e) {
-                console.error('Failed to save user events:', e);
-            }
-        }
+        // saveUserEvents 함수 제거 - DB 기반으로 전환
 
         // 모달 열기
         function openEventModal(dateStr) {
@@ -3884,7 +1928,11 @@
         // 해당 날짜의 일정 표시
         function displayEventsForDate(dateStr) {
             const container = document.getElementById('eventListContainer');
-            const events = userEvents[dateStr] || [];
+            const events = (window.userEvents && window.userEvents[dateStr]) ? window.userEvents[dateStr] : [];
+
+            console.log('📅 displayEventsForDate 호출 - 날짜:', dateStr);
+            console.log('📅 해당 날짜 일정 수:', events.length);
+            console.log('📅 일정 목록:', events);
 
             if (events.length === 0) {
                 container.innerHTML = '<div class="event-empty"><i class="fas fa-calendar-alt"></i><p>등록된 일정이 없습니다</p></div>';
@@ -3910,8 +1958,8 @@
             container.innerHTML = html;
         }
 
-        // 일정 저장
-        function saveEvent() {
+        // 일정 저장 (DB 기반)
+        async function saveEvent() {
             const title = document.getElementById('eventTitle').value.trim();
             const description = document.getElementById('eventDescription').value.trim();
             const endDate = document.getElementById('eventEndDate').value;
@@ -3936,62 +1984,97 @@
                 return;
             }
 
-            // 기간 여부 판단
-            const isRange = endDate !== selectedDate;
+            let savedSuccessfully = false;
 
-            const eventData = {
-                id: Date.now(),
-                title: title,
-                description: description,
-                type: isRange ? 'range' : 'single',
-                startDate: selectedDate,
-                endDate: endDate,
-                createdAt: new Date().toISOString()
-            };
+            try {
+                // 날짜 범위의 모든 날짜에 일정 생성
+                // 시간대 문제를 방지하기 위해 로컬 날짜 문자열을 직접 사용
+                let currentDateStr = selectedDate;
+                const savedEvents = [];
 
-            // 날짜 범위의 모든 날짜에 일정 추가
-            let currentDate = new Date(selectedDate);
-            const finalDate = new Date(endDate);
+                // 날짜 비교를 위한 Date 객체 생성 (로컬 시간대 사용)
+                const endDateObj = new Date(endDate + 'T00:00:00');
+                let currentDateObj = new Date(currentDateStr + 'T00:00:00');
 
-            while (currentDate <= finalDate) {
-                const dateStr = currentDate.toISOString().split('T')[0];
+                while (currentDateObj <= endDateObj) {
+                    const dateStr = currentDateObj.getFullYear() + '-' +
+                                   String(currentDateObj.getMonth() + 1).padStart(2, '0') + '-' +
+                                   String(currentDateObj.getDate()).padStart(2, '0');
 
-                if (!userEvents[dateStr]) {
-                    userEvents[dateStr] = [];
+                    const eventData = {
+                        title: title,
+                        description: description,
+                        event_date: dateStr,
+                        event_type: 'PERSONAL',
+                        reminder_enabled: true,
+                        remind_before_days: 1,
+                        status: 'SCHEDULED'
+                    };
+
+                    // DB에 저장
+                    const response = await fetch('/bdproject/api/calendar/events', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(eventData)
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        savedEvents.push(result.event);
+                    }
+
+                    // 다음 날짜로 이동 (로컬 시간대 기준)
+                    currentDateObj.setDate(currentDateObj.getDate() + 1);
                 }
 
-                if (editingEventId !== null && dateStr === selectedDate) {
-                    // 수정 모드
-                    userEvents[dateStr][editingEventId] = eventData;
-                } else {
-                    // 추가 모드
-                    userEvents[dateStr].push(eventData);
+                savedSuccessfully = true;
+
+                // 사용자 활동 로그에 기록
+                logUserActivity({
+                    type: 'calendar_create',
+                    icon: 'fas fa-calendar-plus',
+                    iconColor: '#4A90E2',
+                    title: '일정 등록',
+                    description: selectedDate + '에 "' + title + '" 일정을 등록했습니다.',
+                    timestamp: new Date().toISOString()
+                });
+
+                // DB에서 일정 다시 불러오기
+                await loadUserEvents();
+
+                // 폼 초기화
+                document.getElementById('eventTitle').value = '';
+                document.getElementById('eventDescription').value = '';
+                document.getElementById('eventEndDate').value = selectedDate;
+
+                // 일정 목록 업데이트
+                displayEventsForDate(selectedDate);
+
+                // 캘린더 다시 렌더링
+                renderMonthCalendar();
+
+                // 최근 활동 업데이트
+                updateRecentActivity();
+
+                alert('일정이 저장되었습니다.');
+
+            } catch (error) {
+                console.error('일정 저장 오류:', error);
+                alert('일정 저장 중 오류가 발생했습니다.');
+            } finally {
+                // 저장 성공 여부와 관계없이 알림 생성 시도
+                if (savedSuccessfully) {
+                    try {
+                        console.log('🔔 일정 저장 완료 - 알림 생성 시작');
+                        console.log('  - selectedDate:', selectedDate);
+                        console.log('  - title:', title);
+                        await createCalendarNotifications(selectedDate, title, description);
+                        console.log('🔔 알림 생성 함수 호출 완료');
+                    } catch (notifError) {
+                        console.error('❌ 알림 생성 중 오류:', notifError);
+                    }
                 }
-
-                currentDate.setDate(currentDate.getDate() + 1);
             }
-
-            if (editingEventId !== null) {
-                editingEventId = null;
-            }
-
-            saveUserEvents();
-
-            // 폼 초기화
-            document.getElementById('eventTitle').value = '';
-            document.getElementById('eventDescription').value = '';
-            document.getElementById('eventEndDate').value = selectedDate;
-
-            // 일정 목록 업데이트
-            displayEventsForDate(selectedDate);
-
-            // 캘린더 다시 렌더링
-            renderMonthCalendar();
-
-            // 최근 활동 업데이트
-            updateRecentActivity();
-
-            alert('일정이 저장되었습니다.');
         }
 
         // 일정 수정
@@ -4007,22 +2090,39 @@
         }
 
         // 일정 삭제
-        function deleteEvent(dateStr, index) {
+        async function deleteEvent(dateStr, index) {
             if (!confirm('이 일정을 삭제하시겠습니까?')) {
                 return;
             }
 
-            userEvents[dateStr].splice(index, 1);
+            try {
+                const event = userEvents[dateStr][index];
+                const eventId = event.id;
 
-            // 빈 배열이면 삭제
-            if (userEvents[dateStr].length === 0) {
-                delete userEvents[dateStr];
+                // DB에서 삭제
+                const response = await fetch('/bdproject/api/calendar/events/' + eventId, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // DB에서 일정 다시 불러오기
+                    await loadUserEvents();
+
+                    displayEventsForDate(dateStr);
+                    renderMonthCalendar();
+                    updateRecentActivity();
+
+                    alert('일정이 삭제되었습니다.');
+                } else {
+                    alert('일정 삭제에 실패했습니다.');
+                }
+
+            } catch (error) {
+                console.error('일정 삭제 오류:', error);
+                alert('일정 삭제 중 오류가 발생했습니다.');
             }
-
-            saveUserEvents();
-            displayEventsForDate(dateStr);
-            renderMonthCalendar();
-            updateRecentActivity();
         }
 
         // 월별 캘린더 렌더링
@@ -4078,17 +2178,22 @@
                 }
 
                 // 이벤트 있는 날짜 (시스템 이벤트 또는 사용자 이벤트)
-                if (calendarEvents[dateStr] || userEvents[dateStr]) {
+                if (calendarEvents[dateStr] || (window.userEvents && window.userEvents[dateStr])) {
                     dayClass += ' has-event';
                 }
 
                 // 사용자 일정 제목 가져오기
                 let eventTitle = '';
-                if (userEvents[dateStr] && userEvents[dateStr].length > 0) {
-                    eventTitle = userEvents[dateStr][0].title; // 첫 번째 일정 제목만 표시
-                    if (userEvents[dateStr].length > 1) {
-                        eventTitle += ' +' + (userEvents[dateStr].length - 1); // 추가 일정 개수 표시
+                if (window.userEvents && window.userEvents[dateStr] && window.userEvents[dateStr].length > 0) {
+                    const firstEvent = window.userEvents[dateStr][0];
+                    console.log('날짜 ' + dateStr + '의 첫 번째 일정:', firstEvent);
+                    console.log('  - title:', firstEvent.title);
+                    console.log('  - description:', firstEvent.description);
+                    eventTitle = firstEvent.title || '(제목 없음)'; // 첫 번째 일정 제목만 표시
+                    if (window.userEvents[dateStr].length > 1) {
+                        eventTitle += ' +' + (window.userEvents[dateStr].length - 1); // 추가 일정 개수 표시
                     }
+                    console.log('  - 최종 eventTitle:', eventTitle);
                 }
 
                 let eventDots = '';
@@ -4099,8 +2204,8 @@
                     });
                 }
                 // 사용자 이벤트 표시 (사용자 지정 색상으로 표시)
-                if (userEvents[dateStr] && userEvents[dateStr].length > 0) {
-                    for (let i = 0; i < Math.min(userEvents[dateStr].length, 3); i++) {
+                if (window.userEvents && window.userEvents[dateStr] && window.userEvents[dateStr].length > 0) {
+                    for (let i = 0; i < Math.min(window.userEvents[dateStr].length, 3); i++) {
                         eventDots += '<div class="event-dot" style="background: #9b59b6;"></div>';
                     }
                 }
@@ -4154,9 +2259,141 @@
             renderMonthCalendar();
         }
 
+        // 사용자 활동 로그 함수
+        function logUserActivity(activity) {
+            const userId = currentUserId || 'guest';
+            const activityLog = JSON.parse(localStorage.getItem('userActivityLog_' + userId) || '[]');
+
+            activityLog.unshift(activity); // 최신 활동을 앞에 추가
+
+            // 최대 100개까지만 보관
+            if (activityLog.length > 100) {
+                activityLog.splice(100);
+            }
+
+            localStorage.setItem('userActivityLog_' + userId, JSON.stringify(activityLog));
+        }
+
+        // 캘린더 일정 알림 생성 함수
+        async function createCalendarNotifications(eventDate, title, description) {
+            console.log('📢 createCalendarNotifications 함수 시작');
+            console.log('  - eventDate:', eventDate);
+            console.log('  - title:', title);
+            console.log('  - description:', description);
+
+            try {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                console.log('  - today (00:00:00):', today.toISOString());
+
+                const eventDateObj = new Date(eventDate + 'T00:00:00');
+                console.log('  - eventDateObj:', eventDateObj.toISOString());
+                console.log('  - 과거 날짜 여부 (eventDateObj < today):', eventDateObj < today);
+
+                const oneDayBefore = new Date(eventDateObj);
+                oneDayBefore.setDate(oneDayBefore.getDate() - 1);
+
+                // 과거 날짜의 일정인 경우: 즉시 "일정 등록 완료" 알림 생성
+                if (eventDateObj < today) {
+                    console.log('🔔 과거 날짜 일정 감지:', eventDate, '< 오늘:', today.toISOString().split('T')[0]);
+
+                    const registrationNotification = {
+                        type: 'CALENDAR_EVENT',
+                        title: '일정이 등록되었습니다',
+                        content: eventDate + '에 \'' + title + '\' 일정이 등록되었습니다.',
+                        relatedId: Date.now(),
+                        eventDate: new Date().toISOString().split('T')[0]  // 오늘 날짜로 알림 생성
+                    };
+
+                    console.log('📤 알림 생성 요청 데이터:', registrationNotification);
+
+                    const response = await fetch('/bdproject/api/notifications/create-calendar', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(registrationNotification)
+                    });
+
+                    const result = await response.json();
+                    console.log('📥 알림 생성 응답:', result);
+
+                    if (result.success) {
+                        console.log('✅ 과거 날짜 일정 등록 알림 생성 완료');
+                        // 알림 목록 새로고침
+                        await loadNotifications();
+                    } else {
+                        console.error('❌ 알림 생성 실패:', result.message);
+                    }
+
+                    return;  // 과거 일정은 추가 알림 생성하지 않음
+                }
+
+                // 미래 날짜의 일정인 경우: 기존 로직 (하루 전, 당일 알림)
+                console.log('📅 미래/오늘 날짜 일정:', eventDate, '>= 오늘:', today.toISOString().split('T')[0]);
+                let notificationsCreated = 0;
+
+                // 하루 전 알림 (하루 전 날짜가 오늘 이후인 경우에만)
+                if (oneDayBefore >= today) {
+                    const beforeNotification = {
+                        type: 'CALENDAR_EVENT',
+                        title: '내일은 일정이 있는 날입니다',
+                        content: '내일 \'' + title + '\' 일정이 예정되어 있습니다.',
+                        relatedId: Date.now(),
+                        eventDate: oneDayBefore.toISOString().split('T')[0]
+                    };
+
+                    console.log('📤 하루 전 알림 요청:', beforeNotification);
+
+                    const response1 = await fetch('/bdproject/api/notifications/create-calendar', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(beforeNotification)
+                    });
+
+                    const result1 = await response1.json();
+                    console.log('📥 하루 전 알림 응답:', result1);
+                    if (result1.success) notificationsCreated++;
+                }
+
+                // 당일 알림 (일정 날짜가 오늘 이후인 경우에만)
+                if (eventDateObj >= today) {
+                    const todayNotification = {
+                        type: 'CALENDAR_EVENT',
+                        title: '오늘은 일정이 있는 날입니다',
+                        content: '오늘 \'' + title + '\' 일정이 있습니다. 잊지 마세요!',
+                        relatedId: Date.now() + 1,
+                        eventDate: eventDate
+                    };
+
+                    console.log('📤 당일 알림 요청:', todayNotification);
+
+                    const response2 = await fetch('/bdproject/api/notifications/create-calendar', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(todayNotification)
+                    });
+
+                    const result2 = await response2.json();
+                    console.log('📥 당일 알림 응답:', result2);
+                    if (result2.success) notificationsCreated++;
+                }
+
+                console.log('✅ 캘린더 일정 알림 생성 완료 - 생성된 알림 수:', notificationsCreated);
+
+                // 알림이 생성되었으면 알림 목록 새로고침
+                if (notificationsCreated > 0) {
+                    await loadNotifications();
+                }
+            } catch (error) {
+                console.error('캘린더 알림 생성 오류:', error);
+            }
+        }
+
         // 네비바 메뉴
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM Content Loaded');
+
+            // 회원 정보 로드
+            loadMemberInfo();
 
             // 프로필 이미지 로드
             loadProfileImage();
@@ -4179,7 +2416,18 @@
                     e.preventDefault();
 
                     if (confirm('로그아웃 하시겠습니까?')) {
-                        const contextPath = '<%= request.getContextPath() %>';
+
+                        // 로그아웃 전 사용자별 localStorage 데이터 삭제
+                        const userId = currentUserId || '<%= session.getAttribute("id") != null ? session.getAttribute("id") : "" %>';
+                        if (userId) {
+                            // userEvents는 DB 기반이므로 localStorage 삭제 불필요
+                            localStorage.removeItem('userActivityLog_' + userId);
+                            localStorage.removeItem('profileImage_' + userId);
+                            console.log('로그아웃: 사용자 데이터 삭제 완료 -', userId);
+                        }
+
+                        // 세션 스토리지 클리어
+                        sessionStorage.clear();
 
                         fetch(contextPath + '/api/auth/logout', {
                             method: 'GET'
@@ -4202,22 +2450,24 @@
             }
 
             // 시간대 감지 및 캘린더 초기화
-            try {
-                // 현재 날짜로 초기화
-                currentYear = todayDate.getFullYear();
-                currentMonth = todayDate.getMonth();
+            (async function() {
+                try {
+                    // 현재 날짜로 초기화
+                    currentYear = todayDate.getFullYear();
+                    currentMonth = todayDate.getMonth();
 
-                detectUserTimezone();
-                initEvents();
-                loadUserEvents(); // 사용자 일정 불러오기
-                loadVolunteerApplications(); // 봉사 신청 내역 불러오기
-                loadDonations(); // 기부 내역 불러오기
-                loadFavoriteServices(); // 관심 복지 서비스 불러오기
-                loadDiagnosisHistory(); // 복지 진단 내역 불러오기
-                renderMonthCalendar();
-            } catch (error) {
-                console.error('Error initializing calendar:', error);
-            }
+                    detectUserTimezone();
+                    initEvents();
+                    await loadUserEvents(); // 사용자 일정 불러오기 (DB)
+                    loadVolunteerApplications(); // 봉사 신청 내역 불러오기
+                    loadDonations(); // 기부 내역 불러오기
+                    loadFavoriteServices(); // 관심 복지 서비스 불러오기
+                    loadDiagnosisHistory(); // 복지 진단 내역 불러오기
+                    renderMonthCalendar();
+                } catch (error) {
+                    console.error('Error initializing calendar:', error);
+                }
+            })();
 
             // 모달 외부 클릭 시 닫기
             const modal = document.getElementById('eventModal');
@@ -4316,9 +2566,90 @@
             // 프로필 폼 제출
             const profileForm = document.getElementById('profileForm');
             if (profileForm) {
-                profileForm.addEventListener('submit', function(e) {
+                profileForm.addEventListener('submit', async function(e) {
                     e.preventDefault();
-                    alert('회원 정보가 성공적으로 수정되었습니다.');
+
+                    // 폼 데이터 수집
+                    const name = document.getElementById('profileName').value.trim();
+                    const gender = document.getElementById('profileGender').value;
+                    const birth = document.getElementById('profileBirth').value;
+                    const phone = document.getElementById('profilePhone').value.trim();
+
+                    // 유효성 검사
+                    if (!name) {
+                        alert('이름을 입력해주세요.');
+                        return;
+                    }
+
+                    if (!birth) {
+                        alert('생년월일을 입력해주세요.');
+                        return;
+                    }
+
+                    if (!phone) {
+                        alert('전화번호를 입력해주세요.');
+                        return;
+                    }
+
+                    // 전화번호 형식 변환 (하이픈 제거)
+                    const phoneNumber = phone.replace(/-/g, '');
+                    if (!/^\d{11}$/.test(phoneNumber)) {
+                        alert('올바른 전화번호 형식이 아닙니다. (예: 010-1234-5678)');
+                        return;
+                    }
+
+                    // 주소 정보 가져오기
+                    const postcode = document.getElementById('profilePostcode')?.value || '';
+                    const address = document.getElementById('profileAddress')?.value || '';
+                    const detailAddress = document.getElementById('profileDetailAddress')?.value || '';
+
+                    // 서버에 전송할 데이터
+                    const formData = new URLSearchParams();
+                    formData.append('name', name);
+                    formData.append('gender', gender);
+                    formData.append('birth', birth);
+                    formData.append('phone', phoneNumber);
+                    formData.append('postcode', postcode);
+                    formData.append('address', address);
+                    formData.append('detailAddress', detailAddress);
+
+                    try {
+                        console.log('=== 프로필 수정 요청 시작 ===');
+                        console.log('전송 데이터:', formData.toString());
+
+                        const response = await fetch('/bdproject/api/member/updateProfile', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded'
+                            },
+                            body: formData.toString()
+                        });
+
+                        console.log('응답 상태:', response.status);
+                        console.log('응답 헤더:', response.headers.get('Content-Type'));
+
+                        if (!response.ok) {
+                            const errorText = await response.text();
+                            console.error('서버 오류 응답:', errorText);
+                            alert('서버 오류: ' + response.status + ' - 관리자에게 문의하세요.');
+                            return;
+                        }
+
+                        const result = await response.json();
+                        console.log('서버 응답:', result);
+
+                        if (result.success) {
+                            alert('회원 정보가 성공적으로 수정되었습니다.');
+                            // 회원 정보 다시 로드
+                            await loadMemberInfo();
+                        } else {
+                            alert(result.message || '회원 정보 수정에 실패했습니다.');
+                        }
+                    } catch (error) {
+                        console.error('프로필 수정 오류:', error);
+                        console.error('오류 스택:', error.stack);
+                        alert('회원 정보 수정 중 오류가 발생했습니다: ' + error.message);
+                    }
                 });
             }
 
@@ -4344,6 +2675,24 @@
 
                     if (newPw.length < 8) {
                         alert('비밀번호는 8자 이상이어야 합니다.');
+                        return;
+                    }
+
+                    // 영문자 포함 검사
+                    if (!/[a-zA-Z]/.test(newPw)) {
+                        alert('비밀번호는 영문자를 최소 1개 이상 포함해야 합니다.');
+                        return;
+                    }
+
+                    // 숫자 포함 검사
+                    if (!/[0-9]/.test(newPw)) {
+                        alert('비밀번호는 숫자를 최소 1개 이상 포함해야 합니다.');
+                        return;
+                    }
+
+                    // 특수문자 포함 검사
+                    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(newPw)) {
+                        alert('비밀번호는 특수문자를 최소 1개 이상 포함해야 합니다.\n(예: !@#$%^&*()_+-=[]{};\':"|,.<>/?)');
                         return;
                     }
 
@@ -4392,21 +2741,33 @@
                         return;
                     }
 
-                    let strength = 0;
-                    if (password.length >= 8) strength++;
-                    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
-                    if (/\d/.test(password)) strength++;
-                    if (/[^a-zA-Z\d]/.test(password)) strength++;
+                    // 필수 조건 체크
+                    const hasLength = password.length >= 8;
+                    const hasLetter = /[a-zA-Z]/.test(password);
+                    const hasNumber = /[0-9]/.test(password);
+                    const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
 
-                    if (strength <= 2) {
+                    let strength = 0;
+                    if (hasLength) strength++;
+                    if (hasLetter) strength++;
+                    if (hasNumber) strength++;
+                    if (hasSpecial) strength++;
+
+                    // 필수 조건 미충족 시 경고 메시지
+                    let missingMsg = [];
+                    if (!hasLength) missingMsg.push('8자 이상');
+                    if (!hasLetter) missingMsg.push('영문자');
+                    if (!hasNumber) missingMsg.push('숫자');
+                    if (!hasSpecial) missingMsg.push('특수문자');
+
+                    if (strength < 4) {
                         strengthBar.className = 'password-strength-bar weak';
-                        strengthText.textContent = '비밀번호 강도: 약함';
-                    } else if (strength === 3) {
-                        strengthBar.className = 'password-strength-bar medium';
-                        strengthText.textContent = '비밀번호 강도: 보통';
+                        strengthText.textContent = '필요: ' + missingMsg.join(', ');
+                        strengthText.style.color = '#dc3545';
                     } else {
                         strengthBar.className = 'password-strength-bar strong';
-                        strengthText.textContent = '비밀번호 강도: 강함';
+                        strengthText.textContent = '✓ 사용 가능한 비밀번호입니다';
+                        strengthText.style.color = '#28a745';
                     }
                 });
             }
@@ -4437,9 +2798,16 @@
         function searchAddress() {
             new daum.Postcode({
                 oncomplete: function(data) {
-                    document.querySelector('input[value="06234"]').value = data.zonecode;
-                    document.querySelector('input[value="서울특별시 강남구 테헤란로 123"]').value = data.address;
-                    document.querySelector('input[value="복지빌딩 4층"]').focus();
+                    // ID로 요소 찾아서 값 설정
+                    const postcodeInput = document.getElementById('profilePostcode');
+                    const addressInput = document.getElementById('profileAddress');
+                    const detailAddressInput = document.getElementById('profileDetailAddress');
+
+                    if (postcodeInput) postcodeInput.value = data.zonecode;
+                    if (addressInput) addressInput.value = data.address;
+                    if (detailAddressInput) detailAddressInput.focus();
+
+                    console.log('주소 선택 완료:', data.zonecode, data.address);
                 }
             }).open();
         }
@@ -4461,32 +2829,101 @@
         }
 
         // 알림 설정 저장
-        function saveNotificationSettings() {
+        async function saveNotificationSettings() {
+            // 서버 DTO와 맞추기 위해 snake_case 사용
             const settings = {
-                event: document.getElementById('eventNotification').checked,
-                donation: document.getElementById('donationNotification').checked,
-                volunteer: document.getElementById('volunteerNotification').checked,
-                faqAnswer: document.getElementById('faqAnswerNotification').checked
+                event_notification: document.getElementById('eventNotification').checked,
+                donation_notification: document.getElementById('donationNotification').checked,
+                volunteer_notification: document.getElementById('volunteerNotification').checked,
+                faq_answer_notification: document.getElementById('faqAnswerNotification').checked
             };
-            localStorage.setItem('notificationSettings', JSON.stringify(settings));
+
+            console.log('=== 알림 설정 저장 시작 ===');
+            console.log('저장할 설정값:', settings);
+
+            // 서버에 저장
+            try {
+                const response = await fetch('/bdproject/api/notifications/settings', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(settings)
+                });
+
+                console.log('서버 응답 상태:', response.status);
+                const result = await response.json();
+                console.log('서버 응답 데이터:', result);
+
+                if (result.success) {
+                    console.log('✅ 알림 설정이 서버에 저장되었습니다.');
+                } else {
+                    console.error('❌ 알림 설정 저장 실패:', result.message);
+                }
+            } catch (error) {
+                console.error('❌ 알림 설정 저장 중 오류:', error);
+            }
         }
 
         // 알림 목록 불러오기
-        async function loadNotifications() {
+        // skipGenerate: true면 자동 생성을 건너뜀 (삭제 후 새로고침 시)
+        async function loadNotifications(skipGenerate = false) {
             try {
-                const response = await fetch('/bdproject/api/notifications');
-                const result = await response.json();
-
-                if (result.success && result.data) {
-                    const notifications = result.data;
-                    // 알림 데이터를 전역 변수에 캐시
-                    window.cachedNotifications = notifications;
-                    displayNotifications(notifications, 'all');
-                    updateNotificationCounts(notifications);
-                    updateNotificationBadge(notifications);
-                    // 최근 활동 업데이트
-                    updateRecentActivity();
+                // 1. 알림 자동 생성 API 호출 (정기 기부, 봉사, 캘린더)
+                // 페이지 최초 로드 시에만 실행
+                if (!skipGenerate) {
+                    try {
+                        const generateResponse = await fetch('/bdproject/api/notifications/generate', {
+                            method: 'POST'
+                        });
+                        const generateResult = await generateResponse.json();
+                        if (generateResult.success && generateResult.count > 0) {
+                            console.log('✅ ' + generateResult.count + '개의 알림이 자동 생성되었습니다.');
+                        }
+                    } catch (generateError) {
+                        console.log('알림 자동 생성 실패:', generateError);
+                    }
                 }
+
+                // 2. 서버 알림 가져오기 시도
+                try {
+                    const response = await fetch('/bdproject/api/notifications');
+                    const result = await response.json();
+
+                    if (result.success && result.data) {
+                        // 디버깅: 서버 응답 확인
+                        console.log('서버 알림 응답:', result);
+                        if (result.data.length > 0) {
+                            console.log('첫 번째 알림 샘플:', result.data[0]);
+                        }
+
+                        // 서버 알림만 사용 (로컬 알림은 서버 연결 실패 시에만 사용)
+                        const serverNotifications = result.data;
+
+                        // 날짜순 정렬
+                        serverNotifications.sort((a, b) => {
+                            const dateA = new Date(a.created_at || a.createdAt || 0);
+                            const dateB = new Date(b.created_at || b.createdAt || 0);
+                            return dateB - dateA;
+                        });
+
+                        window.cachedNotifications = serverNotifications;
+                        displayNotifications(serverNotifications, currentNotificationFilter || 'all');
+                        updateNotificationCounts(serverNotifications);
+                        updateNotificationBadge(serverNotifications);
+                        updateRecentActivity();
+                        return;
+                    }
+                } catch (serverError) {
+                    console.log('서버 알림 로드 실패, 로컬 알림만 사용:', serverError);
+                }
+
+                // 서버 오류 시 로컬 알림만 사용 (fallback)
+                let localNotifications = JSON.parse(localStorage.getItem('localNotifications') || '[]');
+                window.cachedNotifications = localNotifications;
+                displayNotifications(localNotifications, 'all');
+                updateNotificationCounts(localNotifications);
+                updateNotificationBadge(localNotifications);
+                updateRecentActivity();
+
             } catch (error) {
                 console.error('알림 로딩 오류:', error);
             }
@@ -4496,14 +2933,29 @@
         function displayNotifications(notifications, filter) {
             const container = document.getElementById('notificationList');
 
+            console.log('=== displayNotifications 호출 ===');
+            console.log('전체 알림 개수:', notifications.length);
+            console.log('필터:', filter);
+            console.log('알림 샘플 (첫 3개):', notifications.slice(0, 3));
+
             let filtered = notifications;
             if (filter !== 'all') {
                 if (filter === 'unread') {
                     filtered = notifications.filter(n => !n.is_read);
                 } else {
-                    filtered = notifications.filter(n => n.type === filter);
+                    // 필터 타입 매핑 (서버 타입과 프론트엔드 필터 연결)
+                    const typeFilterMap = {
+                        'faq_answer': ['faq_answer', 'FAQ_ANSWER'],
+                        'schedule': ['schedule', 'CALENDAR_EVENT'],
+                        'donation': ['donation', 'DONATION_REMINDER'],
+                        'volunteer': ['volunteer', 'VOLUNTEER_REMINDER', 'VOLUNTEER_APPROVED']
+                    };
+                    const matchTypes = typeFilterMap[filter] || [filter];
+                    filtered = notifications.filter(n => matchTypes.includes(n.type) || matchTypes.includes(n.notification_type));
                 }
             }
+
+            console.log('필터링 후 알림 개수:', filtered.length);
 
             if (filtered.length === 0) {
                 container.innerHTML = '<div class="empty-state"><i class="fas fa-bell"></i><p>받은 알림이 없습니다</p></div>';
@@ -4511,26 +2963,73 @@
             }
 
             let html = '';
-            filtered.forEach(notif => {
-                const typeText = getNotificationTypeText(notif.type);
-                const readClass = notif.is_read ? '' : 'unread';
-                const date = new Date(notif.created_at).toLocaleString('ko-KR');
+            filtered.forEach((notif, index) => {
+                console.log('알림 #' + (index + 1) + ' 데이터:', notif);
+                console.log('  - notification_id:', notif.notification_id);
+                console.log('  - title:', notif.title);
+                console.log('  - message:', notif.message);
+                console.log('  - content:', notif.content);
+                console.log('  - type:', notif.type);
+                console.log('  - notification_type:', notif.notification_type);
+                console.log('  - is_read:', notif.is_read);
+                console.log('  - created_at:', notif.created_at);
 
-                html += `
-                    <div class="notification-item ${readClass}" data-id="${notif.notification_id}">
-                        <div class="notification-item-content" onclick="markAsReadAndRedirect(${notif.notification_id}, '${notif.related_url || '#'}')">
-                            <div>
-                                <span class="notification-item-type type-${notif.type}">${typeText}</span>
-                                <span class="notification-item-title">${notif.title}</span>
-                            </div>
-                            <p style="margin: 8px 0 0 0; font-size: 14px; color: #555;">${notif.content}</p>
-                            <div class="notification-item-date">${date}</div>
-                        </div>
-                        <button class="notification-delete-btn" onclick="deleteNotification(${notif.notification_id}, event)">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                `;
+                // 타입은 notification_type 또는 type 필드에서 가져옴
+                const notifType = notif.notification_type || notif.type || 'GENERAL';
+                const typeText = getNotificationTypeText(notifType);
+                const readClass = notif.is_read ? '' : 'unread';
+
+                // 날짜 처리
+                let date = '날짜 없음';
+                try {
+                    if (notif.created_at) {
+                        date = new Date(notif.created_at).toLocaleString('ko-KR');
+                    } else if (notif.createdAt) {
+                        date = new Date(notif.createdAt).toLocaleString('ko-KR');
+                    }
+                } catch (e) {
+                    console.error('날짜 파싱 오류:', e);
+                }
+
+                // 메시지는 message 또는 content 필드에서 가져옴
+                const message = notif.message || notif.content || '내용 없음';
+                const title = notif.title || '알림';
+                const notifId = notif.notification_id || notif.id || 0;
+                const relatedId = notif.related_id || notif.relatedId || null;
+
+                // notification_type에 따라 동적으로 URL 생성
+                let relatedUrl = notif.related_url || '#';
+                if (relatedUrl === '#' && relatedId) {
+                    const upperType = notifType.toUpperCase();
+                    if (upperType === 'FAQ_ANSWER' || upperType === 'FAQ') {
+                        relatedUrl = '/bdproject/project_mypage.jsp?viewQuestion=' + relatedId;
+                    } else if (upperType === 'VOLUNTEER_APPROVED' || upperType === 'VOLUNTEER_REMINDER') {
+                        relatedUrl = '/bdproject/project_mypage.jsp?tab=volunteer&applicationId=' + relatedId;
+                    } else if (upperType === 'DONATION_REMINDER') {
+                        relatedUrl = '/bdproject/project_mypage.jsp?tab=donations';
+                    } else if (upperType === 'CALENDAR_EVENT') {
+                        relatedUrl = '/bdproject/project_mypage.jsp?tab=calendar&eventId=' + relatedId;
+                    }
+                }
+
+                // 디버깅: notifId 확인
+                if (index < 3) {
+                    console.log('알림 #' + (index + 1) + ' HTML 생성 - notifId: ' + notifId + ', 타입: ' + (typeof notifId));
+                }
+
+                html += '<div class="notification-item ' + readClass + '" data-id="' + notifId + '">' +
+                    '<div class="notification-item-content" onclick="markAsReadAndRedirect(' + notifId + ', \'' + relatedUrl + '\')">' +
+                        '<div>' +
+                            '<span class="notification-item-type type-' + notifType + '">' + typeText + '</span>' +
+                            '<span class="notification-item-title">' + title + '</span>' +
+                        '</div>' +
+                        '<p style="margin: 8px 0 0 0; font-size: 14px; color: #555;">' + message + '</p>' +
+                        '<div class="notification-item-date">' + date + '</div>' +
+                    '</div>' +
+                    '<button class="notification-delete-btn" onclick="event.stopPropagation(); deleteNotification(' + notifId + ');" title="삭제">' +
+                        '<i class="fas fa-times"></i>' +
+                    '</button>' +
+                '</div>';
             });
 
             container.innerHTML = html;
@@ -4540,10 +3039,17 @@
         function getNotificationTypeText(type) {
             const typeMap = {
                 'faq_answer': 'FAQ 답변',
+                'FAQ_ANSWER': 'FAQ 답변',
                 'schedule': '일정',
+                'CALENDAR_EVENT': '일정',
                 'donation': '기부',
+                'DONATION_REMINDER': '기부',
                 'volunteer': '봉사',
-                'system': '시스템'
+                'VOLUNTEER_REMINDER': '봉사',
+                'VOLUNTEER_APPROVED': '봉사 승인',
+                'system': '시스템',
+                'SYSTEM': '시스템',
+                'GENERAL': '일반'
             };
             return typeMap[type] || '알림';
         }
@@ -4571,32 +3077,57 @@
             }
         }
 
+        // 현재 필터 상태 저장
+        let currentNotificationFilter = 'all';
+
         // 알림 필터링
         function filterNotifications(filter) {
+            currentNotificationFilter = filter;
+
             // 버튼 활성화 상태 변경
             document.querySelectorAll('.notification-filter-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
-            document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
+            document.querySelector('[data-filter="' + filter + '"]').classList.add('active');
 
-            // 알림 다시 로드하여 필터 적용
-            loadNotifications().then(() => {
-                // 필터링 로직은 displayNotifications에서 처리
-            });
+            // 캐시된 알림으로 필터 적용 (서버 재조회 불필요)
+            if (window.cachedNotifications) {
+                displayNotifications(window.cachedNotifications, filter);
+                updateNotificationCounts(window.cachedNotifications);
+            }
         }
 
         // 알림 읽음 처리 및 리다이렉트
         async function markAsReadAndRedirect(notificationId, url) {
             try {
-                await fetch(`/bdproject/api/notifications/${notificationId}/read`, {
+                await fetch('/bdproject/api/notifications/' + notificationId + '/read', {
                     method: 'POST'
                 });
 
-                // 알림 목록 새로고침
-                await loadNotifications();
+                // 알림 목록 새로고침 (자동 생성 건너뜀)
+                await loadNotifications(true);
 
-                // URL이 있으면 이동
+                // URL이 있으면 처리
                 if (url && url !== '#') {
+                    // FAQ 질문 상세 보기인 경우 모달로 열기
+                    if (url.includes('viewQuestion=')) {
+                        const urlParams = new URLSearchParams(url.split('?')[1]);
+                        const questionId = urlParams.get('viewQuestion');
+                        if (questionId) {
+                            openFaqDetailModal(questionId);
+                            return;
+                        }
+                    }
+                    // 봉사활동 승인 알림인 경우 상세 모달로 열기
+                    if (url.includes('applicationId=')) {
+                        const urlParams = new URLSearchParams(url.split('?')[1]);
+                        const applicationId = urlParams.get('applicationId');
+                        if (applicationId) {
+                            openVolunteerDetailModal(applicationId);
+                            return;
+                        }
+                    }
+                    // 그 외의 경우 페이지 이동
                     window.location.href = url;
                 }
             } catch (error) {
@@ -4618,7 +3149,7 @@
 
                 if (result.success) {
                     alert('모든 알림이 읽음 처리되었습니다.');
-                    await loadNotifications();
+                    await loadNotifications(true);
                 }
             } catch (error) {
                 console.error('모두 읽음 처리 오류:', error);
@@ -4627,21 +3158,40 @@
         }
 
         // 알림 삭제
-        async function deleteNotification(notificationId, event) {
-            event.stopPropagation();
+        async function deleteNotification(notificationId) {
+            console.log('=== deleteNotification 호출 ===');
+            console.log('전달받은 notificationId:', notificationId);
+            console.log('notificationId 타입:', typeof notificationId);
+
+            if (!notificationId || notificationId === 0) {
+                console.error('유효하지 않은 notification ID:', notificationId);
+                alert('알림 ID가 유효하지 않습니다.');
+                return;
+            }
 
             if (!confirm('이 알림을 삭제하시겠습니까?')) {
                 return;
             }
 
             try {
-                const response = await fetch(`/bdproject/api/notifications/${notificationId}`, {
+                const url = '/bdproject/api/notifications/' + notificationId;
+                console.log('DELETE 요청 URL:', url);
+
+                const response = await fetch(url, {
                     method: 'DELETE'
                 });
+
+                console.log('응답 상태:', response.status);
+                console.log('응답 Content-Type:', response.headers.get('Content-Type'));
+
                 const result = await response.json();
+                console.log('응답 결과:', result);
 
                 if (result.success) {
-                    await loadNotifications();
+                    // 삭제 후 목록 새로고침 (자동 생성 건너뜀)
+                    await loadNotifications(true);
+                } else {
+                    alert(result.message || '알림 삭제에 실패했습니다.');
                 }
             } catch (error) {
                 console.error('알림 삭제 오류:', error);
@@ -4649,21 +3199,125 @@
             }
         }
 
+        // 전체 알림 삭제
+        async function deleteAllNotifications() {
+            if (!confirm('모든 알림을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/bdproject/api/notifications/delete-all', {
+                    method: 'POST'
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('모든 알림이 삭제되었습니다.');
+                    await loadNotifications(true);
+                } else {
+                    alert(result.message || '알림 삭제에 실패했습니다.');
+                }
+            } catch (error) {
+                console.error('전체 알림 삭제 오류:', error);
+                alert('알림 삭제 중 오류가 발생했습니다.');
+            }
+        }
+
+        // 로그인 상태 유지 토글 (자동 로그인)
+        async function toggleAutoLogin() {
+            const checkbox = document.getElementById('autoLoginEnabled');
+            const isEnabled = checkbox.checked;
+
+            if (isEnabled) {
+                // 로그인 상태 유지 활성화
+                if (!confirm('로그인 상태 유지를 활성화하시겠습니까?\n30일간 자동으로 로그인됩니다.')) {
+                    checkbox.checked = false; // 취소하면 체크 해제
+                    return;
+                }
+
+                try {
+                    const response = await fetch(contextPath + '/api/auth/enable-auto-login', {
+                        method: 'POST'
+                    });
+                    const result = await response.json();
+
+                    if (result.success) {
+                        alert('로그인 상태 유지가 활성화되었습니다.\n30일간 자동 로그인됩니다.');
+                    } else {
+                        alert(result.message || '로그인 상태 유지 활성화에 실패했습니다.');
+                        checkbox.checked = false; // 실패하면 체크 해제
+                    }
+                } catch (error) {
+                    console.error('로그인 상태 유지 활성화 오류:', error);
+                    alert('로그인 상태 유지 활성화 중 오류가 발생했습니다.');
+                    checkbox.checked = false; // 오류 발생 시 체크 해제
+                }
+            } else {
+                // 로그인 상태 유지 해제
+                if (!confirm('로그인 상태 유지를 해제하시겠습니까?\n다음 로그인 시 자동 로그인되지 않습니다.')) {
+                    checkbox.checked = true; // 취소하면 다시 체크
+                    return;
+                }
+
+                try {
+                    const response = await fetch(contextPath + '/api/auth/disable-auto-login', {
+                        method: 'POST'
+                    });
+                    const result = await response.json();
+
+                    if (result.success) {
+                        alert('로그인 상태 유지가 해제되었습니다.');
+                    } else {
+                        alert(result.message || '로그인 상태 유지 해제에 실패했습니다.');
+                        checkbox.checked = true; // 실패하면 다시 체크
+                    }
+                } catch (error) {
+                    console.error('로그인 상태 유지 해제 오류:', error);
+                    alert('로그인 상태 유지 해제 중 오류가 발생했습니다.');
+                    checkbox.checked = true; // 오류 발생 시 다시 체크
+                }
+            }
+        }
+
+        // 로그인 상태 유지 상태 확인 및 토글 버튼 초기화
+        async function loadAutoLoginStatus() {
+            try {
+                console.log('=== 로그인 상태 유지 확인 시작 ===');
+                const response = await fetch(contextPath + '/api/auth/auto-login-status');
+                console.log('API 응답 상태:', response.status);
+
+                const result = await response.json();
+                console.log('API 응답 데이터:', result);
+
+                if (result.success) {
+                    const checkbox = document.getElementById('autoLoginEnabled');
+                    if (checkbox) {
+                        checkbox.checked = result.enabled;
+                        console.log('✅ 로그인 상태 유지 토글 설정:', result.enabled);
+                    } else {
+                        console.error('❌ autoLoginEnabled 체크박스를 찾을 수 없습니다.');
+                    }
+                } else {
+                    console.warn('⚠️ API 호출 실패:', result.message);
+                }
+            } catch (error) {
+                console.error('❌ 로그인 상태 유지 상태 확인 오류:', error);
+            }
+        }
+
         // 보안 설정 저장
         function saveSecuritySettings() {
             const settings = {
-                activityHistory: document.getElementById('activityHistoryEnabled').checked,
-                diagnosisHistory: document.getElementById('diagnosisHistoryEnabled').checked,
-                calendarStorage: document.getElementById('calendarStorageEnabled').checked,
-                analytics: document.getElementById('analyticsEnabled').checked,
-                autoLogout: document.getElementById('autoLogoutEnabled').checked,
-                twoFactor: document.getElementById('twoFactorEnabled').checked
+                activityHistory: document.getElementById('activityHistoryEnabled').checked
             };
             localStorage.setItem('securitySettings', JSON.stringify(settings));
 
             // 최근 활동 표시 설정이 변경되면 즉시 반영
             if (!settings.activityHistory) {
-                document.getElementById('recentActivityList').innerHTML = '<div class="empty-state"><i class="fas fa-user-shield"></i><p>활동 기록이 비활성화되어 있습니다.</p></div>';
+                const recentActivityList = document.getElementById('recentActivityList');
+                if (recentActivityList) {
+                    recentActivityList.innerHTML = '<div class="empty-state"><i class="fas fa-user-shield"></i><p>활동 기록이 비활성화되어 있습니다.</p></div>';
+                }
             } else {
                 updateRecentActivity();
             }
@@ -4675,12 +3329,11 @@
             if (stored) {
                 try {
                     const settings = JSON.parse(stored);
-                    document.getElementById('activityHistoryEnabled').checked = settings.activityHistory !== false;
-                    document.getElementById('diagnosisHistoryEnabled').checked = settings.diagnosisHistory !== false;
-                    document.getElementById('calendarStorageEnabled').checked = settings.calendarStorage !== false;
-                    document.getElementById('analyticsEnabled').checked = settings.analytics !== false;
-                    document.getElementById('autoLogoutEnabled').checked = settings.autoLogout !== false;
-                    document.getElementById('twoFactorEnabled').checked = settings.twoFactor === true;
+                    const activityHistoryEl = document.getElementById('activityHistoryEnabled');
+
+                    if (activityHistoryEl) {
+                        activityHistoryEl.checked = settings.activityHistory !== false;
+                    }
                 } catch (e) {
                     console.error('Failed to load security settings:', e);
                 }
@@ -4709,46 +3362,114 @@
             alert('데이터가 성공적으로 내보내졌습니다.');
         }
 
-        // 모든 데이터 삭제
-        function deleteAllData() {
-            if (!confirm('정말로 모든 데이터를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+        // 회원 탈퇴 모달 표시
+        function showWithdrawModal() {
+            const modal = document.getElementById('withdrawModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                document.getElementById('withdrawPassword').value = '';
+                document.getElementById('withdrawPassword').focus();
+            }
+        }
+
+        // 회원 탈퇴 모달 닫기
+        function closeWithdrawModal() {
+            const modal = document.getElementById('withdrawModal');
+            if (modal) {
+                modal.style.display = 'none';
+                document.getElementById('withdrawPassword').value = '';
+            }
+        }
+
+        // 회원 탈퇴 처리
+        async function processWithdraw() {
+            const password = document.getElementById('withdrawPassword').value;
+
+            if (!password) {
+                alert('비밀번호를 입력해주세요.');
                 return;
             }
 
-            if (!confirm('마지막 확인: 모든 일정, 설정, 활동 기록이 영구적으로 삭제됩니다. 계속하시겠습니까?')) {
-                return;
+            try {
+                // 비밀번호 확인 및 탈퇴 처리
+                const response = await fetch(contextPath + '/api/member/withdraw', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'password=' + encodeURIComponent(password)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // 현재 사용자 ID 가져오기
+                    const userId = currentUserId || '<%= session.getAttribute("id") != null ? session.getAttribute("id") : "" %>';
+
+                    // 사용자별 로컬 스토리지 데이터 삭제
+                    if (userId) {
+                        // userEvents는 DB 기반이므로 localStorage 삭제 불필요
+                        // 최근 활동 로그 삭제
+                        localStorage.removeItem('userActivityLog_' + userId);
+                        // 프로필 이미지 삭제
+                        localStorage.removeItem('profileImage_' + userId);
+                        // 알림 설정 삭제 (사용자별로 저장되지 않지만 정리)
+                        localStorage.removeItem('notificationSettings');
+                        // 보안 설정 삭제
+                        localStorage.removeItem('securitySettings');
+
+                        console.log('사용자 데이터 삭제 완료:', userId);
+                    }
+
+                    // 세션 스토리지 전체 클리어
+                    sessionStorage.clear();
+
+                    alert('회원 탈퇴가 완료되었습니다. 그동안 이용해주셔서 감사합니다.');
+                    // 메인 페이지로 이동 (세션은 서버에서 이미 무효화됨)
+                    window.location.href = contextPath + '/project.jsp';
+                } else {
+                    alert(result.message || '회원 탈퇴에 실패했습니다.');
+                    document.getElementById('withdrawPassword').value = '';
+                    document.getElementById('withdrawPassword').focus();
+                }
+            } catch (error) {
+                console.error('회원 탈퇴 오류:', error);
+                alert('회원 탈퇴 처리 중 오류가 발생했습니다.');
             }
-
-            // 모든 localStorage 데이터 삭제
-            localStorage.removeItem('userEvents');
-            localStorage.removeItem('notificationSettings');
-            localStorage.removeItem('securitySettings');
-
-            // 메모리 데이터 초기화
-            userEvents = {};
-
-            // UI 업데이트
-            renderMonthCalendar();
-            displayUpcomingEvents();
-            updateRecentActivity();
-            loadNotificationSettings();
-            loadSecuritySettings();
-
-            alert('모든 데이터가 삭제되었습니다.');
         }
 
         // 알림 설정 불러오기
-        function loadNotificationSettings() {
-            const stored = localStorage.getItem('notificationSettings');
-            if (stored) {
-                try {
-                    const settings = JSON.parse(stored);
-                    document.getElementById('eventNotification').checked = settings.event !== false;
-                    document.getElementById('donationNotification').checked = settings.donation !== false;
-                    document.getElementById('volunteerNotification').checked = settings.volunteer !== false;
-                } catch (e) {
-                    console.error('Failed to load notification settings:', e);
+        async function loadNotificationSettings() {
+            console.log('=== 알림 설정 불러오기 시작 ===');
+            try {
+                const response = await fetch('/bdproject/api/notifications/settings');
+                console.log('서버 응답 상태:', response.status);
+                const result = await response.json();
+                console.log('서버 응답 데이터:', result);
+
+                if (result.success && result.data) {
+                    const settings = result.data;
+                    // 서버에서 받은 설정값으로 체크박스 설정 (기본값 true)
+                    document.getElementById('eventNotification').checked = settings.event_notification !== false;
+                    document.getElementById('donationNotification').checked = settings.donation_notification !== false;
+                    document.getElementById('volunteerNotification').checked = settings.volunteer_notification !== false;
+                    document.getElementById('faqAnswerNotification').checked = settings.faq_answer_notification !== false;
+                    console.log('✅ 알림 설정 로드 완료:', settings);
+                } else {
+                    // 서버에 설정이 없으면 기본값으로 모두 활성화
+                    console.warn('⚠️ 서버에 알림 설정이 없습니다. 기본값(모두 활성화)으로 설정합니다.');
+                    document.getElementById('eventNotification').checked = true;
+                    document.getElementById('donationNotification').checked = true;
+                    document.getElementById('volunteerNotification').checked = true;
+                    document.getElementById('faqAnswerNotification').checked = true;
                 }
+            } catch (error) {
+                console.error('❌ 알림 설정 불러오기 실패:', error);
+                // 오류 발생 시 기본값으로 모두 활성화
+                document.getElementById('eventNotification').checked = true;
+                document.getElementById('donationNotification').checked = true;
+                document.getElementById('volunteerNotification').checked = true;
+                document.getElementById('faqAnswerNotification').checked = true;
             }
         }
 
@@ -4851,8 +3572,9 @@
             updateRecentActivity();
         }
 
-        // 최근 활동 업데이트
-        function updateRecentActivity() {
+        // 최근 활동 업데이트 (일정, 봉사, 기부 통합)
+        async function updateRecentActivity() {
+            console.log('=== 최근 활동 업데이트 시작 ===');
             const container = document.getElementById('recentActivityList');
             if (!container) return;
 
@@ -4863,6 +3585,317 @@
                 return;
             }
 
+            let html = '';
+            const activities = [];
+
+            // 최근 30일 기준
+            const today = new Date();
+            const thirtyDaysAgo = new Date(today);
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+            console.log('데이터 확인:');
+            console.log('- volunteerApplications:', window.volunteerApplications?.length || 0);
+            console.log('- donationHistory:', window.donationHistory?.length || 0);
+            console.log('- userEvents:', Object.keys(window.userEvents || {}).length);
+            console.log('- userQuestions:', window.userQuestions?.length || 0);
+
+            // 1. 캘린더 일정 가져오기
+            const processedEventIds = new Set();
+            const safeUserEvents = window.userEvents || {};
+            for (const dateStr in safeUserEvents) {
+                const eventDate = new Date(dateStr);
+                if (eventDate >= thirtyDaysAgo) {
+                    safeUserEvents[dateStr].forEach(event => {
+                        if (!processedEventIds.has(event.id)) {
+                            processedEventIds.add(event.id);
+                            // 최근 활동은 등록한 시간(createdAt) 기준으로 정렬
+                            const createdAtDate = event.createdAt ? new Date(event.createdAt) : new Date(event.startDate || dateStr);
+
+                            activities.push({
+                                type: 'calendar',
+                                icon: 'fa-calendar-check',
+                                iconColor: '#4A90E2',
+                                title: event.title,
+                                description: '<strong>' + formatActivityDate(event.startDate || dateStr) + '</strong>에 일정을 등록하셨습니다.',
+                                detail: event.description || '',
+                                date: event.startDate || dateStr,
+                                endDate: event.endDate,
+                                timestamp: createdAtDate.getTime(), // createdAt 기준으로 변경
+                                id: event.id,
+                                deletable: true,
+                                createdAt: event.createdAt // 디버깅용
+                            });
+                        }
+                    });
+                }
+            }
+
+            // 2. 봉사 활동 가져오기
+            if (window.volunteerApplications && window.volunteerApplications.length > 0) {
+                window.volunteerApplications.forEach(volunteer => {
+                    // createdAt을 우선 사용하여 실제 신청 시간 기준으로 정렬
+                    const createdAtDate = new Date(volunteer.createdAt);
+                    if (createdAtDate >= thirtyDaysAgo) {
+                        const category = volunteer.selectedCategory || '봉사 활동';
+                        const displayDate = volunteer.createdAt; // 실제 신청일 표시
+
+                        let statusText = '';
+                        let statusColor = '';
+
+                        if (volunteer.status === 'APPROVED' || volunteer.status === 'CONFIRMED') {
+                            statusText = '승인됨';
+                            statusColor = '#28a745';
+                        } else if (volunteer.status === 'PENDING' || volunteer.status === 'APPLIED') {
+                            statusText = '검토중';
+                            statusColor = '#ffc107';
+                        } else if (volunteer.status === 'COMPLETED') {
+                            statusText = '완료';
+                            statusColor = '#17a2b8';
+                        } else if (volunteer.status === 'REJECTED' || volunteer.status === 'CANCELLED') {
+                            statusText = '거절됨';
+                            statusColor = '#dc3545';
+                        }
+
+                        activities.push({
+                            type: 'volunteer',
+                            icon: 'fa-hands-helping',
+                            iconColor: '#28a745',
+                            title: category,
+                            description: '<strong>' + formatActivityDate(displayDate) + '</strong>에 봉사 활동을 신청하셨습니다.',
+                            detail: statusText ? '상태: <span style="color: ' + statusColor + '; font-weight: 600;">' + statusText + '</span>' : '',
+                            date: displayDate,
+                            timestamp: createdAtDate.getTime(),
+                            id: volunteer.applicationId,
+                            deletable: false
+                        });
+                    }
+                });
+            }
+
+            // 3. 기부 내역 가져오기
+            if (window.donationHistory && window.donationHistory.length > 0) {
+                console.log('기부 내역 처리 시작, 총 개수:', window.donationHistory.length);
+                window.donationHistory.forEach((donation, index) => {
+                    console.log('기부 #' + (index + 1) + ':', {
+                        createdAt: donation.createdAt,
+                        amount: donation.amount,
+                        categoryName: donation.categoryName,
+                        donationType: donation.donationType
+                    });
+
+                    const createdAtDate = new Date(donation.createdAt);
+                    if (createdAtDate >= thirtyDaysAgo) {
+                        const amount = Number(donation.amount || 0).toLocaleString();
+
+                        // 결제 방법 매핑
+                        const paymentMethodMap = {
+                            'CREDIT_CARD': '신용카드',
+                            'BANK_TRANSFER': '계좌이체',
+                            'KAKAO_PAY': '카카오페이',
+                            'NAVER_PAY': '네이버페이',
+                            'TOSS_PAY': '토스페이'
+                        };
+                        const method = paymentMethodMap[donation.paymentMethod] || donation.paymentMethod || '기타';
+
+                        // 기부 유형 확인
+                        const isRegular = donation.donationType === 'REGULAR';
+                        const donationType = isRegular ? '정기 기부' : '일시 기부';
+
+                        // 기부 제목 (패키지명 또는 카테고리명)
+                        const title = (donation.packageName && donation.packageName !== 'undefined' && donation.packageName !== 'null')
+                            ? donation.packageName
+                            : (donation.categoryName || '따뜻한 기부');
+
+                        console.log('기부 활동 추가:', {
+                            title: title,
+                            amount: amount,
+                            timestamp: createdAtDate.getTime(),
+                            date: donation.createdAt
+                        });
+
+                        activities.push({
+                            type: 'donation',
+                            icon: 'fa-heart',
+                            iconColor: '#e74c3c',
+                            title: title,
+                            description: '<strong>' + formatActivityDate(donation.createdAt) + '</strong>에 <strong>' + amount + '원</strong>을 기부하셨습니다.',
+                            detail: '결제수단: ' + method + ' | ' + donationType,
+                            date: donation.createdAt,
+                            timestamp: createdAtDate.getTime(),
+                            id: donation.donationId,
+                            deletable: false
+                        });
+                    } else {
+                        console.log('기부 #' + (index + 1) + ' 30일 이전 데이터로 제외됨');
+                    }
+                });
+            } else {
+                console.log('기부 내역 없음');
+            }
+
+            // 4. FAQ 질문 내역 가져오기
+            if (window.userQuestions && window.userQuestions.length > 0) {
+                console.log('FAQ 질문 처리 시작, 총 개수:', window.userQuestions.length);
+                window.userQuestions.forEach((question, index) => {
+                    const createdAtDate = new Date(question.createdAt);
+                    if (createdAtDate >= thirtyDaysAgo) {
+                        // 상태에 따른 텍스트와 색상
+                        let statusText = '';
+                        let statusColor = '';
+                        if (question.status === 'answered') {
+                            statusText = '답변완료';
+                            statusColor = '#28a745';
+                        } else if (question.status === 'pending') {
+                            statusText = '답변대기';
+                            statusColor = '#ffc107';
+                        }
+
+                        // 제목 (최대 30자)
+                        const title = question.title && question.title.length > 30
+                            ? question.title.substring(0, 30) + '...'
+                            : (question.title || 'FAQ 질문');
+
+                        activities.push({
+                            type: 'faq',
+                            icon: 'fa-question-circle',
+                            iconColor: '#9b59b6',
+                            title: title,
+                            description: '<strong>' + formatActivityDate(question.createdAt) + '</strong>에 질문을 등록하셨습니다.',
+                            detail: statusText ? '상태: <span style="color: ' + statusColor + '; font-weight: 600;">' + statusText + '</span>' : '',
+                            date: question.createdAt,
+                            timestamp: createdAtDate.getTime(),
+                            id: question.questionId,
+                            deletable: false
+                        });
+                    }
+                });
+            } else {
+                console.log('FAQ 질문 내역 없음');
+            }
+
+            // 숨겨진 활동 필터링 (DB 기반)
+            let hiddenVolunteerIds = [];
+            let hiddenDonationIds = [];
+
+            try {
+                // DB에서 숨긴 봉사 활동 목록 가져오기
+                const volunteerResponse = await fetch('/bdproject/api/hidden-activities/VOLUNTEER');
+                if (volunteerResponse.ok) {
+                    const volunteerResult = await volunteerResponse.json();
+                    if (volunteerResult.success) {
+                        hiddenVolunteerIds = volunteerResult.hiddenIds || [];
+                    }
+                }
+
+                // DB에서 숨긴 기부 내역 목록 가져오기
+                const donationResponse = await fetch('/bdproject/api/hidden-activities/DONATION');
+                if (donationResponse.ok) {
+                    const donationResult = await donationResponse.json();
+                    if (donationResult.success) {
+                        hiddenDonationIds = donationResult.hiddenIds || [];
+                    }
+                }
+            } catch (error) {
+                console.error('숨긴 활동 목록 조회 오류:', error);
+            }
+
+            console.log('숨긴 봉사 활동 IDs:', hiddenVolunteerIds);
+            console.log('숨긴 기부 내역 IDs:', hiddenDonationIds);
+
+            // 숨겨지지 않은 활동만 필터링
+            const visibleActivities = activities.filter(activity => {
+                if (activity.type === 'volunteer') {
+                    return !hiddenVolunteerIds.includes(activity.id);
+                } else if (activity.type === 'donation') {
+                    return !hiddenDonationIds.includes(activity.id);
+                }
+                return true; // calendar, faq 타입은 항상 표시
+            });
+
+            // 날짜순 정렬 (최신순)
+            visibleActivities.sort((a, b) => b.timestamp - a.timestamp);
+
+            console.log('전체 활동 수:', activities.length);
+            console.log('숨김 처리된 활동 수:', activities.length - visibleActivities.length);
+            console.log('표시할 활동 수:', visibleActivities.length);
+            console.log('활동 목록 (최신순):', visibleActivities.map(a => ({
+                type: a.type,
+                title: a.title,
+                date: a.date,
+                timestamp: a.timestamp
+            })));
+
+            // 최근 15개만 표시
+            const displayActivities = visibleActivities.slice(0, 15);
+
+            if (displayActivities.length === 0) {
+                html = '<div class="empty-state"><i class="fas fa-clock"></i><p>최근 30일간 활동 내역이 없습니다</p><p style="font-size: 14px; color: #999; margin-top: 10px;">일정을 등록하거나 봉사 활동, 기부, FAQ 질문을 진행해보세요!</p></div>';
+                container.innerHTML = html;
+                return;
+            }
+
+            displayActivities.forEach(activity => {
+                const dateObj = new Date(activity.date);
+                const formattedDate = dateObj.getFullYear() + '.' +
+                                    String(dateObj.getMonth() + 1).padStart(2, '0') + '.' +
+                                    String(dateObj.getDate()).padStart(2, '0');
+
+                // 날짜 범위 표시 (일정의 경우)
+                let dateDisplay = formattedDate;
+                if (activity.endDate && activity.endDate !== activity.date) {
+                    const endDateObj = new Date(activity.endDate);
+                    const endFormatted = endDateObj.getFullYear() + '.' +
+                                        String(endDateObj.getMonth() + 1).padStart(2, '0') + '.' +
+                                        String(endDateObj.getDate()).padStart(2, '0');
+                    dateDisplay = formattedDate + ' ~ ' + endFormatted;
+                }
+
+                html += '<div class="list-item" style="border-left: 3px solid ' + activity.iconColor + ';">';
+                html += '<div class="list-item-header">';
+                html += '<span class="list-item-title">';
+                html += '<i class="fas ' + activity.icon + '" style="color: ' + activity.iconColor + '; margin-right: 8px;"></i>';
+                html += activity.title;
+                html += '</span>';
+                html += '<div style="display: flex; align-items: center; gap: 10px;">';
+                html += '<span class="list-item-date">' + dateDisplay + '</span>';
+
+                // 모든 활동에 삭제 버튼 표시 (id는 숫자 또는 문자열, type은 문자열)
+                const safeId = typeof activity.id === 'string' ? "'" + activity.id + "'" : activity.id;
+                html += '<button onclick="deleteRecentActivity(' + safeId + ', \'' + activity.type + '\')" ';
+                html += 'style="background: none; border: none; color: #dc3545; cursor: pointer; ';
+                html += 'font-size: 18px; padding: 4px 8px; border-radius: 4px; transition: all 0.2s;" ';
+                html += 'onmouseenter="this.style.background=\'#fee\'" ';
+                html += 'onmouseleave="this.style.background=\'none\'" ';
+                html += 'title="삭제">';
+                html += '<i class="fas fa-times"></i></button>';
+
+                html += '</div>';
+                html += '</div>';
+                html += '<div class="list-item-content">';
+                html += '<p style="margin: 0 0 5px 0;">' + activity.description + '</p>';
+                if (activity.detail) {
+                    html += '<p style="margin: 0; color: #666; font-size: 14px;">' + activity.detail + '</p>';
+                }
+                html += '</div>';
+                html += '</div>';
+            });
+
+            container.innerHTML = html;
+        }
+
+        // 날짜 포맷팅 헬퍼 함수
+        function formatActivityDate(dateStr) {
+            const date = new Date(dateStr);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+
+            // 항상 실제 날짜를 표시 (YYYY.MM.DD 형식)
+            return year + '.' + month + '.' + day;
+        }
+
+        // 구버전 호환성을 위해 아래 코드 유지 (삭제 예정)
+        function updateRecentActivity_OLD() {
             let html = '';
 
             // 캘린더 일정 내역 가져오기 (최근 30일)
@@ -4997,94 +4030,527 @@
             updateRecentActivity();
         }
 
-        // 최근 활동(캘린더 일정) 삭제 함수
-        function deleteRecentActivity(eventId) {
-            console.log('삭제 시도 - 이벤트 ID:', eventId);
-            console.log('현재 userEvents:', userEvents);
+        // 최근 활동 삭제 함수 (타입별 처리)
+        async function deleteRecentActivity(id, type) {
+            console.log('삭제 시도 - ID:', id, ', 타입:', type);
 
-            if (!confirm('이 일정을 삭제하시겠습니까?')) {
-                return;
-            }
+            try {
+                if (type === 'calendar') {
+                    // 캘린더 일정은 실제 DB에서 삭제
+                    const response = await fetch('/bdproject/api/calendar/events/' + id, {
+                        method: 'DELETE'
+                    });
 
-            // userEvents에서 해당 이벤트 삭제 (모든 날짜에서)
-            let deleted = false;
-            const datesToDelete = [];
-            let deleteCount = 0;
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.success) {
+                            console.log('✅ 일정 삭제 성공');
+                            // DB에서 일정 다시 불러오기
+                            await loadUserEvents();
 
-            for (const dateStr in userEvents) {
-                const events = userEvents[dateStr];
-                console.log('날짜:', dateStr, '이벤트 목록:', events);
+                            // 캘린더 다시 렌더링
+                            if (typeof renderMonthCalendar === 'function') {
+                                renderMonthCalendar();
+                            }
+                        } else {
+                            console.error('❌ 일정 삭제 실패:', result.message);
+                        }
+                    } else {
+                        console.error('❌ 서버 오류:', response.status);
+                    }
+                } else {
+                    // 봉사/기부 활동: DB에 숨김 처리
+                    const activityType = type === 'volunteer' ? 'VOLUNTEER' : 'DONATION';
 
-                // 해당 ID를 가진 모든 이벤트 찾기
-                for (let i = events.length - 1; i >= 0; i--) {
-                    console.log('비교:', events[i].id, '===', eventId, '결과:', events[i].id === eventId);
-                    if (events[i].id === eventId || events[i].id == eventId) {
-                        console.log('일정 발견! 삭제:', dateStr, events[i]);
-                        events.splice(i, 1);
-                        deleteCount++;
-                        deleted = true;
+                    const formData = new FormData();
+                    formData.append('activityType', activityType);
+                    formData.append('activityId', id);
+
+                    const response = await fetch('/bdproject/api/hidden-activities', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.success) {
+                            console.log('✅ 활동 숨김 처리 완료 (DB):', activityType, id);
+                        } else {
+                            console.error('❌ 숨김 처리 실패:', result.message);
+                        }
+                    } else {
+                        console.error('❌ 서버 오류:', response.status);
                     }
                 }
-
-                if (events.length === 0) {
-                    datesToDelete.push(dateStr);
-                }
-            }
-
-            console.log('삭제된 이벤트 수:', deleteCount);
-
-            // 빈 날짜 항목 제거
-            datesToDelete.forEach(dateStr => {
-                delete userEvents[dateStr];
-            });
-
-            if (deleted) {
-                console.log('삭제 성공! localStorage 저장 중...');
-                // localStorage에 저장
-                saveUserEvents();
-
-                // 캘린더 다시 렌더링
-                renderMonthCalendar();
 
                 // 최근 활동 목록 업데이트
                 updateRecentActivity();
-                alert('일정이 삭제되었습니다.');
-            } else {
-                console.error('일정을 찾지 못했습니다. 이벤트 ID:', eventId);
-                alert('일정을 찾을 수 없습니다.');
+
+            } catch (error) {
+                console.error('❌ 삭제 오류:', error);
             }
         }
 
-        // 페이지 초기화 시 알림 설정 불러오기
-        document.addEventListener('DOMContentLoaded', function() {
-            loadNotificationSettings();
-            loadSecuritySettings();
-            updateRecentActivity();
-            loadNotifications();
-            loadKindnessTemperature(); // 선행 온도 로드
+        // 모든 최근 활동 삭제/숨김 함수
+        async function deleteAllRecentActivities() {
+            if (!confirm('모든 최근 활동 내역을 삭제하시겠습니까?')) {
+                return;
+            }
 
-            // 언어 번역 토글
-            const languageToggle = document.getElementById('languageToggle');
-            const translateElement = document.getElementById('google_translate_element');
+            try {
+                let deletedCount = 0;
 
-            if (languageToggle && translateElement) {
-                languageToggle.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    if (translateElement.style.display === 'none' || translateElement.style.display === '') {
-                        translateElement.style.display = 'block';
-                    } else {
-                        translateElement.style.display = 'none';
-                    }
+                // 1. 캘린더 일정 모두 삭제
+                const response = await fetch('/bdproject/api/calendar/events/all', {
+                    method: 'DELETE'
                 });
 
-                // 외부 클릭 시 닫기
-                document.addEventListener('click', function(e) {
-                    if (!e.target.closest('.language-selector')) {
-                        translateElement.style.display = 'none';
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        console.log('캘린더 일정 전체 삭제 성공');
+                        deletedCount++;
+
+                        // DB에서 일정 다시 불러오기
+                        await loadUserEvents();
+
+                        // 캘린더 다시 렌더링
+                        if (typeof renderMonthCalendar === 'function') {
+                            renderMonthCalendar();
+                        }
+                    }
+                }
+
+                // 2. 봉사 활동과 기부 내역 숨김 처리 (DB에 일괄 등록)
+                let hiddenCount = 0;
+
+                // 현재 표시된 모든 봉사 활동 숨김 처리
+                if (window.volunteerApplications && window.volunteerApplications.length > 0) {
+                    for (const volunteer of window.volunteerApplications) {
+                        const formData = new FormData();
+                        formData.append('activityType', 'VOLUNTEER');
+                        formData.append('activityId', volunteer.applicationId);
+
+                        const response = await fetch('/bdproject/api/hidden-activities', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        if (response.ok) {
+                            const result = await response.json();
+                            if (result.success) {
+                                hiddenCount++;
+                            }
+                        }
+                    }
+                }
+
+                // 현재 표시된 모든 기부 내역 숨김 처리
+                if (window.donationHistory && window.donationHistory.length > 0) {
+                    for (const donation of window.donationHistory) {
+                        const formData = new FormData();
+                        formData.append('activityType', 'DONATION');
+                        formData.append('activityId', donation.donationId);
+
+                        const response = await fetch('/bdproject/api/hidden-activities', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        if (response.ok) {
+                            const result = await response.json();
+                            if (result.success) {
+                                hiddenCount++;
+                            }
+                        }
+                    }
+                }
+
+                console.log('봉사/기부 활동 숨김 처리 완료 (DB):', hiddenCount, '개');
+
+                // UI 업데이트
+                updateRecentActivity();
+
+                alert('모든 최근 활동이 정리되었습니다.');
+
+            } catch (error) {
+                console.error('최근 활동 전체 삭제 오류:', error);
+                alert('최근 활동 삭제 중 오류가 발생했습니다.');
+            }
+        }
+
+        // 일정 리마인더 체크 (당일 및 하루 전 알림)
+        function checkEventReminders() {
+            console.log('=== 일정 리마인더 체크 시작 ===');
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+
+            // 로컬 타임존을 사용하여 날짜 문자열 생성
+            const formatDate = (date) => {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            };
+
+            const todayStr = formatDate(today);
+            const tomorrowStr = formatDate(tomorrow);
+
+            console.log('오늘:', today.toLocaleDateString('ko-KR'), '(' + todayStr + ')');
+            console.log('내일:', tomorrow.toLocaleDateString('ko-KR'), '(' + tomorrowStr + ')');
+            console.log('userEvents 객체 타입:', typeof userEvents);
+            console.log('userEvents 키 개수:', Object.keys(userEvents).length);
+            console.log('전체 일정 날짜 키:', Object.keys(userEvents));
+            console.log('전체 일정 객체:', userEvents);
+
+            // 오늘 일정 체크
+            if (userEvents[todayStr] && userEvents[todayStr].length > 0) {
+                console.log('✅ 오늘 일정 발견:', userEvents[todayStr]);
+                userEvents[todayStr].forEach((event, index) => {
+                    console.log('--- 오늘 일정 #' + (index + 1) + ' ---');
+                    console.log('제목:', event.title);
+                    console.log('ID:', event.id);
+                    console.log('전체 이벤트 객체:', event);
+
+                    // 리마인더 키 생성 (고유 키)
+                    const reminderKey = 'event_reminder_' + event.id + '_' + todayStr;
+                    console.log('리마인더 키:', reminderKey);
+
+                    const alreadySent = localStorage.getItem(reminderKey);
+                    console.log('이미 전송 여부:', alreadySent);
+
+                    // 알림이 아직 전송되지 않았으면 생성
+                    if (!alreadySent) {
+                        console.log('🔔 오늘 일정 알림 생성:', event.title);
+                        createNotification({
+                            type: 'schedule',
+                            title: '오늘 일정이 있습니다!',
+                            message: event.title + ' 일정이 오늘 예정되어 있습니다.',
+                            relatedUrl: '/bdproject/project_mypage.jsp'
+                        });
+
+                        // 알림 생성 완료 표시
+                        localStorage.setItem(reminderKey, 'sent');
+                    } else {
+                        console.log('⏭️ 이미 알림 생성됨:', event.title);
                     }
                 });
             }
+
+            // 내일 날짜 키가 userEvents에 있는지 확인
+            const hasKey = tomorrowStr in userEvents;
+            console.log('내일 날짜 키 존재 여부:', hasKey);
+
+            if (hasKey) {
+                console.log('내일 날짜 데이터:', userEvents[tomorrowStr]);
+                console.log('내일 일정 개수:', userEvents[tomorrowStr].length);
+            }
+
+            // 내일 일정이 있는지 체크
+            if (userEvents[tomorrowStr] && userEvents[tomorrowStr].length > 0) {
+                console.log('✅ 내일 일정 발견:', userEvents[tomorrowStr]);
+                userEvents[tomorrowStr].forEach((event, index) => {
+                    console.log('--- 일정 #' + (index + 1) + ' ---');
+                    console.log('제목:', event.title);
+                    console.log('ID:', event.id);
+                    console.log('전체 이벤트 객체:', event);
+
+                    // 이미 알림을 생성했는지 체크 (localStorage 사용)
+                    const reminderKey = 'event_reminder_' + event.id + '_' + tomorrowStr;
+                    console.log('리마인더 키:', reminderKey);
+                    const alreadySent = localStorage.getItem(reminderKey);
+                    console.log('이미 전송 여부:', alreadySent);
+
+                    if (!alreadySent) {
+                        console.log('🔔 새 알림 생성 시도:', event.title);
+                        // 로컬 알림 생성 (localStorage 기반)
+                        createLocalNotification({
+                            type: 'schedule',
+                            title: '내일 일정이 있습니다!',
+                            message: event.title + ' 일정이 내일 예정되어 있습니다.',
+                            relatedUrl: '#calendar'
+                        });
+
+                        // 알림 생성 완료 표시
+                        localStorage.setItem(reminderKey, 'sent');
+                        console.log('✅ 알림 생성 완료 및 localStorage에 저장');
+                    } else {
+                        console.log('⏭️ 이미 알림 생성됨:', event.title);
+                    }
+                });
+            } else {
+                console.log('❌ 내일 일정 없음');
+                console.log('디버깅: 모든 일정 날짜 키 확인');
+                Object.keys(userEvents).forEach(key => {
+                    console.log('  - ' + key + ': ' + userEvents[key].length + '개 일정');
+                });
+            }
+        }
+
+        // 봉사 활동 리마인더 체크 (하루 전 알림)
+        function checkVolunteerReminders() {
+            fetch('/bdproject/api/volunteer/my-applications')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.data) {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        const tomorrow = new Date(today);
+                        tomorrow.setDate(tomorrow.getDate() + 1);
+
+                        data.data.forEach(app => {
+                            if (app.volunteerDate) {
+                                const volunteerDate = new Date(app.volunteerDate);
+                                volunteerDate.setHours(0, 0, 0, 0);
+
+                                // 봉사 시작일이 내일인 경우
+                                if (volunteerDate.getTime() === tomorrow.getTime()) {
+                                    const reminderKey = 'volunteer_reminder_' + app.applicationId;
+                                    if (!localStorage.getItem(reminderKey)) {
+                                        createNotification({
+                                            type: 'volunteer',
+                                            title: '내일 봉사 활동이 있습니다!',
+                                            message: app.selectedCategory + ' 봉사 활동이 내일 예정되어 있습니다.',
+                                            relatedUrl: '#volunteer'
+                                        });
+
+                                        localStorage.setItem(reminderKey, 'sent');
+                                    }
+                                }
+                            }
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('봉사 활동 리마인더 체크 오류:', error);
+                });
+        }
+
+        // 로컬 알림 생성 함수 (localStorage 기반)
+        function createLocalNotification(notificationData) {
+            // localStorage에서 기존 알림 가져오기
+            let notifications = JSON.parse(localStorage.getItem('localNotifications') || '[]');
+
+            // 새 알림 추가
+            const newNotification = {
+                notification_id: 'local_' + Date.now(),
+                type: notificationData.type,
+                title: notificationData.title,
+                message: notificationData.message,
+                related_url: notificationData.relatedUrl || '#',
+                is_read: false,
+                created_at: new Date().toISOString()
+            };
+
+            notifications.unshift(newNotification);
+
+            // localStorage에 저장
+            localStorage.setItem('localNotifications', JSON.stringify(notifications));
+
+            console.log('로컬 알림 생성:', newNotification);
+
+            // 알림 목록 새로고침 (자동 생성 건너뜀)
+            loadNotifications(true);
+        }
+
+        // 알림 생성 함수 (서버 API - 폴백)
+        function createNotification(notificationData) {
+            // 먼저 로컬 알림 생성
+            createLocalNotification(notificationData);
+
+            // 서버 API도 시도 (선택적)
+            fetch('/bdproject/api/notifications/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(notificationData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('서버 알림 생성 성공:', notificationData.title);
+                }
+            })
+            .catch(error => {
+                console.log('서버 알림 생성 실패 (로컬 알림 사용):', error);
+            });
+        }
+
+        // FAQ 답변 체크 함수
+        function checkFaqAnswers() {
+            fetch('/bdproject/api/questions/my-questions')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.data) {
+                        data.data.forEach(question => {
+                            // 답변이 있고, 아직 알림을 생성하지 않은 경우
+                            if (question.answer && question.answer.trim() !== '') {
+                                const notificationKey = 'faq_answer_notified_' + question.questionId;
+                                if (!localStorage.getItem(notificationKey)) {
+                                    // FAQ 답변 알림 생성
+                                    createNotification({
+                                        type: 'faq_answer',
+                                        title: 'FAQ 질문에 답변이 달렸습니다!',
+                                        message: '회원님의 질문 "' + question.title + '"에 관리자가 답변했습니다.',
+                                        relatedUrl: '/bdproject/project_faq.jsp?questionId=' + question.questionId
+                                    });
+
+                                    // 알림 생성 완료 표시
+                                    localStorage.setItem(notificationKey, 'sent');
+                                }
+                            }
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('FAQ 답변 체크 오류:', error);
+                });
+        }
+
+        // 페이지 초기화 시 알림 설정 불러오기
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('=== 마이페이지 초기화 시작 ===');
+
+            // 설정 및 상태 로드
+            loadNotificationSettings();
+            loadSecuritySettings();
+            loadAutoLoginStatus(); // 로그인 상태 유지 확인
+            loadKindnessTemperature(); // 선행 온도 로드
+            loadNotifications();
+
+            // 데이터 로드 (순차적으로)
+            console.log('일정 데이터 로드 시작...');
+            await loadUserEvents(); // 캘린더 일정 로드
+
+            console.log('봉사 활동 데이터 로드 시작...');
+            await loadVolunteerApplications(); // 봉사 활동 로드
+
+            console.log('기부 데이터 로드 시작...');
+            await loadDonations(); // 기부 내역 로드
+
+            console.log('FAQ 질문 데이터 로드 시작...');
+            await loadMyQuestions(); // FAQ 질문 로드
+
+            console.log('모든 데이터 로드 완료');
+            console.log('- window.userEvents:', Object.keys(window.userEvents || {}).length, '개 날짜');
+            console.log('- window.volunteerApplications:', window.volunteerApplications?.length || 0, '개');
+            console.log('- window.donationHistory:', window.donationHistory?.length || 0, '개');
+            console.log('- window.userQuestions:', window.userQuestions?.length || 0, '개');
+
+            // 모든 데이터 로드 후 최근 활동 업데이트
+            updateRecentActivity();
+
+            // 리마인더 체크 (일정 및 봉사 활동)
+            checkEventReminders();
+            checkVolunteerReminders();
+            checkFaqAnswers(); // FAQ 답변 체크
+
+            // 정기적으로 리마인더 체크
+            setInterval(() => {
+                checkEventReminders();
+                checkVolunteerReminders();
+            }, 24 * 60 * 60 * 1000); // 24시간마다
+
+            // FAQ 답변은 더 자주 체크 (1시간마다)
+            setInterval(() => {
+                checkFaqAnswers();
+            }, 60 * 60 * 1000);
+
+            // URL 파라미터로 질문 상세 보기 요청이 있는지 확인
+            const urlParams = new URLSearchParams(window.location.search);
+            const viewQuestionId = urlParams.get('viewQuestion');
+            if (viewQuestionId) {
+                console.log('URL에서 질문 상세 보기 요청 감지 - questionId:', viewQuestionId);
+                // 약간의 지연 후 모달 열기 (데이터 로드 완료 대기)
+                setTimeout(() => {
+                    openFaqDetailModal(viewQuestionId);
+                }, 500);
+            }
         });
+
+        // === FAQ 질문/답변 상세 모달 ===
+        function openFaqDetailModal(questionId) {
+            console.log('FAQ 상세 모달 열기 - questionId:', questionId);
+            const modal = document.getElementById('faqDetailModal');
+            const content = document.getElementById('faqDetailContent');
+
+            modal.style.display = 'flex';
+
+            // 로딩 표시
+            content.innerHTML = '<div style="text-align: center; padding: 40px;"><i class="fas fa-spinner fa-spin fa-2x"></i><p>로딩 중...</p></div>';
+
+            // 질문 상세 정보 가져오기
+            fetch('/bdproject/api/questions/' + questionId)
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success && result.data) {
+                        const question = result.data;
+                        const createdAt = new Date(question.createdAt).toLocaleDateString('ko-KR', {
+                            year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                        });
+                        const answeredAt = question.answeredAt ? new Date(question.answeredAt).toLocaleDateString('ko-KR', {
+                            year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                        }) : null;
+
+                        let statusBadge = '';
+                        if (question.status === 'answered') {
+                            statusBadge = '<span style="background: #28a745; color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px;">답변완료</span>';
+                        } else {
+                            statusBadge = '<span style="background: #ffc107; color: #333; padding: 4px 10px; border-radius: 12px; font-size: 12px;">답변대기</span>';
+                        }
+
+                        let html = '<div style="margin-bottom: 20px;">';
+                        html += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">';
+                        html += '<h4 style="margin: 0; color: #333;">' + (question.title || '제목 없음') + '</h4>';
+                        html += statusBadge;
+                        html += '</div>';
+                        html += '<div style="font-size: 13px; color: #888; margin-bottom: 15px;">';
+                        html += '<i class="fas fa-clock"></i> ' + createdAt;
+                        html += '</div>';
+
+                        // 질문 내용
+                        html += '<div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #9b59b6;">';
+                        html += '<div style="font-size: 13px; color: #9b59b6; margin-bottom: 8px; font-weight: 600;"><i class="fas fa-user"></i> 내 질문</div>';
+                        html += '<div style="color: #333; line-height: 1.6; white-space: pre-wrap;">' + (question.content || '내용 없음') + '</div>';
+                        html += '</div>';
+
+                        // 답변 내용
+                        if (question.answer) {
+                            html += '<div style="background: #e8f5e9; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745;">';
+                            html += '<div style="font-size: 13px; color: #28a745; margin-bottom: 8px; font-weight: 600;"><i class="fas fa-user-shield"></i> 관리자 답변</div>';
+                            if (answeredAt) {
+                                html += '<div style="font-size: 12px; color: #888; margin-bottom: 10px;"><i class="fas fa-clock"></i> ' + answeredAt + '</div>';
+                            }
+                            html += '<div style="color: #333; line-height: 1.6; white-space: pre-wrap;">' + question.answer + '</div>';
+                            html += '</div>';
+                        } else {
+                            html += '<div style="background: #fff3cd; padding: 15px; border-radius: 8px; text-align: center; color: #856404;">';
+                            html += '<i class="fas fa-hourglass-half"></i> 아직 답변이 등록되지 않았습니다.';
+                            html += '</div>';
+                        }
+
+                        html += '</div>';
+                        content.innerHTML = html;
+                    } else {
+                        content.innerHTML = '<div style="text-align: center; padding: 40px; color: #dc3545;"><i class="fas fa-exclamation-circle fa-2x"></i><p>질문을 찾을 수 없습니다.</p></div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('질문 상세 조회 오류:', error);
+                    content.innerHTML = '<div style="text-align: center; padding: 40px; color: #dc3545;"><i class="fas fa-exclamation-circle fa-2x"></i><p>질문을 불러오는 중 오류가 발생했습니다.</p></div>';
+                });
+        }
+
+        function closeFaqDetailModal() {
+            document.getElementById('faqDetailModal').style.display = 'none';
+            // URL 파라미터 제거
+            const url = new URL(window.location);
+            url.searchParams.delete('viewQuestion');
+            window.history.replaceState({}, '', url);
+        }
 
         // === 봉사 후기 작성 모달 ===
         let currentApplicationId = null;
@@ -5092,7 +4558,6 @@
 
         // 프로필 이미지 업로드 함수
         function uploadProfileImage(file) {
-            const contextPath = '<%= request.getContextPath() %>';
 
             // 파일 크기 검증 (5MB)
             if (file.size > 5 * 1024 * 1024) {
@@ -5122,9 +4587,17 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    const imageUrl = contextPath + data.imageUrl;
+
+                    // localStorage에 프로필 이미지 URL 저장 (영구 보존)
+                    const userId = '<%= session.getAttribute("id") %>';
+                    if (userId) {
+                        localStorage.setItem('profileImage_' + userId, imageUrl);
+                    }
+
                     // 이미지 미리보기
                     const img = document.createElement('img');
-                    img.src = contextPath + data.imageUrl;
+                    img.src = imageUrl;
                     img.alt = 'Profile';
 
                     // 기존 내용 제거하고 이미지 추가
@@ -5159,24 +4632,65 @@
 
         // 프로필 이미지 로드 함수
         function loadProfileImage() {
-            const contextPath = '<%= request.getContextPath() %>';
+            const userId = '<%= session.getAttribute("id") %>';
 
+            // 먼저 localStorage에서 이미지 확인
+            const cachedImage = localStorage.getItem('profileImage_' + userId);
+            if (cachedImage) {
+                const avatar = document.getElementById('userAvatar');
+                const initial = document.getElementById('avatarInitial');
+                const uploadBtn = avatar.querySelector('.avatar-upload-btn');
+
+                // 이미지 생성
+                const img = document.createElement('img');
+                img.src = cachedImage;
+                img.alt = 'Profile';
+
+                // 이니셜 숨기기
+                if (initial) {
+                    initial.style.display = 'none';
+                }
+
+                // 기존 이미지 제거
+                const existingImg = avatar.querySelector('img');
+                if (existingImg) {
+                    existingImg.remove();
+                }
+
+                // 이미지 추가
+                avatar.insertBefore(img, uploadBtn);
+            }
+
+            // 서버에서도 이미지 로드 시도 (서버와 동기화)
             fetch(contextPath + '/api/profile/image')
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.imageUrl) {
+                    const imageUrl = contextPath + data.imageUrl;
+
+                    // localStorage 업데이트
+                    if (userId) {
+                        localStorage.setItem('profileImage_' + userId, imageUrl);
+                    }
+
                     const avatar = document.getElementById('userAvatar');
                     const initial = document.getElementById('avatarInitial');
                     const uploadBtn = avatar.querySelector('.avatar-upload-btn');
 
                     // 이미지 생성
                     const img = document.createElement('img');
-                    img.src = contextPath + data.imageUrl;
+                    img.src = imageUrl;
                     img.alt = 'Profile';
 
                     // 이니셜 숨기기
                     if (initial) {
                         initial.style.display = 'none';
+                    }
+
+                    // 기존 이미지 제거
+                    const existingImg = avatar.querySelector('img');
+                    if (existingImg) {
+                        existingImg.remove();
                     }
 
                     // 이미지 추가
@@ -5185,7 +4699,437 @@
             })
             .catch(error => {
                 console.error('프로필 이미지 로드 오류:', error);
+                // 서버 오류 시 localStorage의 이미지 사용
             });
+        }
+
+        // 봉사 활동 상세 정보 표시
+        function showVolunteerDetail(applicationId) {
+            fetch('/bdproject/api/volunteer/my-applications')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.data) {
+                        const app = data.data.find(a => a.applicationId === applicationId);
+                        if (app) {
+                            const modal = document.getElementById('volunteerDetailModal');
+                            const timeText = formatVolunteerTime(app.volunteerTime);
+                            const experienceText = formatVolunteerExperience(app.volunteerExperience);
+                            const statusText = getStatusText(app.status);
+
+                            let dateStr = new Date(app.volunteerDate).toLocaleDateString('ko-KR');
+                            if (app.volunteerEndDate) {
+                                const endDateStr = new Date(app.volunteerEndDate).toLocaleDateString('ko-KR');
+                                dateStr += ' ~ ' + endDateStr;
+                            }
+
+                            // 안전한 값 체크 함수
+                            const safeValue = (value) => (value && value !== 'false' && value !== 'undefined') ? value : '-';
+
+                            let detailHtml = '<h3 style="color: #2c3e50; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">' +
+                                '<i class="fas fa-hands-helping" style="color: #4A90E2;"></i> ' + (app.selectedCategory || '봉사 활동') +
+                                '</h3>' +
+                                '<div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">' +
+                                    '<div style="display: grid; grid-template-columns: 120px 1fr; gap: 15px; font-size: 15px;">' +
+                                        '<div style="font-weight: 600; color: #555;">신청자</div>' +
+                                        '<div>' + safeValue(app.applicantName) + '</div>' +
+                                        '<div style="font-weight: 600; color: #555;">이메일</div>' +
+                                        '<div>' + safeValue(app.applicantEmail) + '</div>' +
+                                        '<div style="font-weight: 600; color: #555;">연락처</div>' +
+                                        '<div>' + safeValue(app.applicantPhone) + '</div>' +
+                                        '<div style="font-weight: 600; color: #555;">봉사 기간</div>' +
+                                        '<div>' + (dateStr || '-') + '</div>' +
+                                        '<div style="font-weight: 600; color: #555;">시간대</div>' +
+                                        '<div>' + (timeText || '-') + '</div>' +
+                                        '<div style="font-weight: 600; color: #555;">경험 수준</div>' +
+                                        '<div>' + (experienceText || '-') + '</div>' +
+                                        '<div style="font-weight: 600; color: #555;">주소</div>' +
+                                        '<div>' + safeValue(app.applicantAddress) + '</div>' +
+                                        '<div style="font-weight: 600; color: #555;">상태</div>' +
+                                        '<div><span style="background: #4A90E2; color: white; padding: 4px 12px; border-radius: 12px; font-size: 13px;">' + statusText + '</span></div>';
+
+                            if (app.actualHours && app.actualHours > 0) {
+                                detailHtml += '<div style="font-weight: 600; color: #555;">활동 시간</div>' +
+                                    '<div>' + app.actualHours + '시간</div>';
+                            }
+
+                            detailHtml += '</div></div>';
+
+                            // 배정된 시설 정보 표시 (승인 또는 완료된 경우)
+                            if (app.assignedFacilityName && (app.status === 'CONFIRMED' || app.status === 'COMPLETED')) {
+                                detailHtml += '<div style="background: #e8f5e9; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #4caf50;">' +
+                                    '<div style="font-weight: 600; color: #2e7d32; margin-bottom: 12px; font-size: 16px;">' +
+                                        '<i class="fas fa-building" style="margin-right: 8px;"></i>배정된 봉사 시설' +
+                                    '</div>' +
+                                    '<div style="display: grid; grid-template-columns: 80px 1fr; gap: 10px; font-size: 14px;">' +
+                                        '<div style="font-weight: 600; color: #555;">시설명</div>' +
+                                        '<div style="color: #333;">' + app.assignedFacilityName + '</div>' +
+                                        '<div style="font-weight: 600; color: #555;">주소</div>' +
+                                        '<div style="color: #333;">' + (app.assignedFacilityAddress || '-') + '</div>' +
+                                    '</div>' +
+                                    (app.adminNote ? '<div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #c8e6c9;"><span style="font-weight: 600; color: #555;">관리자 메모:</span> ' + app.adminNote + '</div>' : '') +
+                                '</div>';
+                            }
+
+                            if (app.motivation && app.motivation !== 'false' && app.motivation.trim() !== '') {
+                                detailHtml += '<div style="background: #e8f4fd; padding: 15px; border-radius: 8px; border-left: 4px solid #4A90E2;">' +
+                                    '<div style="font-weight: 600; color: #4A90E2; margin-bottom: 8px;">신청 동기</div>' +
+                                    '<div style="color: #555; line-height: 1.6;">' + app.motivation + '</div>' +
+                                '</div>';
+                            }
+
+                            document.getElementById('volunteerDetailContent').innerHTML = detailHtml;
+                            modal.style.display = 'flex';
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('봉사 상세 정보 로드 오류:', error);
+                    alert('상세 정보를 불러올 수 없습니다.');
+                });
+        }
+
+        function closeVolunteerDetailModal() {
+            document.getElementById('volunteerDetailModal').style.display = 'none';
+        }
+
+        // === 기부 환불 기능 ===
+        // 환불 가능 여부 확인 (7일 이내)
+        function canRefund(createdAt) {
+            const createdDate = new Date(createdAt);
+            const now = new Date();
+            const daysDiff = Math.floor((now - createdDate) / (1000 * 60 * 60 * 24));
+            return daysDiff <= 7;
+        }
+
+        // 환불 요청
+        function requestRefund(donationId, amount, createdAt) {
+            const createdDate = new Date(createdAt);
+            const now = new Date();
+            const hoursDiff = Math.floor((now - createdDate) / (1000 * 60 * 60));
+
+            let refundAmount = amount;
+            let feePercent = 0;
+            let message = '';
+
+            if (hoursDiff >= 24) {
+                // 하루 이상 지났으면 10% 수수료
+                feePercent = 10;
+                refundAmount = Math.floor(amount * 0.9);
+                message = '기부 후 24시간이 지나 10% 수수료가 부과됩니다.\n\n' +
+                          '기부금액: ' + amount.toLocaleString() + '원\n' +
+                          '수수료 (10%): ' + Math.floor(amount * 0.1).toLocaleString() + '원\n' +
+                          '환불금액: ' + refundAmount.toLocaleString() + '원\n\n' +
+                          '환불을 진행하시겠습니까?';
+            } else {
+                message = '기부금액 ' + amount.toLocaleString() + '원 전액이 환불됩니다.\n\n환불을 진행하시겠습니까?';
+            }
+
+            if (!confirm(message)) {
+                return;
+            }
+
+            fetch('/bdproject/api/donation/refund', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: 'donationId=' + donationId + '&feePercent=' + feePercent
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('환불이 완료되었습니다.\n환불금액: ' + data.refundAmount.toLocaleString() + '원');
+                    loadDonations(); // 목록 새로고침
+                } else {
+                    alert(data.message || '환불 처리에 실패했습니다.');
+                }
+            })
+            .catch(error => {
+                console.error('환불 처리 오류:', error);
+                alert('환불 처리 중 오류가 발생했습니다.');
+            });
+        }
+
+        // === 기부 리뷰 작성 모달 ===
+        let currentDonationForReview = null;
+
+        function openDonationReviewModal(donationId, title, amount) {
+            currentDonationForReview = { donationId, title, amount };
+
+            const modal = document.getElementById('donationReviewModal');
+            document.getElementById('reviewDonationTitle').textContent = title;
+            document.getElementById('reviewDonationAmount').textContent = amount.toLocaleString() + '원';
+            document.getElementById('donationReviewContent').value = '';
+            document.getElementById('donationReviewRating').value = '5';
+            document.getElementById('donationReviewAnonymous').checked = false;
+
+            modal.style.display = 'flex';
+        }
+
+        function closeDonationReviewModal() {
+            document.getElementById('donationReviewModal').style.display = 'none';
+            currentDonationForReview = null;
+        }
+
+        function submitDonationReview() {
+            if (!currentDonationForReview) return;
+
+            const title = document.getElementById('donationReviewTitleInput').value.trim();
+            const content = document.getElementById('donationReviewContent').value.trim();
+            const rating = document.getElementById('donationReviewRating').value;
+
+            if (!title) {
+                alert('리뷰 제목을 입력해주세요.');
+                return;
+            }
+
+            if (!content) {
+                alert('리뷰 내용을 입력해주세요.');
+                return;
+            }
+
+            if (content.length < 10) {
+                alert('리뷰는 10자 이상 작성해주세요.');
+                return;
+            }
+
+            fetch('/bdproject/api/donation-review/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: 'donationId=' + currentDonationForReview.donationId +
+                      '&title=' + encodeURIComponent(title) +
+                      '&content=' + encodeURIComponent(content) +
+                      '&rating=' + rating
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('리뷰가 등록되었습니다. 감사합니다!');
+                    closeDonationReviewModal();
+                    loadDonations(); // 목록 새로고침
+                } else {
+                    alert(data.message || '리뷰 등록에 실패했습니다.');
+                }
+            })
+            .catch(error => {
+                console.error('리뷰 등록 오류:', error);
+                alert('리뷰 등록 중 오류가 발생했습니다.');
+            });
+        }
+
+        // === 봉사활동 취소 기능 ===
+        function cancelVolunteerApplication(applicationId, volunteerDate, volunteerTime) {
+            const volDate = new Date(volunteerDate);
+            const now = new Date();
+
+            // 시간대별 시작 시간 설정
+            const timeStartMap = {
+                '오전': 9, 'AM': 9, 'MORNING': 9,
+                '오후': 13, 'PM': 13, 'AFTERNOON': 13,
+                '저녁': 18, 'EVENING': 18,
+                '종일': 9, 'ALLDAY': 9,
+                '조율가능': 9, 'FLEXIBLE': 9
+            };
+
+            const startHour = timeStartMap[volunteerTime] || 9;
+            volDate.setHours(startHour, 0, 0, 0);
+
+            // 봉사 시작까지 남은 시간 계산
+            const hoursDiff = Math.floor((volDate - now) / (1000 * 60 * 60));
+
+            let message = '';
+            let willBeBanned = false;
+
+            if (hoursDiff < 24) {
+                // 24시간 이내 취소 - 1주일 제한
+                willBeBanned = true;
+                message = '⚠️ 경고: 봉사 예정 시간까지 24시간 미만 남았습니다.\n\n' +
+                          '이 시점에서 취소하시면 1주일간 봉사 신청이 제한됩니다.\n\n' +
+                          '정말 취소하시겠습니까?';
+            } else {
+                message = '봉사 신청을 취소하시겠습니까?';
+            }
+
+            if (!confirm(message)) {
+                return;
+            }
+
+            fetch('/bdproject/api/volunteer/cancel', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: 'applicationId=' + applicationId + '&applyBan=' + willBeBanned
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (willBeBanned) {
+                        alert('봉사 신청이 취소되었습니다.\n\n' + data.banUntil + '까지 봉사 신청이 제한됩니다.');
+                    } else {
+                        alert('봉사 신청이 취소되었습니다.');
+                    }
+                    loadVolunteerApplications(); // 목록 새로고침
+                } else {
+                    alert(data.message || '취소 처리에 실패했습니다.');
+                }
+            })
+            .catch(error => {
+                console.error('취소 처리 오류:', error);
+                alert('취소 처리 중 오류가 발생했습니다.');
+            });
+        }
+
+        // 알림에서 봉사활동 상세 모달 열기 (applicationId로 직접 호출)
+        function openVolunteerDetailModal(applicationId) {
+            console.log('봉사활동 상세 모달 열기 - applicationId:', applicationId);
+            showVolunteerDetail(parseInt(applicationId));
+        }
+
+        // 기부 상세 정보 표시
+        function showDonationDetail(donationId) {
+            fetch('/bdproject/api/donation/my')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('=== 기부 상세 모달 요청 ===');
+                    console.log('요청 ID:', donationId);
+                    console.log('응답 데이터:', data);
+
+                    if (data.success && data.data) {
+                        const donation = data.data.find(d => d.donationId === donationId);
+                        if (donation) {
+                            console.log('=== 선택된 기부 상세 분석 ===');
+                            console.log('전체 기부 객체:', donation);
+                            console.log('모든 필드:', Object.keys(donation));
+                            console.log('기부 유형:', donation.donationType);
+                            console.log('결제 방법:', donation.paymentMethod);
+                            console.log('서명 관련 필드:', {
+                                signature: donation.signature,
+                                signatureImageUrl: donation.signatureImageUrl,
+                                signatureImage: donation.signatureImage,
+                                donorSignature: donation.donorSignature,
+                                donorName: donation.donorName
+                            });
+
+                            const modal = document.getElementById('donationDetailModal');
+
+                            // 기부 유형 매핑 (DB 실제 값: REGULAR, ONETIME)
+                            const donationTypeMap = {
+                                'REGULAR': '정기 후원',
+                                'ONETIME': '일시 후원'
+                            };
+                            const typeText = donationTypeMap[donation.donationType] || '일시 후원';
+                            console.log('변환된 기부 유형:', typeText);
+
+                            const dateStr = new Date(donation.createdAt).toLocaleString('ko-KR');
+                            const titleText = (donation.packageName && donation.packageName !== 'undefined' && donation.packageName !== 'false' && donation.packageName !== 'null')
+                                ? donation.packageName
+                                : (donation.categoryName || donation.category || '일반 기부');
+
+                            // 결제 방법 매핑 (DB 실제 값: CREDIT_CARD, BANK_TRANSFER, KAKAO_PAY, NAVER_PAY, TOSS_PAY)
+                            const paymentMethodMap = {
+                                'CREDIT_CARD': '신용카드',
+                                'BANK_TRANSFER': '계좌이체',
+                                'KAKAO_PAY': '카카오페이',
+                                'NAVER_PAY': '네이버페이',
+                                'TOSS_PAY': '토스페이'
+                            };
+                            const paymentMethodText = paymentMethodMap[donation.paymentMethod] || donation.paymentMethod || '-';
+                            console.log('변환된 결제 방법:', paymentMethodText);
+
+                            let detailHtml = '<h3 style="color: #2c3e50; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">' +
+                                '<i class="fas fa-heart" style="color: #e74c3c;"></i> ' + titleText +
+                                '</h3>' +
+                                '<div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">' +
+                                    '<div style="display: grid; grid-template-columns: 120px 1fr; gap: 15px; font-size: 15px;">' +
+                                        '<div style="font-weight: 600; color: #555;">기부 유형</div>' +
+                                        '<div>' + typeText + '</div>';
+
+                            if (donation.category && donation.category !== 'false') {
+                                detailHtml += '<div style="font-weight: 600; color: #555;">카테고리</div>' +
+                                    '<div>' + donation.category + '</div>';
+                            }
+
+                            detailHtml += '<div style="font-weight: 600; color: #555;">기부 금액</div>' +
+                                '<div style="font-size: 20px; font-weight: 700; color: #e74c3c;">' + (donation.amount || 0).toLocaleString() + '원</div>' +
+                                '<div style="font-weight: 600; color: #555;">기부 일시</div>' +
+                                '<div>' + (dateStr || '-') + '</div>';
+
+                            if (donation.paymentMethod && donation.paymentMethod !== 'false') {
+                                detailHtml += '<div style="font-weight: 600; color: #555;">결제 방법</div>' +
+                                    '<div>' + paymentMethodText + '</div>';
+                            }
+
+                            // 정기 기부 시작일 표시
+                            if (donation.regularStartDate && donation.donationType === 'REGULAR') {
+                                const regularStartDateStr = new Date(donation.regularStartDate).toLocaleDateString('ko-KR');
+                                detailHtml += '<div style="font-weight: 600; color: #555;">정기 기부 시작일</div>' +
+                                    '<div style="color: #f39c12; font-weight: 600;"><i class="fas fa-calendar-check"></i> ' + regularStartDateStr + '</div>';
+                            }
+
+                            // 기부 분야 표시
+                            if (donation.categoryName) {
+                                detailHtml += '<div style="font-weight: 600; color: #555;">기부 분야</div>' +
+                                    '<div><i class="fas fa-tag" style="color: #1abc9c;"></i> ' + donation.categoryName + '</div>';
+                            }
+
+                            // 서명 이미지 표시 (DB 필드: signature_image)
+                            const signatureImage = donation.signatureImage;
+                            console.log('서명 이미지 데이터:', signatureImage ? signatureImage.substring(0, 50) + '...' : 'null');
+
+                            // 서명 이미지가 있는 경우에만 표시
+                            if (signatureImage &&
+                                signatureImage !== 'null' &&
+                                signatureImage !== 'undefined' &&
+                                signatureImage !== '' &&
+                                typeof signatureImage === 'string' &&
+                                signatureImage.length > 10) {
+
+                                console.log('✅ 서명 이미지 표시 시도');
+                                console.log('서명 이미지 시작 부분:', signatureImage.substring(0, 30));
+
+                                // data:image로 시작하지 않는 경우에도 표시 시도
+                                const imgSrc = signatureImage.startsWith('data:image') ? signatureImage : 'data:image/png;base64,' + signatureImage;
+
+                                detailHtml += '<div style="font-weight: 600; color: #555;">서명</div>' +
+                                    '<div style="padding: 10px; background: white; border: 1px solid #ddd; border-radius: 8px;">' +
+                                        '<img src="' + imgSrc + '" alt="서명" style="max-width: 300px; height: auto; display: block; border: 1px solid #ccc;" onerror="console.error(\'서명 이미지 로드 실패\'); this.style.display=\'none\';">' +
+                                    '</div>';
+                            } else {
+                                console.log('❌ 서명 이미지 없음 또는 유효하지 않음');
+                                console.log('signatureImage 값:', signatureImage);
+                            }
+
+                            if (donation.message && donation.message !== 'false' && donation.message.trim() !== '') {
+                                detailHtml += '<div style="font-weight: 600; color: #555;">응원 메시지</div>' +
+                                    '<div style="background: #fff5f5; padding: 10px; border-radius: 6px; border-left: 3px solid #e74c3c;">' + donation.message + '</div>';
+                            }
+
+                            detailHtml += '<div style="font-weight: 600; color: #555;">상태</div>' +
+                                '<div><span style="background: #27ae60; color: white; padding: 4px 12px; border-radius: 12px; font-size: 13px;">완료</span></div>' +
+                                '</div>' +
+                                '</div>' +
+                                '<div style="text-align: center; padding: 15px; background: #e8f8f5; border-radius: 8px; color: #27ae60; font-weight: 600;">' +
+                                    '<i class="fas fa-check-circle"></i> 소중한 기부에 감사드립니다!' +
+                                '</div>';
+
+                            document.getElementById('donationDetailContent').innerHTML = detailHtml;
+                            modal.style.display = 'flex';
+                        } else {
+                            alert('해당 기부 내역을 찾을 수 없습니다.');
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('기부 상세 정보 로드 오류:', error);
+                    alert('상세 정보를 불러올 수 없습니다.');
+                });
+        }
+
+        function closeDonationDetailModal() {
+            document.getElementById('donationDetailModal').style.display = 'none';
         }
 
         function openReviewModal(applicationId, activityName) {
@@ -5277,9 +5221,97 @@
                 if (e.target === modal) {
                     closeReviewModal();
                 }
+
+                const donationReviewModal = document.getElementById('donationReviewModal');
+                if (e.target === donationReviewModal) {
+                    closeDonationReviewModal();
+                }
             });
+
+            // 기부 리뷰 폼 제출 이벤트 리스너
+            const donationReviewForm = document.getElementById('donationReviewForm');
+            if (donationReviewForm) {
+                donationReviewForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    submitDonationReview();
+                });
+            }
         });
     </script>
+
+    <!-- 봉사 활동 상세 정보 모달 -->
+    <div id="volunteerDetailModal" class="review-modal" style="display: none;">
+        <div class="review-modal-content">
+            <div class="review-modal-header">
+                <h2>봉사 활동 상세 정보</h2>
+                <button class="review-modal-close" onclick="closeVolunteerDetailModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="review-modal-body" id="volunteerDetailContent">
+                <!-- 상세 정보가 동적으로 채워집니다 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 기부 상세 정보 모달 -->
+    <div id="donationDetailModal" class="review-modal" style="display: none;">
+        <div class="review-modal-content">
+            <div class="review-modal-header">
+                <h2>기부 상세 정보</h2>
+                <button class="review-modal-close" onclick="closeDonationDetailModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="review-modal-body" id="donationDetailContent">
+                <!-- 상세 정보가 동적으로 채워집니다 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 기부 리뷰 작성 모달 -->
+    <div id="donationReviewModal" class="review-modal" style="display: none;">
+        <div class="review-modal-content">
+            <div class="review-modal-header">
+                <h2>기부 후기 작성</h2>
+                <button class="review-modal-close" onclick="closeDonationReviewModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="review-modal-body">
+                <p class="review-activity-info">
+                    <i class="fas fa-heart"></i>
+                    <span id="donationReviewTitle"></span>
+                    <span id="donationReviewAmount" style="margin-left: 10px; color: #666;"></span>
+                </p>
+                <input type="hidden" id="donationReviewDonationId">
+                <form id="donationReviewForm">
+                    <div class="review-form-group">
+                        <label for="donationReviewTitleInput">제목</label>
+                        <input type="text" id="donationReviewTitleInput" class="review-input" placeholder="후기 제목을 입력하세요" maxlength="100" required>
+                    </div>
+                    <div class="review-form-group">
+                        <label for="donationReviewContent">내용</label>
+                        <textarea id="donationReviewContent" class="review-textarea" placeholder="기부 경험을 자유롭게 작성해주세요. 다른 분들에게 기부 참여 동기가 될 수 있습니다." rows="8" required></textarea>
+                    </div>
+                    <div class="review-form-group">
+                        <label for="donationReviewRating">만족도</label>
+                        <select id="donationReviewRating" class="review-select">
+                            <option value="5">⭐⭐⭐⭐⭐ 매우 만족</option>
+                            <option value="4">⭐⭐⭐⭐ 만족</option>
+                            <option value="3">⭐⭐⭐ 보통</option>
+                            <option value="2">⭐⭐ 불만족</option>
+                            <option value="1">⭐ 매우 불만족</option>
+                        </select>
+                    </div>
+                    <div class="review-form-actions">
+                        <button type="button" class="review-btn review-btn-cancel" onclick="closeDonationReviewModal()">취소</button>
+                        <button type="submit" class="review-btn review-btn-submit">작성하기</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- 봉사 후기 작성 모달 -->
     <div id="reviewModal" class="review-modal">

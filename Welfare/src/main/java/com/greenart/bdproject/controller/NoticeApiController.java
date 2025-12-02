@@ -57,9 +57,10 @@ public class NoticeApiController {
         try {
             con = dataSource.getConnection();
 
-            String sql = "SELECT notice_id, admin_id, title, content, views, is_pinned, " +
-                    "created_at, updated_at " +
+            String sql = "SELECT notice_id, admin_id, title, content, category, priority, " +
+                    "views, is_pinned, created_at, updated_at " +
                     "FROM notices " +
+                    "WHERE deleted_at IS NULL " +
                     "ORDER BY is_pinned DESC, created_at DESC";
 
             pstmt = con.prepareStatement(sql);
@@ -69,9 +70,11 @@ public class NoticeApiController {
             while (rs.next()) {
                 Map<String, Object> notice = new HashMap<>();
                 notice.put("noticeId", rs.getLong("notice_id"));
-                notice.put("adminId", rs.getString("admin_id"));
+                notice.put("adminId", rs.getLong("admin_id"));
                 notice.put("title", rs.getString("title"));
                 notice.put("content", rs.getString("content"));
+                notice.put("category", rs.getString("category"));
+                notice.put("priority", rs.getString("priority"));
                 notice.put("views", rs.getInt("views"));
                 notice.put("isPinned", rs.getBoolean("is_pinned"));
                 notice.put("createdAt", rs.getTimestamp("created_at"));
@@ -118,9 +121,9 @@ public class NoticeApiController {
             updatePstmt.executeUpdate();
 
             // 공지사항 조회
-            String sql = "SELECT notice_id, admin_id, title, content, views, is_pinned, " +
-                    "created_at, updated_at " +
-                    "FROM notices WHERE notice_id = ?";
+            String sql = "SELECT notice_id, admin_id, title, content, category, priority, " +
+                    "views, is_pinned, created_at, updated_at " +
+                    "FROM notices WHERE notice_id = ? AND deleted_at IS NULL";
 
             pstmt = con.prepareStatement(sql);
             pstmt.setLong(1, id);
@@ -129,9 +132,11 @@ public class NoticeApiController {
             if (rs.next()) {
                 Map<String, Object> notice = new HashMap<>();
                 notice.put("noticeId", rs.getLong("notice_id"));
-                notice.put("adminId", rs.getString("admin_id"));
+                notice.put("adminId", rs.getLong("admin_id"));
                 notice.put("title", rs.getString("title"));
                 notice.put("content", rs.getString("content"));
+                notice.put("category", rs.getString("category"));
+                notice.put("priority", rs.getString("priority"));
                 notice.put("views", rs.getInt("views"));
                 notice.put("isPinned", rs.getBoolean("is_pinned"));
                 notice.put("createdAt", rs.getTimestamp("created_at"));
@@ -201,7 +206,7 @@ public class NoticeApiController {
                     "VALUES (?, ?, ?, ?)";
 
             pstmt = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            pstmt.setString(1, userId);
+            pstmt.setLong(1, member.getMemberId());  // member_id (숫자) 사용
             pstmt.setString(2, title);
             pstmt.setString(3, content);
             pstmt.setBoolean(4, isPinned);
@@ -228,6 +233,71 @@ public class NoticeApiController {
             response.put("message", "공지사항 등록 중 오류가 발생했습니다: " + e.getMessage());
         } finally {
             close(rs, pstmt, con);
+        }
+
+        return response;
+    }
+
+    /**
+     * 공지사항 수정 (관리자만)
+     * @PostMapping("/api/notices/{id}/update")
+     */
+    @PostMapping("/{id}/update")
+    public Map<String, Object> updateNotice(
+            @PathVariable("id") Long id,
+            @RequestParam("title") String title,
+            @RequestParam("content") String content,
+            @RequestParam(value = "isPinned", defaultValue = "false") boolean isPinned,
+            HttpSession session) {
+
+        Map<String, Object> response = new HashMap<>();
+        Connection con = null;
+        PreparedStatement pstmt = null;
+
+        try {
+            // 관리자 권한 체크
+            String userId = (String) session.getAttribute("id");
+            if (userId == null || userId.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "로그인이 필요합니다.");
+                return response;
+            }
+
+            Member member = memberDao.select(userId);
+            if (member == null || !"ADMIN".equals(member.getRole())) {
+                response.put("success", false);
+                response.put("message", "관리자 권한이 필요합니다.");
+                return response;
+            }
+
+            con = dataSource.getConnection();
+
+            String sql = "UPDATE notices SET title = ?, content = ?, is_pinned = ?, updated_at = NOW() " +
+                        "WHERE notice_id = ?";
+
+            pstmt = con.prepareStatement(sql);
+            pstmt.setString(1, title);
+            pstmt.setString(2, content);
+            pstmt.setBoolean(3, isPinned);
+            pstmt.setLong(4, id);
+
+            int result = pstmt.executeUpdate();
+
+            if (result > 0) {
+                response.put("success", true);
+                response.put("message", "공지사항이 수정되었습니다.");
+                logger.info("공지사항 수정 성공 - noticeId: {}", id);
+            } else {
+                response.put("success", false);
+                response.put("message", "공지사항 수정에 실패했습니다.");
+            }
+
+        } catch (Exception e) {
+            logger.error("공지사항 수정 중 오류 발생", e);
+            response.put("success", false);
+            response.put("message", "공지사항 수정 중 오류가 발생했습니다: " + e.getMessage());
+        } finally {
+            close(null, pstmt, con);
         }
 
         return response;

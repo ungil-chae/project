@@ -21,6 +21,15 @@ public interface ProjectMemberDao {
 	// 이메일(아이디) 중복 확인을 위한 메서드 추가
 	public int countByEmail(String email);
 
+	// 이메일 중복 확인 (활성 계정만)
+	public boolean existsByEmail(String email);
+
+	// 삭제된 계정 조회
+	public Member selectDeleted(String email);
+
+	// 삭제된 계정 재활성화
+	public int reactivateAccount(Member member);
+
 	// 로그인 실패 횟수 증가 및 계정 잠금
 	public int incrementLoginFailCount(String email);
 
@@ -32,4 +41,7 @@ public interface ProjectMemberDao {
 
 	// 프로필 이미지 업데이트
 	public int updateProfileImage(String email, String imageUrl);
+
+	// 프로필 정보 업데이트 (이름, 성별, 생년월일, 전화번호)
+	public int updateProfile(Member member);
 }

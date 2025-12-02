@@ -15,7 +15,7 @@ import com.greenart.bdproject.dto.Member;
 public class MemberDaoImpl2 implements MemberDao {
 	@Autowired
 	SqlSession session;
-	String namespace ="com.greenart.member.";
+	String namespace ="com.greenart.bdproject.dao.ProjectMemberDao.";
 	
 	@Override
 	public int insert(Member m) throws Exception{

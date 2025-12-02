@@ -7,9 +7,10 @@
     <!-- resultMap: DonationReviewResult → DonationReviewDto -->
     <resultMap id="DonationReviewResult" type="com.greenart.bdproject.dto.DonationReviewDto">
         <id property="reviewId" column="review_id"/>
-        <result property="userId" column="user_id"/>
+        <result property="userId" column="member_id"/>
         <result property="donationId" column="donation_id"/>
         <result property="reviewerName" column="reviewer_name"/>
+        <result property="title" column="title"/>
         <result property="rating" column="rating"/>
         <result property="content" column="content"/>
         <result property="isAnonymous" column="is_anonymous"/>
@@ -24,41 +25,44 @@
 
     <!-- insert: INSERT INTO donation_reviews -->
     <insert id="insertReview" parameterType="com.greenart.bdproject.dto.DonationReviewDto" useGeneratedKeys="true" keyProperty="reviewId">
-        INSERT INTO donation_reviews (user_id, donation_id, reviewer_name, rating, content, is_anonymous, helpful_count, created_at, updated_at)
-        VALUES (#{userId}, #{donationId}, #{reviewerName}, #{rating}, #{content}, #{isAnonymous}, COALESCE(#{helpfulCount}, 0), NOW(), NOW())
+        INSERT INTO donation_reviews (member_id, donation_id, reviewer_name, title, rating, content, is_anonymous, helpful_count, created_at, updated_at)
+        VALUES (#{userId}, #{donationId}, #{reviewerName}, #{title}, #{rating}, #{content}, #{isAnonymous}, COALESCE(#{helpfulCount}, 0), NOW(), NOW())
     </insert>
 
     <!-- selectById: SELECT * FROM donation_reviews WHERE review_id = #{reviewId} -->
     <select id="selectById" parameterType="long" resultMap="DonationReviewResult">
         SELECT
-            dr.review_id, dr.user_id, dr.donation_id, dr.reviewer_name, dr.rating,
+            dr.review_id, dr.member_id, dr.donation_id, dr.reviewer_name, dr.title, dr.rating,
             dr.content, dr.is_anonymous, dr.helpful_count, dr.created_at, dr.updated_at,
-            d.category, d.amount as donation_amount, d.donation_type
+            dc.category_name as category, d.amount as donation_amount, d.donation_type
         FROM donation_reviews dr
         LEFT JOIN donations d ON dr.donation_id = d.donation_id
+        LEFT JOIN donation_categories dc ON d.category_id = dc.category_id
         WHERE dr.review_id = #{reviewId}
     </select>
 
     <!-- selectAll: SELECT * FROM donation_reviews ORDER BY created_at DESC -->
     <select id="selectAll" resultMap="DonationReviewResult">
         SELECT
-            dr.review_id, dr.user_id, dr.donation_id, dr.reviewer_name, dr.rating,
+            dr.review_id, dr.member_id, dr.donation_id, dr.reviewer_name, dr.title, dr.rating,
             dr.content, dr.is_anonymous, dr.helpful_count, dr.created_at, dr.updated_at,
-            d.category, d.amount as donation_amount, d.donation_type
+            dc.category_name as category, d.amount as donation_amount, d.donation_type
         FROM donation_reviews dr
         LEFT JOIN donations d ON dr.donation_id = d.donation_id
+        LEFT JOIN donation_categories dc ON d.category_id = dc.category_id
         ORDER BY dr.created_at DESC
     </select>
 
-    <!-- selectByUserId: SELECT * FROM donation_reviews WHERE user_id = #{userId} ORDER BY created_at DESC -->
+    <!-- selectByUserId: SELECT * FROM donation_reviews WHERE member_id = #{userId} ORDER BY created_at DESC -->
     <select id="selectByUserId" parameterType="long" resultMap="DonationReviewResult">
         SELECT
-            dr.review_id, dr.user_id, dr.donation_id, dr.reviewer_name, dr.rating,
+            dr.review_id, dr.member_id, dr.donation_id, dr.reviewer_name, dr.title, dr.rating,
             dr.content, dr.is_anonymous, dr.helpful_count, dr.created_at, dr.updated_at,
-            d.category, d.amount as donation_amount, d.donation_type
+            dc.category_name as category, d.amount as donation_amount, d.donation_type
         FROM donation_reviews dr
         LEFT JOIN donations d ON dr.donation_id = d.donation_id
-        WHERE dr.user_id = #{userId}
+        LEFT JOIN donation_categories dc ON d.category_id = dc.category_id
+        WHERE dr.member_id = #{userId}
         ORDER BY dr.created_at DESC
     </select>
 

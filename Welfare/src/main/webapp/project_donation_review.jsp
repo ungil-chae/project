@@ -1031,7 +1031,7 @@
                 amount: 100000,
                 type: "regular",
                 isAnonymous: false,
-                content: "어려운 시기에 도움을 받을 수 있어서 정말 감사했습니다. 복지24를 통해 신청한 지원금 덕분에 가족이 다시 희망을 찾을 수 있었습니다. 앞으로도 더 많은 분들이 혜택을 받으실 수 있기를 바랍니다.",
+                content: "매달 정기 기부를 하고 있습니다. 복지24를 통해 기부금이 어려운 가정에 투명하게 전달되는 것을 확인할 수 있어서 믿음이 갑니다. 작은 나눔이 큰 변화가 되길 바랍니다.",
                 helpful: 42
             },
             {
@@ -1044,7 +1044,7 @@
                 amount: 50000,
                 type: "onetime",
                 isAnonymous: true,
-                content: "가족의 수술비 때문에 고민이 많았는데, 복지24에서 의료비 지원 프로그램을 찾을 수 있었습니다. 덕분에 큰 걱정을 덜 수 있었어요. 정말 감사드립니다.",
+                content: "의료비 지원 분야에 기부했습니다. 아픈 분들이 경제적 걱정 없이 치료에만 집중할 수 있으면 좋겠어요. 복지24의 투명한 기부금 사용 내역 공개가 인상적입니다.",
                 helpful: 35
             },
             {
@@ -1057,7 +1057,7 @@
                 amount: 200000,
                 type: "onetime",
                 isAnonymous: false,
-                content: "화재로 모든 것을 잃었을 때, 복지24를 통해 긴급 지원을 받을 수 있었습니다. 빠른 처리와 친절한 안내에 진심으로 감사드립니다. 다시 일어설 수 있는 힘이 되었습니다.",
+                content: "화재 피해 가정 지원에 기부했습니다. 뉴스에서 화재 소식을 볼 때마다 마음이 아팠는데, 조금이나마 도움이 될 수 있어서 기쁩니다. 복지24 덕분에 쉽게 기부할 수 있었어요.",
                 helpful: 58
             },
             {
@@ -1070,7 +1070,7 @@
                 amount: 30000,
                 type: "regular",
                 isAnonymous: true,
-                content: "한부모 가정을 위한 다양한 지원 프로그램이 있어서 좋았습니다. 아이 양육비에 큰 도움이 되고 있어요. 계속해서 정기 기부를 이어가겠습니다.",
+                content: "한부모 가정을 위해 매달 소액이지만 꾸준히 기부하고 있습니다. 홀로 아이를 키우시는 분들께 조금이나마 힘이 되었으면 합니다. 기부 후기 페이지에서 감사 인사를 보면 보람을 느껴요.",
                 helpful: 28
             },
             {
@@ -1083,7 +1083,7 @@
                 amount: 150000,
                 type: "onetime",
                 isAnonymous: false,
-                content: "태풍 피해로 집이 침수되었을 때 긴급 지원금을 받았습니다. 복지24의 빠른 대응과 체계적인 시스템 덕분에 빠르게 일상으로 돌아갈 수 있었습니다.",
+                content: "태풍 피해 복구 지원에 기부했습니다. 재난 상황에서 빠른 지원이 중요하다고 생각해서 망설임 없이 기부했어요. 복지24의 긴급 모금 시스템이 잘 되어있어서 신뢰가 갑니다.",
                 helpful: 45
             },
             {
@@ -1096,7 +1096,7 @@
                 amount: 20000,
                 type: "regular",
                 isAnonymous: false,
-                content: "매달 작은 금액이지만 정기 기부를 하고 있습니다. 누군가에게 도움이 된다는 것이 뿌듯합니다. 복지24가 투명하게 운영되는 것 같아 믿음이 갑니다.",
+                content: "노숙인 분들을 위해 매달 기부하고 있어요. 길에서 힘들게 지내시는 분들이 따뜻한 곳에서 쉴 수 있으면 좋겠습니다. 작은 금액이지만 꾸준히 이어가겠습니다.",
                 helpful: 31
             },
             {
@@ -1109,20 +1109,20 @@
                 amount: 80000,
                 type: "onetime",
                 isAnonymous: true,
-                content: "가정폭력 피해자 보호시설 지원 프로그램을 통해 안전한 곳으로 옮길 수 있었습니다. 새로운 시작을 할 수 있게 도와주셔서 감사합니다.",
+                content: "가정폭력 피해자 보호시설 지원에 기부했습니다. 피해자분들이 안전하게 새 출발을 할 수 있도록 도움이 되고 싶었어요. 복지24를 통해 의미있는 나눔을 할 수 있어 감사합니다.",
                 helpful: 52
             },
             {
                 id: 8,
-                name: "익명",
-                initial: "익",
+                name: "이수진",
+                initial: "이",
                 date: "2025-01-08",
                 category: "자살고위험",
                 rating: 4,
                 amount: 40000,
                 type: "regular",
-                isAnonymous: true,
-                content: "심리 상담 지원 프로그램 덕분에 힘든 시기를 잘 극복할 수 있었습니다. 전문 상담사님들의 도움이 정말 컸어요. 비슷한 어려움을 겪는 분들께 추천합니다.",
+                isAnonymous: false,
+                content: "마음이 힘든 분들을 위한 심리상담 지원에 정기 기부 중입니다. 누구나 힘든 시기가 있잖아요. 전문 상담을 통해 다시 일어설 수 있도록 응원하고 싶습니다.",
                 helpful: 38
             },
             {
@@ -1135,7 +1135,7 @@
                 amount: 120000,
                 type: "onetime",
                 isAnonymous: true,
-                content: "범죄 피해로 인한 트라우마 치료비 지원을 받았습니다. 경제적 부담이 줄어들어 치료에 집중할 수 있었고, 심리적으로도 많이 회복되었습니다.",
+                content: "범죄 피해자 지원 프로그램에 기부했습니다. 피해자분들의 심리 치료와 생활 안정에 조금이나마 보탬이 되길 바랍니다. 복지24의 체계적인 지원 시스템에 신뢰가 갑니다.",
                 helpful: 47
             }
         ];
@@ -1286,27 +1286,66 @@
             localStorage.setItem('likedReviews', JSON.stringify(likedReviews));
         }
 
-        // 좋아요 토글 (추가/취소)
+        // 로그인 상태 변수
+        let isUserLoggedIn = false;
+
+        // 로그인 상태 확인
+        function checkLoginForLike() {
+            return fetch('/bdproject/api/auth/check')
+                .then(response => response.json())
+                .then(data => {
+                    isUserLoggedIn = data.loggedIn;
+                    return data.loggedIn;
+                })
+                .catch(error => {
+                    console.error('로그인 상태 확인 실패:', error);
+                    isUserLoggedIn = false;
+                    return false;
+                });
+        }
+
+        // 페이지 로드 시 로그인 상태 확인
+        checkLoginForLike();
+
+        // 좋아요 토글 (추가/취소) - 로그인 체크 추가
         function toggleHelpful(reviewId) {
-            const review = sampleReviews.find(r => r.id === reviewId);
-            if (!review) return;
+            // 로그인 상태 확인
+            fetch('/bdproject/api/auth/check')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.loggedIn) {
+                        // 로그인하지 않은 경우
+                        if (confirm('로그인이 필요합니다.\n로그인 페이지로 이동하시겠습니까?')) {
+                            window.location.href = '/bdproject/projectLogin.jsp';
+                        }
+                        return;
+                    }
 
-            const likedReviews = getLikedReviews();
-            const isLiked = likedReviews.includes(reviewId);
+                    // 로그인한 경우 좋아요 처리
+                    const review = sampleReviews.find(r => r.id === reviewId);
+                    if (!review) return;
 
-            if (isLiked) {
-                // 이미 좋아요를 눌렀다면 -> 취소
-                review.helpful = Math.max(0, review.helpful - 1);
-                const index = likedReviews.indexOf(reviewId);
-                likedReviews.splice(index, 1);
-            } else {
-                // 좋아요 추가
-                review.helpful += 1;
-                likedReviews.push(reviewId);
-            }
+                    const likedReviews = getLikedReviews();
+                    const isLiked = likedReviews.includes(reviewId);
 
-            saveLikedReviews(likedReviews);
-            renderReviews();
+                    if (isLiked) {
+                        // 이미 좋아요를 눌렀다면 -> 취소
+                        review.helpful = Math.max(0, review.helpful - 1);
+                        const index = likedReviews.indexOf(reviewId);
+                        likedReviews.splice(index, 1);
+                    } else {
+                        // 좋아요 추가
+                        review.helpful += 1;
+                        likedReviews.push(reviewId);
+                    }
+
+                    saveLikedReviews(likedReviews);
+                    renderReviews();
+                })
+                .catch(error => {
+                    console.error('로그인 상태 확인 실패:', error);
+                    alert('오류가 발생했습니다. 다시 시도해주세요.');
+                });
         }
 
         // 리뷰 작성

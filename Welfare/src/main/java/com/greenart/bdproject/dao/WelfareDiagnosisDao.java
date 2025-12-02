@@ -13,11 +13,11 @@ public interface WelfareDiagnosisDao {
     int insertDiagnosis(WelfareDiagnosisDto diagnosis);
 
     /**
-     * 사용자별 진단 내역 조회
-     * @param userId 사용자 ID
+     * 회원별 진단 내역 조회
+     * @param memberId 회원 ID
      * @return List<WelfareDiagnosisDto> 진단 목록
      */
-    List<WelfareDiagnosisDto> selectByUserId(String userId);
+    List<WelfareDiagnosisDto> selectByMemberId(Long memberId);
 
     /**
      * ID로 진단 결과 조회
@@ -28,8 +28,8 @@ public interface WelfareDiagnosisDao {
 
     /**
      * 최근 진단 결과 조회
-     * @param userId 사용자 ID
+     * @param memberId 회원 ID
      * @return WelfareDiagnosisDto 최근 진단 정보
      */
-    WelfareDiagnosisDto selectLatestByUserId(String userId);
+    WelfareDiagnosisDto selectLatestByMemberId(Long memberId);
 }

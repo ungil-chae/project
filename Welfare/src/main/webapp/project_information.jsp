@@ -335,12 +335,12 @@
                     <label>직업 상태</label>
                     <select name="employment_status">
                         <option value="">선택해주세요</option>
-                        <option value="employed">재직중</option>
-                        <option value="unemployed">실업중</option>
-                        <option value="seeking">구직중</option>
-                        <option value="student">학생</option>
-                        <option value="retired">은퇴</option>
-                        <option value="other">기타</option>
+                        <option value="EMPLOYED">재직중</option>
+                        <option value="UNEMPLOYED">실업중</option>
+                        <option value="SELF_EMPLOYED">자영업</option>
+                        <option value="STUDENT">학생</option>
+                        <option value="RETIRED">은퇴</option>
+                        <option value="HOMEMAKER">주부/주부</option>
                     </select>
                 </div>
                 
@@ -381,19 +381,6 @@
                 <input type="hidden" name="isMulticultural" value="false">
                 <input type="hidden" name="isVeteran" value="false">
                 <input type="hidden" name="isSingleParent" value="false">
-
-                <!-- 진단 결과 저장 동의 -->
-                <div class="form-group" style="margin-bottom: 25px; padding: 20px; background: #f8f9fa; border-radius: 10px; border: 1px solid #e9ecef;">
-                    <div class="radio-item" style="margin: 0;">
-                        <input type="checkbox" name="saveConsent" id="saveConsent" value="true">
-                        <label for="saveConsent" style="font-size: 14px; font-weight: 500; color: #495057; margin-left: 8px; cursor: pointer;">
-                            <strong>진단 결과를 마이페이지에 저장하시겠습니까?</strong>
-                        </label>
-                    </div>
-                    <p style="font-size: 12px; color: #6c757d; margin: 10px 0 0 28px; line-height: 1.5;">
-                        동의하시면 이번 진단 결과가 마이페이지에 저장되어, 언제든지 다시 확인하실 수 있습니다. (로그인 시에만 저장됩니다)
-                    </p>
-                </div>
 
                 <div class="btn-group">
                     <button type="button" class="btn btn-secondary" onclick="history.back()">취소</button>
@@ -530,7 +517,7 @@
             }
             
             // 기본값 설정 (상세 진단에서 요구하는 필드들)
-            if (!userData.employment_status) userData.employment_status = 'other';
+            if (!userData.employment_status) userData.employment_status = 'EMPLOYED';
             if (!userData.children_count) userData.children_count = '0';
             if (!userData.sido) userData.sido = '';
             if (!userData.sigungu) userData.sigungu = '';
@@ -558,21 +545,7 @@
                 return response.json();
             })
             .then(data => {
-                // 개인정보 저장 동의 여부 확인
-                const saveConsent = document.getElementById('saveConsent').checked;
-
-                // 동의했다면 진단 데이터 저장 시도
-                if (saveConsent) {
-                    saveDiagnosisData(userData).then(() => {
-                        proceedToResults(data, userData);
-                    }).catch(error => {
-                        console.error('진단 데이터 저장 실패:', error);
-                        // 저장 실패해도 결과는 표시
-                        proceedToResults(data, userData);
-                    });
-                } else {
-                    proceedToResults(data, userData);
-                }
+                proceedToResults(data, userData);
             })
             .catch(error => {
                 hideLoading();
@@ -581,55 +554,6 @@
             });
             
             return false;
-        }
-
-        // 진단 데이터 저장 함수
-        function saveDiagnosisData(userData) {
-            return new Promise((resolve, reject) => {
-                // 로그인 상태 확인
-                fetch('/bdproject/api/auth/check')
-                    .then(response => response.json())
-                    .then(authData => {
-                        if (!authData.loggedIn) {
-                            console.log('로그인하지 않은 사용자는 데이터를 저장할 수 없습니다.');
-                            resolve(); // 로그인 안 했어도 실패로 처리하지 않음
-                            return;
-                        }
-
-                        // 로그인 상태이면 진단 데이터 저장
-                        const diagnosisData = new URLSearchParams();
-                        diagnosisData.append('birthDate', userData.birthdate);
-                        diagnosisData.append('householdType', userData.household);
-                        diagnosisData.append('incomeLevel', userData.income);
-                        diagnosisData.append('region', userData.sido + ' ' + (userData.sigungu || ''));
-                        diagnosisData.append('disability', userData.isDisabled === 'true' ? 'Y' : 'N');
-                        diagnosisData.append('veteran', userData.isVeteran === 'true' ? 'Y' : 'N');
-                        diagnosisData.append('saveConsent', 'true');
-
-                        fetch('/bdproject/api/diagnosis/save', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded'
-                            },
-                            body: diagnosisData.toString()
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                console.log('진단 데이터가 성공적으로 저장되었습니다.');
-                            }
-                            resolve();
-                        })
-                        .catch(error => {
-                            console.error('진단 데이터 저장 오류:', error);
-                            reject(error);
-                        });
-                    })
-                    .catch(error => {
-                        console.error('로그인 상태 확인 오류:', error);
-                        reject(error);
-                    });
-            });
         }
 
         // 결과 페이지로 이동

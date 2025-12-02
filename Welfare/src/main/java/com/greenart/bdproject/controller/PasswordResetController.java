@@ -18,9 +18,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.greenart.bdproject.dao.PasswordHistoryDao;
 import com.greenart.bdproject.dao.ProjectMemberDao;
 import com.greenart.bdproject.dto.Member;
 import com.greenart.bdproject.service.EmailService;
+
+import java.util.List;
 
 /**
  * 비밀번호 재설정 API 컨트롤러
@@ -45,6 +48,9 @@ public class PasswordResetController {
 
     @Autowired(required = false)
     private BCryptPasswordEncoder passwordEncoder;
+
+    @Autowired
+    private PasswordHistoryDao passwordHistoryDao;
 
     /**
      * 비밀번호 재설정 인증 코드 발송
@@ -72,8 +78,7 @@ public class PasswordResetController {
             // 이름 검증 (이름이 제공된 경우)
             if (name != null && !name.trim().isEmpty()) {
                 if (!name.trim().equals(member.getName())) {
-                    logger.warn("이름 불일치: email={}, 입력된 이름={}, 실제 이름={}",
-                               email, name, member.getName());
+                    logger.warn("이름 불일치: email={}, 입력된 이름={}", email, name);
                     response.put("success", false);
                     response.put("message", "입력하신 정보와 일치하는 회원을 찾을 수 없습니다.");
                     return response;
@@ -165,10 +170,31 @@ public class PasswordResetController {
             logger.info("=== 비밀번호 재설정 요청 ===");
             logger.info("email: {}", email);
 
-            // 비밀번호 유효성 검사
+            // 비밀번호 유효성 검사 - 8자 이상
             if (newPassword == null || newPassword.length() < 8) {
                 response.put("success", false);
                 response.put("message", "비밀번호는 최소 8자 이상이어야 합니다.");
+                return response;
+            }
+
+            // 비밀번호 유효성 검사 - 영문자 포함
+            if (!newPassword.matches(".*[a-zA-Z].*")) {
+                response.put("success", false);
+                response.put("message", "비밀번호는 영문자를 포함해야 합니다.");
+                return response;
+            }
+
+            // 비밀번호 유효성 검사 - 숫자 포함
+            if (!newPassword.matches(".*[0-9].*")) {
+                response.put("success", false);
+                response.put("message", "비밀번호는 숫자를 포함해야 합니다.");
+                return response;
+            }
+
+            // 비밀번호 유효성 검사 - 특수문자 포함
+            if (!newPassword.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*")) {
+                response.put("success", false);
+                response.put("message", "비밀번호는 특수문자를 포함해야 합니다.");
                 return response;
             }
 
@@ -186,6 +212,38 @@ public class PasswordResetController {
                 response.put("success", false);
                 response.put("message", "회원 정보를 찾을 수 없습니다.");
                 return response;
+            }
+
+            Long memberId = member.getMemberId();
+
+            // 새 비밀번호가 기존 비밀번호와 동일한지 확인
+            if (passwordEncoder != null && member.getPwd() != null) {
+                if (passwordEncoder.matches(newPassword, member.getPwd())) {
+                    logger.warn("새 비밀번호가 기존 비밀번호와 동일함: {}", email);
+                    response.put("success", false);
+                    response.put("message", "새 비밀번호는 현재 비밀번호와 다르게 설정해주세요.");
+                    return response;
+                }
+            }
+
+            // 이전에 사용했던 비밀번호인지 확인 (최근 5개)
+            if (passwordEncoder != null && passwordHistoryDao != null) {
+                List<String> recentPasswords = passwordHistoryDao.getRecentPasswordHashes(memberId);
+                for (String oldHash : recentPasswords) {
+                    if (passwordEncoder.matches(newPassword, oldHash)) {
+                        logger.warn("이전에 사용했던 비밀번호로 변경 시도: {}", email);
+                        response.put("success", false);
+                        response.put("message", "이전에 사용했던 비밀번호는 사용할 수 없습니다. 다른 비밀번호를 입력해주세요.");
+                        return response;
+                    }
+                }
+            }
+
+            // 현재 비밀번호를 이력에 저장 (변경 전)
+            if (passwordHistoryDao != null && member.getPwd() != null) {
+                passwordHistoryDao.savePasswordHistory(memberId, member.getPwd());
+                passwordHistoryDao.deleteOldHistory(memberId); // 최근 5개만 유지
+                logger.info("이전 비밀번호 이력 저장 완료: memberId={}", memberId);
             }
 
             // 비밀번호 암호화 (BCrypt 사용 가능하면)

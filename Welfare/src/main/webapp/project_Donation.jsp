@@ -678,6 +678,43 @@
         transition: background 0.3s ease;
       }
 
+      /* 서명패드 스타일 */
+      .signature-pad-container {
+        margin-top: 15px;
+      }
+
+      #signatureCanvas {
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        cursor: crosshair;
+        background: white;
+        display: block;
+        width: 100%;
+        max-width: 500px;
+      }
+
+      .signature-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .signature-clear-btn {
+        background: #e74c3c;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.3s ease;
+      }
+
+      .signature-clear-btn:hover {
+        background: #c0392b;
+      }
+
       .custom-radio-group {
         display: flex;
         gap: 20px;
@@ -1222,7 +1259,6 @@
         }
       }
 
-      /* Donation Flow Section Styles */
       .donation-flow-box {
         width: 100%;
         background: #ffffff;
@@ -1467,6 +1503,21 @@
               <button type="button" class="donation-btn" id="onetimeBtn">
                 일시기부
               </button>
+            </div>
+            <!-- 정기 기부 시작 날짜 선택 폼 (정기 기부 선택 시에만 표시) -->
+            <div id="regularStartDateContainer" style="display: none; margin-top: 20px;">
+              <label for="regularStartDateInput" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">
+                정기 기부 시작일 선택 <span style="color: #e74c3c;">*</span>
+              </label>
+              <input
+                type="date"
+                id="regularStartDateInput"
+                class="form-input"
+                style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px;"
+                min="<%= new java.text.SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date()) %>"
+              />
+              <p style="font-size: 13px; color: #666; margin-top: 8px;">
+              </p>
             </div>
           </form>
         </div>
@@ -1923,6 +1974,7 @@
               type="button"
               class="payment-method-btn active"
               data-target="creditCardForm"
+              data-method="CREDIT_CARD"
             >
               신용카드
             </button>
@@ -1930,6 +1982,7 @@
               type="button"
               class="payment-method-btn"
               data-target="bankTransferForm"
+              data-method="BANK_TRANSFER"
             >
               계좌 이체
             </button>
@@ -1937,6 +1990,7 @@
               type="button"
               class="payment-method-btn"
               data-target="naverPayForm"
+              data-method="NAVER_PAY"
             >
               네이버 페이
             </button>
@@ -2438,14 +2492,20 @@
         if (donationContainer) {
           donationContainer.classList.add('view-step2');
 
-          // 단계 표시기 업데이트
+          // 모든 단계 표시기 업데이트 (모든 step indicator 인스턴스)
           document.querySelectorAll('.step-number, .step-text').forEach(element => {
             element.classList.remove('active');
           });
-          const step2Number = document.getElementById('step2Number');
-          const step2Text = document.getElementById('step2Text');
-          if (step2Number) step2Number.classList.add('active');
-          if (step2Text) step2Text.classList.add('active');
+
+          // Step 2의 모든 인스턴스에 active 클래스 추가
+          ['step2Number', 'step2Number2', 'step2Number3'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('active');
+          });
+          ['step2Text', 'step2Text2', 'step2Text3'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('active');
+          });
         }
 
         // 페이지 상단으로 스크롤
@@ -2454,6 +2514,73 @@
 
       // Main JavaScript functionality
       document.addEventListener("DOMContentLoaded", function() {
+        // 회원 정보 로드 (마이페이지 주소 자동 입력)
+        loadMemberInfoForDonation();
+
+        function loadMemberInfoForDonation() {
+          fetch('/bdproject/api/auth/check')
+            .then(response => response.json())
+            .then(data => {
+              if (data.loggedIn) {
+                // 로그인 상태라면 회원 정보 로드
+                fetch('/bdproject/api/member/info')
+                  .then(response => response.json())
+                  .then(result => {
+                    if (result.success && result.data) {
+                      const memberData = result.data;
+                      console.log('기부 페이지 - 회원 정보 로드:', memberData);
+
+                      // 이름
+                      const nameInput = document.getElementById('sponsorName');
+                      if (nameInput && memberData.name) {
+                        nameInput.value = memberData.name;
+                      }
+                      // 전화번호
+                      const phoneInput = document.getElementById('sponsorPhone');
+                      if (phoneInput && memberData.phone) {
+                        phoneInput.value = memberData.phone;
+                      }
+                      // 생년월일 (YYYY-MM-DD 형식을 YYYYMMDD로 변환)
+                      const dobInput = document.getElementById('sponsorDob');
+                      if (dobInput && memberData.birth) {
+                        const birthDate = memberData.birth.replace(/-/g, '');
+                        dobInput.value = birthDate;
+                      }
+                      // 이메일 분리하여 입력
+                      if (memberData.email) {
+                        const emailParts = memberData.email.split('@');
+                        if (emailParts.length === 2) {
+                          const emailUserInput = document.getElementById('emailUser');
+                          const emailDomainInput = document.getElementById('emailDomain');
+                          if (emailUserInput) emailUserInput.value = emailParts[0];
+                          if (emailDomainInput) emailDomainInput.value = emailParts[1];
+                        }
+                      }
+                      // 주소 정보
+                      const postcodeInput = document.getElementById('postcode');
+                      if (postcodeInput && memberData.postcode) {
+                        postcodeInput.value = memberData.postcode;
+                      }
+                      const addressInput = document.getElementById('address');
+                      if (addressInput && memberData.address) {
+                        addressInput.value = memberData.address;
+                      }
+                      const detailAddressInput = document.getElementById('detailAddress');
+                      if (detailAddressInput && memberData.detailAddress) {
+                        detailAddressInput.value = memberData.detailAddress;
+                      }
+                    }
+                  })
+                  .catch(error => {
+                    console.error('회원 정보 로드 실패:', error);
+                  });
+              }
+            })
+            .catch(error => {
+              console.error('로그인 상태 확인 실패:', error);
+            });
+        }
+
         // Step indicator update function
         function updateStepIndicator(currentStep) {
           // 모든 단계 표시기의 active 클래스 제거
@@ -2507,14 +2634,48 @@
           }
         }
 
+        // 사용자 활동 로그 저장 함수
+        function logUserActivity(activity) {
+          try {
+            const userId = '<%= session.getAttribute("id") != null ? session.getAttribute("id") : "guest" %>';
+            const activityLog = JSON.parse(localStorage.getItem('userActivityLog_' + userId) || '[]');
+
+            activityLog.unshift(activity);
+
+            if (activityLog.length > 100) {
+              activityLog.splice(100);
+            }
+
+            localStorage.setItem('userActivityLog_' + userId, JSON.stringify(activityLog));
+          } catch (error) {
+            console.error('활동 로그 저장 오류:', error);
+          }
+        }
+
         // 정기기부/일시기부 버튼 기능
         const regularBtn = document.getElementById('regularBtn');
         const onetimeBtn = document.getElementById('onetimeBtn');
+        const regularStartDateContainer = document.getElementById('regularStartDateContainer');
 
         if (regularBtn) {
           regularBtn.addEventListener('click', function() {
             regularBtn.classList.add('active');
             onetimeBtn.classList.remove('active');
+            // 정기 기부 시작일 폼 표시
+            if (regularStartDateContainer) {
+              regularStartDateContainer.style.display = 'block';
+
+              // 오늘 이후 날짜만 선택 가능하도록 설정
+              const regularStartDateInput = document.getElementById('regularStartDateInput');
+              if (regularStartDateInput) {
+                const today = new Date();
+                const year = today.getFullYear();
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const day = String(today.getDate()).padStart(2, '0');
+                const todayStr = year + '-' + month + '-' + day;
+                regularStartDateInput.setAttribute('min', todayStr);
+              }
+            }
           });
         }
 
@@ -2522,6 +2683,10 @@
           onetimeBtn.addEventListener('click', function() {
             onetimeBtn.classList.add('active');
             regularBtn.classList.remove('active');
+            // 정기 기부 시작일 폼 숨김
+            if (regularStartDateContainer) {
+              regularStartDateContainer.style.display = 'none';
+            }
           });
         }
 
@@ -2567,26 +2732,152 @@
           });
         }
 
+        // ===== 숫자만 입력 가능하도록 설정 =====
+        function numbersOnly(input) {
+          input.value = input.value.replace(/[^0-9]/g, '');
+        }
+
+        // ===== 문자만 입력 가능하도록 설정 (이름 필드용) =====
+        function lettersOnly(input) {
+          // 한글, 영문, 공백만 허용
+          input.value = input.value.replace(/[^가-힣a-zA-Z\s]/g, '');
+        }
+
+        // 이름 필드 - 문자만 입력 (숫자 불가)
+        // 한글 조합 문제 해결을 위해 compositionend 이벤트도 처리
+        const sponsorNameInput = document.getElementById('sponsorName');
+        if (sponsorNameInput) {
+          let isComposing = false;
+
+          sponsorNameInput.addEventListener('compositionstart', function() {
+            isComposing = true;
+          });
+
+          sponsorNameInput.addEventListener('compositionend', function() {
+            isComposing = false;
+            lettersOnly(this);
+          });
+
+          sponsorNameInput.addEventListener('input', function() {
+            if (!isComposing) {
+              lettersOnly(this);
+            }
+          });
+        }
+
+        // 전화번호 필드 - 숫자만 입력
+        const sponsorPhoneInput = document.getElementById('sponsorPhone');
+        if (sponsorPhoneInput) {
+          sponsorPhoneInput.addEventListener('input', function() {
+            numbersOnly(this);
+          });
+        }
+
+        // 생년월일 필드 - 숫자만 입력
+        const sponsorDobInput = document.getElementById('sponsorDob');
+        if (sponsorDobInput) {
+          sponsorDobInput.addEventListener('input', function() {
+            numbersOnly(this);
+          });
+        }
+
+        // 신용카드 번호 필드들 - 숫자만 입력
+        document.querySelectorAll('#creditCardForm .input-group input[type="text"]').forEach(function(input) {
+          input.addEventListener('input', function() {
+            numbersOnly(this);
+          });
+        });
+
+        // CVC 필드 - 숫자만 입력
+        const cvcInput = document.querySelector('#creditCardForm input[maxlength="3"]');
+        if (cvcInput) {
+          cvcInput.addEventListener('input', function() {
+            numbersOnly(this);
+          });
+        }
+
+        // 계좌번호 필드 - 숫자만 입력
+        const accountInput = document.querySelector('#bankTransferForm input[placeholder="계좌번호를 입력하세요"]');
+        if (accountInput) {
+          accountInput.addEventListener('input', function() {
+            numbersOnly(this);
+          });
+        }
+
         // 후원자 정보 -> 결제 수단
         const goToStep3Btn = document.getElementById('goToStep3Btn');
         if (goToStep3Btn && donationContainer) {
           goToStep3Btn.addEventListener('click', function() {
-            const sponsorName = document.getElementById('sponsorName').value;
-            const sponsorPhone = document.getElementById('sponsorPhone').value;
-            const address = document.getElementById('address').value;
+            const sponsorName = document.getElementById('sponsorName').value.trim();
+            const sponsorPhone = document.getElementById('sponsorPhone').value.trim();
+            const sponsorDob = document.getElementById('sponsorDob').value.trim();
+            const emailUser = document.getElementById('emailUser').value.trim();
+            const emailDomain = document.getElementById('emailDomain').value.trim();
+            const address = document.getElementById('address').value.trim();
 
+            // 이름 검증
             if (!sponsorName) {
               alert('이름을 입력해주세요.');
               document.getElementById('sponsorName').focus();
               return;
             }
+
+            // 전화번호 검증 (10-11자리 숫자)
             if (!sponsorPhone) {
               alert('전화번호를 입력해주세요.');
               document.getElementById('sponsorPhone').focus();
               return;
             }
+            if (!/^[0-9]{10,11}$/.test(sponsorPhone)) {
+              alert('전화번호는 10~11자리 숫자만 입력해주세요.');
+              document.getElementById('sponsorPhone').focus();
+              return;
+            }
+
+            // 생년월일 검증 (8자리 숫자, YYYYMMDD)
+            if (!sponsorDob) {
+              alert('생년월일을 입력해주세요.');
+              document.getElementById('sponsorDob').focus();
+              return;
+            }
+            if (!/^[0-9]{8}$/.test(sponsorDob)) {
+              alert('생년월일은 8자리 숫자로 입력해주세요. (예: 19900101)');
+              document.getElementById('sponsorDob').focus();
+              return;
+            }
+            // 유효한 날짜인지 검증
+            const year = parseInt(sponsorDob.substring(0, 4));
+            const month = parseInt(sponsorDob.substring(4, 6));
+            const day = parseInt(sponsorDob.substring(6, 8));
+            if (year < 1900 || year > new Date().getFullYear() || month < 1 || month > 12 || day < 1 || day > 31) {
+              alert('올바른 생년월일을 입력해주세요.');
+              document.getElementById('sponsorDob').focus();
+              return;
+            }
+
+            // 이메일 검증
+            if (!emailUser) {
+              alert('이메일 아이디를 입력해주세요.');
+              document.getElementById('emailUser').focus();
+              return;
+            }
+            if (!emailDomain) {
+              alert('이메일 도메인을 입력해주세요.');
+              document.getElementById('emailDomain').focus();
+              return;
+            }
+            const fullEmail = emailUser + '@' + emailDomain;
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(fullEmail)) {
+              alert('올바른 이메일 형식을 입력해주세요.');
+              document.getElementById('emailUser').focus();
+              return;
+            }
+
+            // 주소 검증
             if (!address) {
               alert('주소를 입력해주세요.');
+              document.getElementById('searchAddressBtn').click();
               return;
             }
 
@@ -2682,9 +2973,65 @@
               return;
             }
 
+            // ===== 결제 정보 검증 =====
+            const activePaymentMethod = document.querySelector('.payment-method-btn.active');
+            const paymentType = activePaymentMethod ? activePaymentMethod.dataset.target : '';
+
+            // 신용카드 결제 검증
+            if (paymentType === 'creditCardForm') {
+              const cardInputs = document.querySelectorAll('#creditCardForm .input-group input[maxlength="4"]');
+              let cardNumber = '';
+              let isCardValid = true;
+              cardInputs.forEach(function(input) {
+                if (!input.value || input.value.length !== 4 || !/^[0-9]{4}$/.test(input.value)) {
+                  isCardValid = false;
+                }
+                cardNumber += input.value;
+              });
+              if (!isCardValid || cardNumber.length !== 16) {
+                alert('카드번호 16자리를 정확히 입력해주세요.');
+                return;
+              }
+
+              const expMonthInput = document.querySelector('#creditCardForm input[maxlength="2"][placeholder="MM"]');
+              const expYearInput = document.querySelector('#creditCardForm input[maxlength="2"][placeholder="YY"]');
+              if (!expMonthInput || !expMonthInput.value || !/^(0[1-9]|1[0-2])$/.test(expMonthInput.value)) {
+                alert('유효기간(월)을 정확히 입력해주세요. (01~12)');
+                if (expMonthInput) expMonthInput.focus();
+                return;
+              }
+              if (!expYearInput || !expYearInput.value || !/^[0-9]{2}$/.test(expYearInput.value)) {
+                alert('유효기간(년)을 정확히 입력해주세요. (YY)');
+                if (expYearInput) expYearInput.focus();
+                return;
+              }
+
+              const cvcInput = document.querySelector('#creditCardForm input[maxlength="3"]');
+              if (!cvcInput || !cvcInput.value || !/^[0-9]{3}$/.test(cvcInput.value)) {
+                alert('CVC 3자리를 정확히 입력해주세요.');
+                if (cvcInput) cvcInput.focus();
+                return;
+              }
+            }
+
+            // 계좌이체 검증
+            if (paymentType === 'bankTransferForm') {
+              const bankSelect = document.querySelector('#bankTransferForm select');
+              if (!bankSelect || !bankSelect.value) {
+                alert('은행을 선택해주세요.');
+                return;
+              }
+              const accountInput = document.querySelector('#bankTransferForm input[placeholder="계좌번호를 입력하세요"]');
+              if (!accountInput || !accountInput.value || !/^[0-9]{10,16}$/.test(accountInput.value)) {
+                alert('계좌번호를 정확히 입력해주세요. (10~16자리 숫자)');
+                if (accountInput) accountInput.focus();
+                return;
+              }
+            }
+
             // 기부 정보 수집
-            const sponsorName = document.getElementById("sponsorName").value;
-            const sponsorPhone = document.getElementById("sponsorPhone").value;
+            const sponsorName = document.getElementById("sponsorName").value.trim();
+            const sponsorPhone = document.getElementById("sponsorPhone").value.replace(/-/g, ''); // 하이픈 제거
             const amountInput = document.getElementById("amountInput").value;
 
             // 금액 파싱 (쉼표 제거)
@@ -2702,8 +3049,16 @@
             const selectedCategory = document.querySelector('.donation-category.active');
             const category = selectedCategory ? selectedCategory.dataset.category : '일반기부';
 
-            // 기부 타입 (정기/일시)
-            const donationType = document.querySelector('.payment-option.active')?.dataset.option || 'onetime';
+            // 기부 타입 (정기/일시) - regularBtn 또는 onetimeBtn 확인
+            let donationType = 'ONETIME'; // 기본값
+            const regularBtn = document.getElementById('regularBtn');
+            const onetimeBtn = document.getElementById('onetimeBtn');
+
+            if (regularBtn && regularBtn.classList.contains('active')) {
+              donationType = 'REGULAR';
+            } else if (onetimeBtn && onetimeBtn.classList.contains('active')) {
+              donationType = 'ONETIME';
+            }
 
             // 검증
             if (!sponsorName) {
@@ -2719,9 +3074,52 @@
               return;
             }
 
+            // 정기 기부인 경우 시작일 필수 확인
+            if (donationType === 'REGULAR') {
+              const regularStartDateInput = document.getElementById('regularStartDateInput');
+              if (!regularStartDateInput || !regularStartDateInput.value) {
+                alert('정기 기부 시작일을 선택해주세요.');
+                return;
+              }
+
+              // 시작일이 오늘 이후 또는 당일인지 확인
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              const startDateObj = new Date(regularStartDateInput.value + 'T00:00:00');
+
+              if (startDateObj < today) {
+                alert('정기 기부 시작일은 오늘 또는 이후 날짜여야 합니다.');
+                return;
+              }
+            }
+
             // 버튼 비활성화
             finalSubmitBtn.disabled = true;
             finalSubmitBtn.textContent = '처리 중...';
+
+            // 서명 이미지 가져오기
+            const signatureCanvas = document.getElementById('signatureCanvas');
+            const signatureImage = signatureCanvas ? signatureCanvas.toDataURL('image/png') : '';
+
+            // 결제 방법 가져오기 (선택된 버튼 찾기)
+            const selectedPaymentBtn = document.querySelector('.payment-method-btn.active');
+            const paymentMethod = selectedPaymentBtn ? selectedPaymentBtn.dataset.method || 'CREDIT_CARD' : 'CREDIT_CARD';
+
+            // 정기 기부 시작일 가져오기
+            const regularStartDateInput = document.getElementById('regularStartDateInput');
+            const regularStartDate = (donationType === 'REGULAR' || donationType === 'regular') && regularStartDateInput ? regularStartDateInput.value : '';
+
+            // 디버깅: 전송할 데이터 로그
+            console.log('=== 기부 요청 데이터 ===');
+            console.log('후원자명:', sponsorName);
+            console.log('이메일:', sponsorEmail);
+            console.log('전화번호:', sponsorPhone);
+            console.log('금액:', amount);
+            console.log('기부 유형:', donationType);
+            console.log('카테고리:', category);
+            console.log('결제 방법:', paymentMethod);
+            console.log('정기 기부 시작일:', regularStartDate);
+            console.log('서명 이미지 길이:', signatureImage.length);
 
             // API로 데이터 전송
             const formData = new URLSearchParams();
@@ -2733,6 +3131,11 @@
             formData.append('donorEmail', sponsorEmail);
             formData.append('donorPhone', sponsorPhone);
             formData.append('message', ''); // 메시지 필드가 있다면 추가
+            formData.append('signatureImage', signatureImage); // 서명 이미지 추가
+            formData.append('paymentMethod', paymentMethod); // 결제 방법 추가
+            if (regularStartDate) {
+              formData.append('regularStartDate', regularStartDate); // 정기 기부 시작일 추가
+            }
 
             fetch('/bdproject/api/donation/create', {
               method: 'POST',
@@ -2741,21 +3144,45 @@
               },
               body: formData.toString()
             })
-            .then(response => response.json())
+            .then(response => {
+              console.log('=== API 응답 상태 ===');
+              console.log('Status:', response.status);
+              console.log('StatusText:', response.statusText);
+              return response.json();
+            })
             .then(data => {
+              console.log('=== API 응답 데이터 ===');
+              console.log(data);
+
               if (data.success) {
+                // 활동 로그 저장
+                const donationTypeText = donationType === 'REGULAR' || donationType === 'regular' ? '정기 기부' : '일시 기부';
+                const today = new Date();
+                const dateStr = today.getFullYear() + '년 ' + (today.getMonth() + 1) + '월 ' + today.getDate() + '일';
+
+                logUserActivity({
+                  type: donationType === 'REGULAR' || donationType === 'regular' ? 'donation_regular' : 'donation_onetime',
+                  icon: 'fas fa-hand-holding-heart',
+                  iconColor: '#e74c3c',
+                  title: donationTypeText,
+                  description: dateStr + '에 ' + Number(amount).toLocaleString() + '원 ' + donationTypeText + '를 신청했습니다.',
+                  timestamp: new Date().toISOString()
+                });
+
                 alert('기부가 완료되었습니다. 감사합니다!');
                 setTimeout(() => {
                   window.location.href = '/bdproject/project_mypage.jsp';
                 }, 1500);
               } else {
+                console.error('기부 실패:', data.message);
                 alert('기부 처리 중 오류가 발생했습니다.\n' + (data.message || '다시 시도해주세요.'));
                 finalSubmitBtn.disabled = false;
                 finalSubmitBtn.textContent = '기부완료';
               }
             })
             .catch(error => {
-              console.error('기부 오류:', error);
+              console.error('=== 기부 요청 오류 ===');
+              console.error(error);
               alert('기부 처리 중 오류가 발생했습니다.\n다시 시도해주세요.');
               finalSubmitBtn.disabled = false;
               finalSubmitBtn.textContent = '기부완료';

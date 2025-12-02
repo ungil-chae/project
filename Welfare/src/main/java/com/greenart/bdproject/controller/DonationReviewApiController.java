@@ -1,10 +1,14 @@
 package com.greenart.bdproject.controller;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpSession;
+import javax.sql.DataSource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +39,9 @@ public class DonationReviewApiController {
     @Autowired(required = false)
     private KindnessTemperatureService temperatureService;
 
+    @Autowired
+    private DataSource dataSource;
+
     /**
      * 리뷰 작성
      * @PostMapping("/api/donation-review/create")
@@ -43,35 +50,77 @@ public class DonationReviewApiController {
     public Map<String, Object> createReview(DonationReviewDto reviewDto, HttpSession session) {
 
         Map<String, Object> response = new HashMap<>();
+        Connection con = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
 
         try {
-            // 로그인 체크
-            Integer userId = (Integer) session.getAttribute("userId");
-            if (userId == null) {
+            // 로그인 체크 - id (이메일) 사용
+            String userId = (String) session.getAttribute("id");
+            if (userId == null || userId.isEmpty()) {
+                userId = (String) session.getAttribute("userId");
+            }
+
+            if (userId == null || userId.isEmpty()) {
                 response.put("success", false);
                 response.put("message", "로그인이 필요합니다.");
                 return response;
             }
 
-            // 세션에서 userId 설정
-            reviewDto.setUserId(Long.valueOf(userId));
+            logger.info("기부 리뷰 작성 요청 - userId: {}, donationId: {}", userId, reviewDto.getDonationId());
+
+            con = dataSource.getConnection();
+
+            // member_id 조회 및 기부 소유권 확인
+            String checkSql = "SELECT m.member_id, m.name, d.donation_id FROM member m " +
+                    "JOIN donations d ON m.member_id = d.member_id " +
+                    "WHERE m.email = ? AND d.donation_id = ?";
+            pstmt = con.prepareStatement(checkSql);
+            pstmt.setString(1, userId);
+            pstmt.setLong(2, reviewDto.getDonationId());
+            rs = pstmt.executeQuery();
+
+            if (!rs.next()) {
+                response.put("success", false);
+                response.put("message", "해당 기부 내역을 찾을 수 없습니다.");
+                return response;
+            }
+
+            Long memberId = rs.getLong("member_id");
+            String memberName = rs.getString("name");
+
+            close(rs, pstmt);
+
+            // 이미 리뷰가 있는지 확인
+            String existCheckSql = "SELECT review_id FROM donation_reviews WHERE donation_id = ?";
+            pstmt = con.prepareStatement(existCheckSql);
+            pstmt.setLong(1, reviewDto.getDonationId());
+            rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                response.put("success", false);
+                response.put("message", "이미 해당 기부에 대한 리뷰를 작성하셨습니다.");
+                return response;
+            }
+
+            close(rs, pstmt);
 
             // 리뷰 작성
+            reviewDto.setUserId(memberId);
+            reviewDto.setReviewerName(memberName);
+
             DonationReviewDto result = donationReviewService.createReview(reviewDto);
 
             if (result != null) {
                 response.put("success", true);
                 response.put("data", result);
-                logger.info("리뷰 작성 성공 - userId: {}, rating: {}", userId, result.getRating());
+                response.put("message", "리뷰가 성공적으로 작성되었습니다.");
+                logger.info("리뷰 작성 성공 - memberId: {}, rating: {}", memberId, result.getRating());
 
                 // 선행온도 증가
                 if (temperatureService != null) {
                     try {
-                        String userIdStr = (String) session.getAttribute("id");
-                        if (userIdStr == null || userIdStr.isEmpty()) {
-                            userIdStr = String.valueOf(userId);
-                        }
-                        temperatureService.increaseForDonationReview(userIdStr);
+                        temperatureService.increaseForDonationReview(userId);
                     } catch (Exception e) {
                         logger.warn("선행온도 증가 실패 (리뷰 작성은 성공): {}", e.getMessage());
                     }
@@ -84,10 +133,24 @@ public class DonationReviewApiController {
         } catch (Exception e) {
             logger.error("리뷰 작성 중 오류 발생", e);
             response.put("success", false);
-            response.put("message", "리뷰 작성 중 오류가 발생했습니다.");
+            response.put("message", "리뷰 작성 중 오류가 발생했습니다: " + e.getMessage());
+        } finally {
+            close(rs, pstmt, con);
         }
 
         return response;
+    }
+
+    private void close(AutoCloseable... resources) {
+        for (AutoCloseable resource : resources) {
+            if (resource != null) {
+                try {
+                    resource.close();
+                } catch (Exception e) {
+                    logger.error("Resource close error", e);
+                }
+            }
+        }
     }
 
     /**
@@ -156,7 +219,7 @@ public class DonationReviewApiController {
         Map<String, Object> response = new HashMap<>();
 
         try {
-            logger.info("리뷰 검색 - 키워드: {}, 카테고리: {}, 정렬: {}", keyword, category, sort);
+            logger.info("리뷰 검색 - 키워드: {}, 카테고리: {}, 정렬: {}", new Object[]{keyword, category, sort});
 
             List<DonationReviewDto> allReviews = donationReviewService.getAllReviews();
             List<DonationReviewDto> filteredReviews = new java.util.ArrayList<>();

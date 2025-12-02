@@ -7,6 +7,7 @@ public class DonationReviewDto {
     private Long userId;
     private Long donationId;
     private String reviewerName;
+    private String title;
     private Integer rating;
     private String content;
     private Boolean isAnonymous;
@@ -66,6 +67,14 @@ public class DonationReviewDto {
 
     public void setReviewerName(String reviewerName) {
         this.reviewerName = reviewerName;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public Integer getRating() {

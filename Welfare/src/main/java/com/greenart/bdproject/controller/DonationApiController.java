@@ -23,7 +23,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.greenart.bdproject.dto.DonationDto;
+import com.greenart.bdproject.dto.CalendarEvent;
 import com.greenart.bdproject.service.KindnessTemperatureService;
+import com.greenart.bdproject.service.CalendarEventService;
 import java.math.BigDecimal;
 
 /**
@@ -41,6 +43,9 @@ public class DonationApiController {
 
     @Autowired(required = false)
     private KindnessTemperatureService temperatureService;
+
+    @Autowired(required = false)
+    private CalendarEventService calendarEventService;
 
     /**
      * API 테스트용 엔드포인트
@@ -94,6 +99,9 @@ public class DonationApiController {
             @RequestParam("donorEmail") String donorEmail,
             @RequestParam("donorPhone") String donorPhone,
             @RequestParam(value = "message", required = false) String message,
+            @RequestParam(value = "signatureImage", required = false) String signatureImage,
+            @RequestParam(value = "paymentMethod", required = false) String paymentMethod,
+            @RequestParam(value = "regularStartDate", required = false) String regularStartDate,
             HttpSession session) {
 
         Map<String, Object> response = new HashMap<>();
@@ -114,24 +122,72 @@ public class DonationApiController {
             logger.info("category: {}", category);
             logger.info("packageName: {}", packageName);
             logger.info("donorName: {}", donorName);
+            logger.info("donationType: {}", donationType);
+            logger.info("paymentMethod: {}", paymentMethod);
+            logger.info("regularStartDate: {}", regularStartDate);
+            logger.info("signatureImage length: {}", signatureImage != null ? signatureImage.length() : 0);
 
             con = dataSource.getConnection();
 
-            // package_name 포함
+            // member_id 조회 (로그인 사용자인 경우)
+            Long memberId = null;
+            if (userId != null && !userId.isEmpty()) {
+                String memberSql = "SELECT member_id FROM member WHERE email = ?";
+                try (PreparedStatement memberPstmt = con.prepareStatement(memberSql)) {
+                    memberPstmt.setString(1, userId);
+                    try (ResultSet memberRs = memberPstmt.executeQuery()) {
+                        if (memberRs.next()) {
+                            memberId = memberRs.getLong("member_id");
+                        }
+                    }
+                }
+            }
+
+            // category_id 조회
+            int categoryId = 1; // 기본값
+            String categorySql = "SELECT category_id FROM donation_categories WHERE category_code = ? OR category_name = ?";
+            try (PreparedStatement catPstmt = con.prepareStatement(categorySql)) {
+                catPstmt.setString(1, category);
+                catPstmt.setString(2, category);
+                try (ResultSet catRs = catPstmt.executeQuery()) {
+                    if (catRs.next()) {
+                        categoryId = catRs.getInt("category_id");
+                    }
+                }
+            }
+
+            // payment_method 기본값 설정
+            if (paymentMethod == null || paymentMethod.isEmpty()) {
+                paymentMethod = "CREDIT_CARD"; // 기본값
+            }
+
+            // schema.sql에 맞춤: member_id, category_id, signature_image, payment_method, regular_start_date 사용
             String sql = "INSERT INTO donations " +
-                    "(user_id, amount, donation_type, category, package_name, donor_name, donor_email, donor_phone, message, payment_status) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'completed')";
+                    "(member_id, category_id, amount, donation_type, package_name, donor_name, donor_email, donor_phone, message, signature_image, payment_method, regular_start_date, payment_status) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'COMPLETED')";
 
             pstmt = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            pstmt.setString(1, userId);  // NULL 가능
-            pstmt.setDouble(2, amount);
-            pstmt.setString(3, donationType);
-            pstmt.setString(4, category);
+            if (memberId != null) {
+                pstmt.setLong(1, memberId);
+            } else {
+                pstmt.setNull(1, java.sql.Types.BIGINT);
+            }
+            pstmt.setInt(2, categoryId);
+            pstmt.setDouble(3, amount);
+            pstmt.setString(4, donationType.toUpperCase()); // ENUM: REGULAR, ONETIME
             pstmt.setString(5, packageName);
             pstmt.setString(6, donorName);
             pstmt.setString(7, donorEmail);
             pstmt.setString(8, donorPhone);
             pstmt.setString(9, message);
+            pstmt.setString(10, signatureImage); // Base64 이미지
+            pstmt.setString(11, paymentMethod.toUpperCase()); // ENUM: CREDIT_CARD, BANK_TRANSFER, etc.
+            // 정기 기부 시작일 설정
+            if (regularStartDate != null && !regularStartDate.isEmpty() && "REGULAR".equalsIgnoreCase(donationType)) {
+                pstmt.setString(12, regularStartDate); // DATE 형식 (YYYY-MM-DD)
+            } else {
+                pstmt.setNull(12, java.sql.Types.DATE);
+            }
 
             int result = pstmt.executeUpdate();
 
@@ -150,6 +206,27 @@ public class DonationApiController {
                             temperatureService.increaseForDonation(userId, BigDecimal.valueOf(amount));
                         } catch (Exception e) {
                             logger.warn("선행온도 증가 실패 (기부는 성공): {}", e.getMessage());
+                        }
+                    }
+
+                    // 정기 기부인 경우 캘린더에 자동 등록
+                    if ("REGULAR".equalsIgnoreCase(donationType) && regularStartDate != null &&
+                        !regularStartDate.isEmpty() && memberId != null && calendarEventService != null) {
+                        try {
+                            CalendarEvent calendarEvent = new CalendarEvent();
+                            calendarEvent.setMemberId(memberId);
+                            calendarEvent.setTitle(String.format("정기 기부 (%s)", category));
+                            calendarEvent.setDescription(String.format("%.0f원 정기 기부", amount));
+                            calendarEvent.setEventDate(java.sql.Date.valueOf(regularStartDate));
+                            calendarEvent.setEventType("DONATION");
+                            calendarEvent.setReminderEnabled(true);
+                            calendarEvent.setRemindBeforeDays(1);
+                            calendarEvent.setStatus("SCHEDULED");
+
+                            calendarEventService.createEvent(calendarEvent);
+                            logger.info("캘린더 자동 등록 성공 - donationId: {}, date: {}", donationId, regularStartDate);
+                        } catch (Exception e) {
+                            logger.warn("캘린더 자동 등록 실패 (기부는 성공): {}", e.getMessage());
                         }
                     }
                 }
@@ -203,13 +280,13 @@ public class DonationApiController {
             con = dataSource.getConnection();
             logger.info("데이터베이스 연결 성공");
 
-            // 총 모금액, 후원자 수 조회
+            // 총 모금액, 후원자 수 조회 (ENUM 값은 대소문자 모두 허용)
             String sql = "SELECT " +
                     "COALESCE(SUM(amount), 0) AS total_amount, " +
                     "COUNT(DISTINCT donor_email) AS donor_count, " +
                     "COUNT(*) AS donation_count " +
                     "FROM donations " +
-                    "WHERE payment_status = 'completed'";
+                    "WHERE payment_status IN ('COMPLETED', 'completed')";
 
             pstmt = con.prepareStatement(sql);
             rs = pstmt.executeQuery();
@@ -237,7 +314,8 @@ public class DonationApiController {
             String reviewSql = "SELECT " +
                     "COUNT(*) AS review_count, " +
                     "COALESCE(AVG(rating), 0.0) AS avg_rating " +
-                    "FROM donation_reviews";
+                    "FROM donation_reviews " +
+                    "WHERE deleted_at IS NULL AND is_visible = TRUE";
 
             pstmt = con.prepareStatement(reviewSql);
             rs = pstmt.executeQuery();
@@ -332,19 +410,20 @@ public class DonationApiController {
             con = dataSource.getConnection();
             logger.info("데이터베이스 연결 성공");
 
-            // 카테고리별 금액, 비율, 건수 조회
+            // 카테고리별 금액, 비율, 건수 조회 (schema.sql에 맞춤: category_id 사용)
             String sql = "SELECT " +
-                    "category, " +
+                    "dc.category_name AS category, " +
                     "COUNT(*) AS donation_count, " +
-                    "SUM(amount) AS total_amount, " +
+                    "SUM(d.amount) AS total_amount, " +
                     "CASE " +
-                    "  WHEN (SELECT SUM(amount) FROM donations WHERE payment_status = 'completed') > 0 " +
-                    "  THEN (SUM(amount) / (SELECT SUM(amount) FROM donations WHERE payment_status = 'completed') * 100) " +
+                    "  WHEN (SELECT SUM(amount) FROM donations WHERE payment_status IN ('COMPLETED', 'completed')) > 0 " +
+                    "  THEN (SUM(d.amount) / (SELECT SUM(amount) FROM donations WHERE payment_status IN ('COMPLETED', 'completed')) * 100) " +
                     "  ELSE 0 " +
                     "END AS percentage " +
-                    "FROM donations " +
-                    "WHERE payment_status = 'completed' AND category IS NOT NULL " +
-                    "GROUP BY category " +
+                    "FROM donations d " +
+                    "JOIN donation_categories dc ON d.category_id = dc.category_id " +
+                    "WHERE d.payment_status IN ('COMPLETED', 'completed') " +
+                    "GROUP BY dc.category_id, dc.category_name " +
                     "ORDER BY total_amount DESC";
 
             pstmt = con.prepareStatement(sql);
@@ -365,7 +444,7 @@ public class DonationApiController {
                 stat.put("percentage", Math.round(percentage * 10.0) / 10.0); // 소수점 1자리
 
                 categoryStats.add(stat);
-                logger.info("카테고리: {}, 금액: {}, 비율: {}%", new Object[]{category, totalAmount, percentage});
+                logger.info("카테고리: {} - 금액: {}", category, totalAmount);
             }
 
             logger.info("분야별 통계 조회 성공 - 총 {}개 카테고리", categoryStats.size());
@@ -430,15 +509,17 @@ public class DonationApiController {
 
             // 새 스키마: member_id (BIGINT), email로 회원 식별
             // JOIN을 통해 category_name 가져오기
+            // member_id가 있으면 member로 조회, 없으면 donor_email로 조회
             String sql = "SELECT d.*, dc.category_name " +
                     "FROM donations d " +
                     "LEFT JOIN donation_categories dc ON d.category_id = dc.category_id " +
-                    "JOIN member m ON d.member_id = m.member_id " +
-                    "WHERE m.email = ? " +
+                    "LEFT JOIN member m ON d.member_id = m.member_id " +
+                    "WHERE (m.email = ? OR d.donor_email = ?) " +
                     "ORDER BY d.created_at DESC";
 
             pstmt = con.prepareStatement(sql);
-            pstmt.setString(1, userId);  // userId는 email
+            pstmt.setString(1, userId);  // userId는 email (member 테이블)
+            pstmt.setString(2, userId);  // userId는 email (donor_email)
             rs = pstmt.executeQuery();
 
             List<DonationDto> donations = new ArrayList<>();
@@ -460,6 +541,8 @@ public class DonationApiController {
                 dto.setPaymentStatus(rs.getString("payment_status"));
                 dto.setTransactionId(rs.getString("transaction_id"));
                 dto.setReceiptIssued(rs.getBoolean("receipt_issued"));
+                dto.setSignatureImage(rs.getString("signature_image")); // 서명 이미지 추가
+                dto.setRegularStartDate(rs.getDate("regular_start_date")); // 정기 기부 시작일 추가
                 dto.setCreatedAt(rs.getTimestamp("created_at"));
                 dto.setRefundedAt(rs.getTimestamp("refunded_at"));
 
@@ -474,6 +557,136 @@ public class DonationApiController {
             logger.error("기부 내역 조회 중 오류 발생", e);
             response.put("success", false);
             response.put("message", "기부 내역 조회 중 오류가 발생했습니다.");
+        } finally {
+            close(rs, pstmt, con);
+        }
+
+        return response;
+    }
+
+    /**
+     * 기부 환불 API
+     * 하루가 지났으면 10% 수수료
+     */
+    @PostMapping("/refund")
+    public Map<String, Object> refundDonation(
+            @RequestParam("donationId") Long donationId,
+            HttpSession session) {
+
+        Map<String, Object> response = new HashMap<>();
+        Connection con = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try {
+            // 로그인 체크
+            String userId = (String) session.getAttribute("id");
+            if (userId == null || userId.isEmpty()) {
+                userId = (String) session.getAttribute("userId");
+            }
+
+            if (userId == null || userId.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "로그인이 필요합니다.");
+                return response;
+            }
+
+            logger.info("기부 환불 요청 - userId: {}, donationId: {}", userId, donationId);
+
+            con = dataSource.getConnection();
+
+            // 기부 정보 조회
+            String selectSql = "SELECT d.*, m.member_id FROM donations d " +
+                    "JOIN member m ON d.member_id = m.member_id " +
+                    "WHERE d.donation_id = ? AND m.email = ?";
+            pstmt = con.prepareStatement(selectSql);
+            pstmt.setLong(1, donationId);
+            pstmt.setString(2, userId);
+            rs = pstmt.executeQuery();
+
+            if (!rs.next()) {
+                response.put("success", false);
+                response.put("message", "해당 기부 내역을 찾을 수 없습니다.");
+                return response;
+            }
+
+            String paymentStatus = rs.getString("payment_status");
+            int amount = rs.getInt("amount");
+            java.sql.Timestamp createdAt = rs.getTimestamp("created_at");
+
+            // 이미 환불된 경우
+            if ("REFUNDED".equals(paymentStatus)) {
+                response.put("success", false);
+                response.put("message", "이미 환불된 기부입니다.");
+                return response;
+            }
+
+            // 완료되지 않은 결제
+            if (!"COMPLETED".equals(paymentStatus)) {
+                response.put("success", false);
+                response.put("message", "완료된 기부만 환불할 수 있습니다.");
+                return response;
+            }
+
+            close(rs, pstmt);
+
+            // 기부일로부터 경과 시간 계산
+            long diffMs = System.currentTimeMillis() - createdAt.getTime();
+            long hours24 = 24 * 60 * 60 * 1000;
+            boolean isAfter24Hours = diffMs > hours24;
+
+            // 환불 가능 기간 체크 (7일 이내만)
+            long days7 = 7 * 24 * 60 * 60 * 1000L;
+            if (diffMs > days7) {
+                response.put("success", false);
+                response.put("message", "환불 가능 기간(7일)이 지났습니다.");
+                return response;
+            }
+
+            // 환불 금액 계산 (24시간 이후면 10% 수수료)
+            int fee = 0;
+            int refundAmount = amount;
+            if (isAfter24Hours) {
+                fee = (int) Math.round(amount * 0.1);
+                refundAmount = amount - fee;
+            }
+
+            // 기부 상태를 REFUNDED로 변경
+            String updateSql = "UPDATE donations SET payment_status = 'REFUNDED', " +
+                    "refund_amount = ?, refund_fee = ?, refunded_at = NOW(), updated_at = NOW() " +
+                    "WHERE donation_id = ?";
+            pstmt = con.prepareStatement(updateSql);
+            pstmt.setInt(1, refundAmount);
+            pstmt.setInt(2, fee);
+            pstmt.setLong(3, donationId);
+
+            int updated = pstmt.executeUpdate();
+
+            if (updated > 0) {
+                logger.info("기부 환불 완료 - donationId: {}, 원금: {}, 수수료: {}, 환불금: {}",
+                        donationId, amount, fee, refundAmount);
+
+                response.put("success", true);
+                response.put("originalAmount", amount);
+                response.put("fee", fee);
+                response.put("refundAmount", refundAmount);
+                response.put("hadFee", isAfter24Hours);
+
+                if (isAfter24Hours) {
+                    response.put("message", String.format("환불이 완료되었습니다. (원금: %,d원, 수수료: %,d원, 환불금액: %,d원)",
+                            amount, fee, refundAmount));
+                } else {
+                    response.put("message", String.format("환불이 완료되었습니다. (환불금액: %,d원)", refundAmount));
+                }
+            } else {
+                response.put("success", false);
+                response.put("message", "환불 처리에 실패했습니다.");
+            }
+
+        } catch (Exception e) {
+            logger.error("기부 환불 중 오류 발생", e);
+            response.put("success", false);
+            response.put("message", "환불 중 오류가 발생했습니다: " + e.getMessage());
         } finally {
             close(rs, pstmt, con);
         }

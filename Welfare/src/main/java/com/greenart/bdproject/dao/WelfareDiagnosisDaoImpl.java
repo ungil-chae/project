@@ -20,8 +20,8 @@ public class WelfareDiagnosisDaoImpl implements WelfareDiagnosisDao {
     }
 
     @Override
-    public List<WelfareDiagnosisDto> selectByUserId(String userId) {
-        return sqlSession.selectList(NAMESPACE + ".selectByUserId", userId);
+    public List<WelfareDiagnosisDto> selectByMemberId(Long memberId) {
+        return sqlSession.selectList(NAMESPACE + ".selectByMemberId", memberId);
     }
 
     @Override
@@ -30,7 +30,7 @@ public class WelfareDiagnosisDaoImpl implements WelfareDiagnosisDao {
     }
 
     @Override
-    public WelfareDiagnosisDto selectLatestByUserId(String userId) {
-        return sqlSession.selectOne(NAMESPACE + ".selectLatestByUserId", userId);
+    public WelfareDiagnosisDto selectLatestByMemberId(Long memberId) {
+        return sqlSession.selectOne(NAMESPACE + ".selectLatestByMemberId", memberId);
     }
 }

@@ -42,6 +42,12 @@ public class DonationDto {
     // 영수증 정보
     private Boolean receiptIssued;  // BOOLEAN
 
+    // 서명 정보
+    private String signatureImage;  // LONGTEXT (Base64 이미지)
+
+    // 정기 기부 정보
+    private java.sql.Date regularStartDate;  // DATE (정기 기부 시작일)
+
     // 시스템 정보
     private Timestamp createdAt;  // TIMESTAMP
     private Timestamp refundedAt;  // TIMESTAMP (환불일)
@@ -179,6 +185,14 @@ public class DonationDto {
         this.receiptIssued = receiptIssued;
     }
 
+    public String getSignatureImage() {
+        return signatureImage;
+    }
+
+    public void setSignatureImage(String signatureImage) {
+        this.signatureImage = signatureImage;
+    }
+
     public Timestamp getCreatedAt() {
         return createdAt;
     }
@@ -193,6 +207,14 @@ public class DonationDto {
 
     public void setRefundedAt(Timestamp refundedAt) {
         this.refundedAt = refundedAt;
+    }
+
+    public java.sql.Date getRegularStartDate() {
+        return regularStartDate;
+    }
+
+    public void setRegularStartDate(java.sql.Date regularStartDate) {
+        this.regularStartDate = regularStartDate;
     }
 
     // 유틸리티 메서드

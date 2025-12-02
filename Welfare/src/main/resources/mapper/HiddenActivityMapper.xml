@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.greenart.bdproject.mapper.HiddenActivityMapper">
+
+    <!-- 활동 숨김 처리 -->
+    <insert id="hideActivity" parameterType="map">
+        INSERT INTO hidden_recent_activities (member_id, activity_type, activity_id)
+        VALUES (#{memberId}, #{activityType}, #{activityId})
+        ON DUPLICATE KEY UPDATE hidden_at = CURRENT_TIMESTAMP
+    </insert>
+
+    <!-- 활동 숨김 해제 -->
+    <delete id="unhideActivity" parameterType="map">
+        DELETE FROM hidden_recent_activities
+        WHERE member_id = #{memberId}
+          AND activity_type = #{activityType}
+          AND activity_id = #{activityId}
+    </delete>
+
+    <!-- 회원의 숨긴 활동 ID 목록 조회 -->
+    <select id="getHiddenActivityIds" parameterType="map" resultType="long">
+        SELECT activity_id
+        FROM hidden_recent_activities
+        WHERE member_id = #{memberId}
+          AND activity_type = #{activityType}
+        ORDER BY hidden_at DESC
+    </select>
+
+    <!-- 특정 활동이 숨김 처리되었는지 확인 -->
+    <select id="isHidden" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+        FROM hidden_recent_activities
+        WHERE member_id = #{memberId}
+          AND activity_type = #{activityType}
+          AND activity_id = #{activityId}
+    </select>
+
+    <!-- 회원의 모든 숨김 활동 삭제 -->
+    <delete id="deleteAllHidden" parameterType="long">
+        DELETE FROM hidden_recent_activities
+        WHERE member_id = #{memberId}
+    </delete>
+
+</mapper>

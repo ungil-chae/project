@@ -27,165 +27,6 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
-        /* Header Styles */
-        #main-header {
-            position: -webkit-sticky;
-            position: sticky;
-            top: 0;
-            z-index: 9999;
-            background-color: #ffffff;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            width: 100%;
-        }
-        .navbar {
-            background-color: transparent;
-            padding: 0 40px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            height: 60px;
-        }
-        .navbar-left {
-            flex-shrink: 0;
-        }
-        .nav-menu {
-            display: flex;
-            gap: 50px;
-            align-items: center;
-            justify-content: center;
-            flex-grow: 1;
-        }
-        .navbar-right {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-        .navbar-icon {
-            width: 22px;
-            height: 22px;
-            cursor: pointer;
-            color: #333;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
-            color: #333;
-            width: fit-content;
-            transition: opacity 0.2s ease;
-        }
-        .logo:hover {
-            opacity: 0.7;
-        }
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background-image: url("resources/image/복지로고.png");
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-        }
-        .logo-text {
-            font-size: 24px;
-            font-weight: 700;
-            color: #333;
-        }
-
-        .nav-item {
-            height: 100%;
-            display: flex;
-            align-items: center;
-        }
-
-        .nav-link {
-            color: #333;
-            text-decoration: none;
-            font-size: 15px;
-            font-weight: 600;
-            transition: all 0.2s ease;
-            padding: 18px 15px;
-            border-radius: 8px;
-        }
-        .nav-link:hover,
-        .nav-link.active {
-            background-color: #f5f5f5;
-            color: #333;
-        }
-
-        #mega-menu-wrapper {
-            position: absolute;
-            width: 100%;
-            background-color: white;
-            color: #333;
-            left: 0;
-            top: 60px;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease-in-out, padding 0.4s ease-in-out, border-top 0.4s ease-in-out;
-            border-top: 1px solid transparent;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
-        }
-
-        #mega-menu-wrapper.active {
-            max-height: 500px;
-            padding: 30px 0 40px 0;
-            border-top: 1px solid #e0e0e0;
-        }
-
-        .mega-menu-content {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 0 40px;
-            display: flex;
-            justify-content: flex-start;
-            gap: 60px;
-        }
-
-        .menu-column {
-            display: none;
-            flex-direction: column;
-            gap: 25px;
-        }
-
-        .menu-column.active {
-            display: flex;
-        }
-
-        .dropdown-link {
-            color: #333;
-            text-decoration: none;
-            display: block;
-        }
-        .dropdown-link-title {
-            font-weight: 700;
-            font-size: 15px;
-            display: inline-block;
-            position: relative;
-            padding-bottom: 5px;
-            color: #000000;
-        }
-        .dropdown-link-title::after {
-            content: "";
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background-color: #000000;
-            transition: width 0.3s ease;
-        }
-        .dropdown-link:hover .dropdown-link-title::after {
-            width: 100%;
-        }
-        .dropdown-link-desc {
-            font-size: 13px;
-            color: #555;
-            margin-top: 6px;
-            display: block;
-        }
-
         /* 히어로 섹션 */
         .hero-section {
             background: #f8f9fa;
@@ -274,7 +115,7 @@
             background-color: #fafafa;
             color: #191918;
             margin: 10px auto 40px;
-            padding: 20px 20px 300px 20px;
+            padding: 20px 20px 200px 20px;
             min-height: 900px;
             overflow: visible;
         }
@@ -490,6 +331,32 @@
             flex: 1;
         }
 
+        /* 이메일 그룹 스타일 */
+        .email-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .email-group .form-input {
+            flex: 1;
+        }
+
+        .email-at {
+            font-weight: 500;
+            color: #666;
+        }
+
+        .email-group .form-select {
+            flex: 0.8;
+            padding: 15px;
+            border: 2px solid #e8e8e8;
+            border-radius: 8px;
+            font-size: 15px;
+            background-color: white;
+            cursor: pointer;
+        }
+
         #searchAddressBtn {
             background: #4a90e2;
             color: white;
@@ -669,36 +536,6 @@
             background: #3498db;
             transform: translateY(-3px);
         }
-        .footer-bottom {
-            border-top: 1px solid #34495e;
-            padding-top: 30px;
-            text-align: center;
-        }
-        .footer-bottom-content {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            align-items: center;
-        }
-        .footer-bottom p {
-            color: #95a5a6;
-            font-size: 13px;
-            margin: 5px 0;
-        }
-        .footer-legal-links {
-            display: flex;
-            gap: 20px;
-            margin-top: 10px;
-        }
-        .footer-legal-links a {
-            color: #95a5a6;
-            text-decoration: none;
-            font-size: 13px;
-            transition: color 0.3s ease;
-        }
-        .footer-legal-links a:hover {
-            color: #3498db;
-        }
 
         /* Responsive */
         @media (max-width: 1024px) {
@@ -714,12 +551,6 @@
         }
 
         @media (max-width: 768px) {
-            .nav-menu {
-                display: none;
-            }
-            .navbar {
-                padding: 0 15px;
-            }
             .volunteer-categories {
                 grid-template-columns: 1fr;
             }
@@ -730,17 +561,9 @@
                 flex-direction: column;
                 align-items: flex-start;
             }
-            .footer-content {
-                grid-template-columns: 1fr;
-                gap: 30px;
-            }
-            .footer-legal-links {
-                flex-direction: column;
-                gap: 10px;
-            }
         }
 
-        /* Google Translate Widget 스타일 */
+        /* Google Translate Widget 스타일 (navbar.jsp로 이동됨) */
         .language-selector {
             position: relative;
             display: inline-block;
@@ -1024,28 +847,59 @@
         <!-- Step 2: Volunteer Information -->
         <div id="volunteer-step2" class="volunteer-step">
             <div class="volunteer-box">
-                <h2 class="volunteer-title">봉사자 정보</h2>
+                <h2 class="volunteer-title">
+                    <span>봉사자 정보</span>
+                    <!-- Step Indicator -->
+                    <div class="step-indicator">
+                        <div class="step">
+                            <div class="step-number" id="step1Number-s2">1</div>
+                            <div class="step-text" id="step1Text-s2">봉사 활동 선택</div>
+                        </div>
+                        <div class="step-connector"></div>
+                        <div class="step">
+                            <div class="step-number active" id="step2Number-s2">2</div>
+                            <div class="step-text active" id="step2Text-s2">봉사자 정보</div>
+                        </div>
+                        <div class="step-connector"></div>
+                        <div class="step">
+                            <div class="step-number" id="step3Number-s2">3</div>
+                            <div class="step-text" id="step3Text-s2">신청 완료</div>
+                        </div>
+                    </div>
+                </h2>
                 <p class="volunteer-subtitle">봉사 활동을 위한 정보를 입력해주세요.</p>
 
                 <form class="volunteer-form" id="volunteerForm">
                     <div class="form-group">
                         <label class="form-label" for="volunteerName">이름</label>
-                        <input type="text" id="volunteerName" class="form-input" placeholder="이름을 입력하세요" required>
+                        <input type="text" id="volunteerName" class="form-input" placeholder="이름을 입력하세요" oninput="lettersOnly(this)" required>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label" for="volunteerPhone">전화번호</label>
-                        <input type="text" id="volunteerPhone" class="form-input" placeholder="'-' 없이 숫자만 입력" maxlength="11" required>
+                        <input type="text" id="volunteerPhone" class="form-input" placeholder="'-' 없이 숫자만 입력" maxlength="11" oninput="numbersOnly(this)" required>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label" for="volunteerEmail">이메일</label>
-                        <input type="email" id="volunteerEmail" class="form-input" placeholder="example@email.com" required>
+                        <label class="form-label">이메일</label>
+                        <div class="email-group">
+                            <input type="text" id="emailUser" class="form-input" placeholder="이메일 아이디" />
+                            <span class="email-at">@</span>
+                            <input type="text" id="emailDomain" class="form-input" placeholder="직접입력" />
+                            <select id="emailDomainSelect" class="form-select">
+                                <option value="">직접입력</option>
+                                <option value="naver.com">naver.com</option>
+                                <option value="gmail.com">gmail.com</option>
+                                <option value="hanmail.net">hanmail.net</option>
+                                <option value="daum.net">daum.net</option>
+                                <option value="nate.com">nate.com</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label" for="volunteerBirth">생년월일</label>
-                        <input type="text" id="volunteerBirth" class="form-input" placeholder="8자리 입력 (예: 19900101)" maxlength="8" required>
+                        <input type="text" id="volunteerBirth" class="form-input" placeholder="8자리 입력 (예: 19900101)" maxlength="8" oninput="numbersOnly(this)" required>
                     </div>
 
                     <div class="form-group full-width">
@@ -1098,7 +952,26 @@
         <!-- Step 3: Confirmation -->
         <div id="volunteer-step3" class="volunteer-step">
             <div class="volunteer-box">
-                <h2 class="volunteer-title">신청 정보 확인</h2>
+                <h2 class="volunteer-title">
+                    <span>신청 정보 확인</span>
+                    <!-- Step Indicator -->
+                    <div class="step-indicator">
+                        <div class="step">
+                            <div class="step-number" id="step1Number-s3">1</div>
+                            <div class="step-text" id="step1Text-s3">봉사 활동 선택</div>
+                        </div>
+                        <div class="step-connector"></div>
+                        <div class="step">
+                            <div class="step-number" id="step2Number-s3">2</div>
+                            <div class="step-text" id="step2Text-s3">봉사자 정보</div>
+                        </div>
+                        <div class="step-connector"></div>
+                        <div class="step">
+                            <div class="step-number active" id="step3Number-s3">3</div>
+                            <div class="step-text active" id="step3Text-s3">신청 완료</div>
+                        </div>
+                    </div>
+                </h2>
                 <p class="volunteer-subtitle">입력하신 정보를 확인해주세요.</p>
 
                 <div class="summary-box">
@@ -1178,6 +1051,81 @@
     <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 
     <script>
+        // 숫자만 입력 허용 함수
+        function numbersOnly(input) {
+            input.value = input.value.replace(/[^0-9]/g, '');
+        }
+
+        // 문자만 입력 허용 함수 (한글, 영문, 공백만)
+        function lettersOnly(input) {
+            input.value = input.value.replace(/[^가-힣a-zA-Z\s]/g, '');
+        }
+
+        // 사용자 활동 로그 저장 함수
+        function logUserActivity(activity) {
+            try {
+                const userId = '<%= session.getAttribute("id") != null ? session.getAttribute("id") : "guest" %>';
+                const activityLog = JSON.parse(localStorage.getItem('userActivityLog_' + userId) || '[]');
+
+                activityLog.unshift(activity);
+
+                if (activityLog.length > 100) {
+                    activityLog.splice(100);
+                }
+
+                localStorage.setItem('userActivityLog_' + userId, JSON.stringify(activityLog));
+            } catch (error) {
+                console.error('활동 로그 저장 오류:', error);
+            }
+        }
+
+        // 날짜 선택 제한 설정 함수
+        function setDateRestrictions() {
+            // 사용자의 로컬 시간대 기준으로 오늘 날짜 계산
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            const todayStr = year + '-' + month + '-' + day;
+
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+
+            // 시작일과 종료일 모두 오늘 이후만 선택 가능
+            if (startDateInput) {
+                startDateInput.setAttribute('min', todayStr);
+
+                // 시작일 변경 시 종료일의 최소값도 업데이트
+                startDateInput.addEventListener('change', function() {
+                    const selectedStartDate = this.value;
+                    if (endDateInput) {
+                        endDateInput.setAttribute('min', selectedStartDate);
+
+                        // 이미 선택된 종료일이 시작일보다 이전이면 초기화
+                        if (endDateInput.value && endDateInput.value < selectedStartDate) {
+                            endDateInput.value = '';
+                            alert('종료일은 시작일 이후여야 합니다.');
+                        }
+                    }
+                });
+            }
+
+            if (endDateInput) {
+                endDateInput.setAttribute('min', todayStr);
+
+                // 종료일 변경 시 시작일보다 이전인지 검증
+                endDateInput.addEventListener('change', function() {
+                    const selectedEndDate = this.value;
+                    const selectedStartDate = startDateInput ? startDateInput.value : '';
+
+                    if (selectedStartDate && selectedEndDate < selectedStartDate) {
+                        this.value = '';
+                        alert('종료일은 시작일 이후여야 합니다.');
+                    }
+                });
+            }
+        }
+
         // 봉사 신청 데이터 저장 객체
         let volunteerData = {
             category: '',
@@ -1197,16 +1145,22 @@
         };
 
         document.addEventListener('DOMContentLoaded', function() {
-            // 로그인 상태 확인
-            checkLoginStatus();
+            // 날짜 입력 필드에 오늘 이후 날짜만 선택 가능하도록 설정
+            setDateRestrictions();
 
-            function checkLoginStatus() {
+            // 로그인 상태 확인 및 회원 정보 로드
+            checkLoginStatusAndLoadInfo();
+
+            function checkLoginStatusAndLoadInfo() {
                 fetch('/bdproject/api/auth/check')
                     .then(response => response.json())
                     .then(data => {
                         if (!data.loggedIn) {
                             alert('봉사 신청은 로그인이 필요합니다.\n로그인 페이지로 이동합니다.');
                             window.location.href = '/bdproject/projectLogin.jsp';
+                        } else {
+                            // 로그인 상태라면 회원 정보 로드
+                            loadMemberInfo();
                         }
                     })
                     .catch(error => {
@@ -1216,21 +1170,92 @@
                     });
             }
 
+            // 마이페이지에서 회원 정보 불러오기
+            function loadMemberInfo() {
+                fetch('/bdproject/api/member/info')
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success && result.data) {
+                            const data = result.data;
+                            console.log('회원 정보 로드:', data);
+
+                            // 이름
+                            if (data.name) {
+                                document.getElementById('volunteerName').value = data.name;
+                            }
+                            // 전화번호
+                            if (data.phone) {
+                                document.getElementById('volunteerPhone').value = data.phone;
+                            }
+                            // 이메일 분리하여 입력
+                            if (data.email) {
+                                const emailParts = data.email.split('@');
+                                if (emailParts.length === 2) {
+                                    document.getElementById('emailUser').value = emailParts[0];
+                                    document.getElementById('emailDomain').value = emailParts[1];
+                                }
+                            }
+                            // 생년월일 (YYYY-MM-DD 형식을 YYYYMMDD로 변환)
+                            if (data.birth) {
+                                const birthDate = data.birth.replace(/-/g, '');
+                                document.getElementById('volunteerBirth').value = birthDate;
+                            }
+                            // 주소 정보가 있으면 로드
+                            if (data.postcode) {
+                                document.getElementById('postcode').value = data.postcode;
+                            }
+                            if (data.address) {
+                                document.getElementById('address').value = data.address;
+                            }
+                            if (data.detailAddress) {
+                                document.getElementById('detailAddress').value = data.detailAddress;
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('회원 정보 로드 실패:', error);
+                    });
+            }
+
+            // 이메일 도메인 선택 이벤트
+            const emailDomainSelect = document.getElementById('emailDomainSelect');
+            if (emailDomainSelect) {
+                emailDomainSelect.addEventListener('change', function() {
+                    const emailDomainInput = document.getElementById('emailDomain');
+                    if (this.value) {
+                        emailDomainInput.value = this.value;
+                        emailDomainInput.readOnly = true;
+                    } else {
+                        emailDomainInput.value = '';
+                        emailDomainInput.readOnly = false;
+                        emailDomainInput.focus();
+                    }
+                });
+            }
+
             // Step indicator update
             function updateStepIndicator(currentStep) {
+                // 모든 step indicator에서 active 클래스 제거
                 document.querySelectorAll('.step-number, .step-text').forEach(element => {
                     element.classList.remove('active');
                 });
 
                 if (currentStep === 1) {
+                    // Step 1의 indicator 활성화
                     document.getElementById('step1Number').classList.add('active');
                     document.getElementById('step1Text').classList.add('active');
                 } else if (currentStep === 2) {
-                    document.getElementById('step2Number').classList.add('active');
-                    document.getElementById('step2Text').classList.add('active');
+                    // Step 2의 모든 indicator 활성화
+                    ['step2Number-s2', 'step2Text-s2'].forEach(id => {
+                        const element = document.getElementById(id);
+                        if (element) element.classList.add('active');
+                    });
                 } else if (currentStep === 3) {
-                    document.getElementById('step3Number').classList.add('active');
-                    document.getElementById('step3Text').classList.add('active');
+                    // Step 3의 모든 indicator 활성화
+                    ['step3Number-s3', 'step3Text-s3'].forEach(id => {
+                        const element = document.getElementById(id);
+                        if (element) element.classList.add('active');
+                    });
                 }
             }
 
@@ -1313,6 +1338,23 @@
                     alert('희망 봉사 기간을 선택해주세요.');
                     return;
                 }
+
+                // 날짜 유효성 추가 검증 (오늘 이후 또는 당일 날짜인지 확인)
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const startDateObj = new Date(startDate + 'T00:00:00');
+                const endDateObj = new Date(endDate + 'T00:00:00');
+
+                if (startDateObj < today) {
+                    alert('시작일은 오늘 또는 이후 날짜여야 합니다.');
+                    return;
+                }
+
+                if (endDateObj < startDateObj) {
+                    alert('종료일은 시작일 이후 날짜여야 합니다.');
+                    return;
+                }
+
                 if (!availableTime) {
                     alert('참여 가능 시간대를 선택해주세요.');
                     return;
@@ -1344,7 +1386,8 @@
                 // 검증
                 const name = document.getElementById('volunteerName').value;
                 const phone = document.getElementById('volunteerPhone').value;
-                const email = document.getElementById('volunteerEmail').value;
+                const emailUser = document.getElementById('emailUser').value;
+                const emailDomain = document.getElementById('emailDomain').value;
                 const birth = document.getElementById('volunteerBirth').value;
                 const address = document.getElementById('address').value;
                 const experience = document.querySelector('input[name="experience"]:checked');
@@ -1357,10 +1400,12 @@
                     alert('전화번호를 입력해주세요.');
                     return;
                 }
-                if (!email) {
+                if (!emailUser || !emailDomain) {
                     alert('이메일을 입력해주세요.');
                     return;
                 }
+                // 이메일 조합
+                const email = emailUser + '@' + emailDomain;
                 if (!birth || birth.length !== 8) {
                     alert('생년월일을 8자리로 입력해주세요.');
                     return;
@@ -1509,8 +1554,14 @@
                     const contentType = response.headers.get('content-type');
                     if (contentType && contentType.includes('text/html')) {
                         return response.text().then(html => {
-                            console.error('HTML 에러 응답:', html.substring(0, 500));
-                            throw new Error('서버에서 HTML 에러 페이지를 반환했습니다.');
+                            console.error('HTML 에러 응답 전체:', html);
+                            // 에러 메시지 추출 시도
+                            const messageMatch = html.match(/<b>메시지<\/b>\s*(.+?)<\/p>/);
+                            const descMatch = html.match(/<b>설명<\/b>\s*(.+?)<\/p>/);
+                            let errorDetail = '';
+                            if (messageMatch) errorDetail += '메시지: ' + messageMatch[1].replace(/<[^>]*>/g, '') + '\n';
+                            if (descMatch) errorDetail += '설명: ' + descMatch[1].replace(/<[^>]*>/g, '');
+                            throw new Error('서버 에러 (500): ' + (errorDetail || '서버에서 HTML 에러 페이지를 반환했습니다.'));
                         });
                     }
 
@@ -1519,6 +1570,20 @@
                 .then(data => {
                     console.log('응답 데이터:', data);
                     if (data.success) {
+                        // 활동 로그 저장
+                        const today = new Date();
+                        const dateStr = today.getFullYear() + '년 ' + (today.getMonth() + 1) + '월 ' + today.getDate() + '일';
+                        const volunteerDateStr = volunteerData.startDate;
+
+                        logUserActivity({
+                            type: 'volunteer_apply',
+                            icon: 'fas fa-hands-helping',
+                            iconColor: '#27ae60',
+                            title: '봉사 활동 신청',
+                            description: dateStr + '에 ' + volunteerDateStr + ' 봉사 활동(' + (volunteerData.category || '일반') + ')을 신청했습니다.',
+                            timestamp: new Date().toISOString()
+                        });
+
                         alert(volunteerData.name + '님의 봉사 신청이 완료되었습니다.\n담당자가 확인 후 연락드리겠습니다.');
                         setTimeout(() => {
                             window.location.href = '/bdproject/project.jsp';

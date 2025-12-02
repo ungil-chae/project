@@ -84,8 +84,18 @@ public class EmailVerificationController {
             Member existingMember = memberDao.select(email);
             if (existingMember != null) {
                 logger.warn("이미 등록된 이메일: {}", email);
+
+                // 가입일자 포맷팅 (yyyy-MM-dd)
+                String joinDate = "";
+                if (existingMember.getCreatedAt() != null) {
+                    java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy년 MM월 dd일");
+                    joinDate = sdf.format(existingMember.getCreatedAt());
+                }
+
                 response.put("success", false);
                 response.put("message", "이미 가입된 이메일입니다.");
+                response.put("joinDate", joinDate);
+                response.put("alreadyRegistered", true);
                 return response;
             }
 

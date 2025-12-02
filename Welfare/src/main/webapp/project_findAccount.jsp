@@ -223,6 +223,10 @@
             font-weight: 500;
         }
 
+        .timer-display.success {
+            color: #10b981 !important;
+        }
+
         .result-section {
             margin-top: 20px;
         }
@@ -512,6 +516,8 @@
                         <div class="error-message" id="findId_phoneError">전화번호를 입력해주세요.</div>
                     </div>
 
+                    <div class="error-message" id="findId_notFoundError" style="text-align: center; margin-bottom: 15px;">입력하신 정보와 일치하는 회원이 없습니다. 다시 시도해주세요.</div>
+
                     <button type="button" class="submit-btn" onclick="findUserId()">
                         이메일 아이디 확인
                     </button>
@@ -572,6 +578,8 @@
                         <div class="error-message" id="pw_emailError">등록되지 않은 이메일입니다.</div>
                     </div>
 
+                    <div class="error-message" id="pw_notFoundError" style="text-align: center; margin-bottom: 15px;">입력하신 정보와 일치하는 회원이 없습니다. 다시 시도해주세요.</div>
+
                     <button type="button"
                             class="submit-btn"
                             id="sendCodeBtn"
@@ -620,8 +628,8 @@
                                id="pw_newPassword"
                                placeholder="새 비밀번호"
                                required>
-                        <div class="hint-text">영문/숫자/특수문자 중 2가지 이상을 포함하여 8~12자로 입력해주세요.</div>
-                        <div class="error-message" id="pw_passwordError">비밀번호 형식이 올바르지 않습니다.</div>
+                        <div class="hint-text">영문, 숫자, 특수문자를 모두 포함하여 8자 이상으로 입력해주세요.</div>
+                        <div class="error-message" id="pw_passwordError">영문, 숫자, 특수문자를 모두 포함하여 8자 이상이어야 합니다.</div>
                     </div>
 
                     <div class="form-group">
@@ -698,6 +706,19 @@
         let remainingTime = 600;
         let selectedEmail = '';
 
+        // 이메일 마스킹 함수 (클라이언트 측 fallback)
+        function maskEmailClient(email) {
+            if (!email || !email.includes('@')) return email;
+            const [localPart, domain] = email.split('@');
+            if (localPart.length <= 2) {
+                return localPart.charAt(0) + '*'.repeat(localPart.length - 1) + '@' + domain;
+            }
+            const visibleStart = localPart.substring(0, 2);
+            const visibleEnd = localPart.substring(localPart.length - 1);
+            const maskedLength = Math.max(localPart.length - 3, 1);
+            return visibleStart + '*'.repeat(maskedLength) + visibleEnd + '@' + domain;
+        }
+
         // 탭 전환
         function switchTab(tabName) {
             const tabs = document.querySelectorAll('.tab-btn');
@@ -767,25 +788,32 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    // 에러 메시지 숨기기
+                    document.getElementById('findId_notFoundError').style.display = 'none';
+
                     // 이메일 목록 생성 (현재는 1개지만 확장 가능)
                     const emailList = document.getElementById('emailList');
                     const currentDate = new Date().toISOString().split('T')[0].replace(/-/g, '.').substring(2);
+                    const foundEmail = data.email;
+                    // 마스킹된 이메일 사용 (보안)
+                    const maskedEmail = data.maskedEmail || maskEmailClient(foundEmail);
 
-                    emailList.innerHTML = `
-                        <div class="email-item selected" onclick="selectEmail(this, '${data.email}')">
-                            <div class="radio-circle"></div>
-                            <div class="email-info">
-                                <div class="email-address">${data.email}</div>
-                                <div class="email-date">${currentDate} 가입</div>
-                            </div>
-                        </div>
-                    `;
+                    // JSP EL과 JavaScript 템플릿 리터럴 충돌 방지를 위해 문자열 연결 사용
+                    emailList.innerHTML =
+                        '<div class="email-item selected" onclick="selectEmail(this, \'' + foundEmail + '\')">' +
+                            '<div class="radio-circle"></div>' +
+                            '<div class="email-info">' +
+                                '<div class="email-address">' + maskedEmail + '</div>' +
+                                '<div class="email-date">' + currentDate + ' 가입</div>' +
+                            '</div>' +
+                        '</div>';
 
-                    selectedEmail = data.email;
+                    selectedEmail = foundEmail;
                     document.getElementById('findIdForm').classList.remove('active');
                     document.getElementById('findIdResult').classList.add('active');
                 } else {
-                    alert(data.message || '입력하신 정보와 일치하는 회원을 찾을 수 없습니다.');
+                    // 빨간 글씨로 에러 메시지 표시
+                    document.getElementById('findId_notFoundError').style.display = 'block';
                 }
             })
             .catch(error => {
@@ -857,6 +885,7 @@
                 if (data.success) {
                     verifiedEmail = email;
                     document.getElementById('pw_emailError').style.display = 'none';
+                    document.getElementById('pw_notFoundError').style.display = 'none';
                     document.getElementById('pw_email').readOnly = true;
                     document.getElementById('pw_email').classList.add('success');
                     document.getElementById('pw_name').readOnly = true;
@@ -871,9 +900,8 @@
                 } else {
                     sendCodeBtn.textContent = '인증번호 받기';
                     sendCodeBtn.disabled = false;
-                    document.getElementById('pw_emailError').textContent = data.message || '등록되지 않은 이메일입니다.';
-                    document.getElementById('pw_emailError').style.display = 'block';
-                    document.getElementById('pw_email').classList.add('error');
+                    // 빨간 글씨로 에러 메시지 표시
+                    document.getElementById('pw_notFoundError').style.display = 'block';
                 }
             })
             .catch(error => {
@@ -940,7 +968,7 @@
 
                     if (timer) clearInterval(timer);
                     document.getElementById('pw_timerDisplay').textContent = '✓ 인증 완료';
-                    document.getElementById('pw_timerDisplay').style.color = '#10b981';
+                    document.getElementById('pw_timerDisplay').classList.add('success');
 
                     document.getElementById('pwStep3').classList.add('active');
 
@@ -965,11 +993,23 @@
             const newPassword = document.getElementById('pw_newPassword').value;
             const confirmPassword = document.getElementById('pw_confirmPassword').value;
 
-            const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
-            if (!passwordRegex.test(newPassword)) {
+            // 비밀번호 유효성 검사 (영문, 숫자, 특수문자 모두 포함, 8자 이상)
+            const hasLetter = /[a-zA-Z]/.test(newPassword);
+            const hasNumber = /[0-9]/.test(newPassword);
+            const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(newPassword);
+            const hasLength = newPassword.length >= 8;
+
+            if (!hasLength || !hasLetter || !hasNumber || !hasSpecial) {
                 document.getElementById('pw_passwordError').style.display = 'block';
                 document.getElementById('pw_newPassword').classList.add('error');
-                alert('비밀번호는 숫자, 특수문자를 포함한 8자 이상이어야 합니다.');
+
+                let missingMsg = [];
+                if (!hasLength) missingMsg.push('8자 이상');
+                if (!hasLetter) missingMsg.push('영문자');
+                if (!hasNumber) missingMsg.push('숫자');
+                if (!hasSpecial) missingMsg.push('특수문자');
+
+                alert('비밀번호는 ' + missingMsg.join(', ') + '이(가) 필요합니다.');
                 return;
             }
 
@@ -1033,12 +1073,18 @@
                 });
             });
 
-            // 비밀번호 찾기 - 비밀번호 유효성 검사
+            // 비밀번호 찾기 - 비밀번호 유효성 검사 (영문, 숫자, 특수문자 모두 포함, 8자 이상)
             document.getElementById('pw_newPassword').addEventListener('input', function() {
                 const password = this.value;
-                const regex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
 
-                if (password && !regex.test(password)) {
+                const hasLetter = /[a-zA-Z]/.test(password);
+                const hasNumber = /[0-9]/.test(password);
+                const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+                const hasLength = password.length >= 8;
+
+                const isValid = hasLength && hasLetter && hasNumber && hasSpecial;
+
+                if (password && !isValid) {
                     this.classList.add('error');
                     this.classList.remove('success');
                     document.getElementById('pw_passwordError').style.display = 'block';

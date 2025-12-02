@@ -44,6 +44,13 @@ public interface NotificationService {
     boolean deleteNotification(Long notificationId);
 
     /**
+     * 사용자의 모든 알림 삭제
+     * @param userId 사용자 ID
+     * @return 성공 여부
+     */
+    boolean deleteAllNotifications(String userId);
+
+    /**
      * 읽지 않은 알림 개수 조회
      * @param userId 사용자 ID
      * @return 읽지 않은 알림 개수
@@ -58,4 +65,31 @@ public interface NotificationService {
      * @return 생성된 알림 ID
      */
     Long createFaqAnswerNotification(String userId, Long questionId, String questionTitle);
+
+    /**
+     * 자동 알림 생성 (정기 기부, 봉사, 캘린더 일정)
+     * @param userId 사용자 ID
+     * @return 생성된 알림 개수
+     */
+    int generateAutoNotifications(String userId);
+
+    /**
+     * 봉사활동 알림 생성 (하루 전 + 당일)
+     * @param userId 사용자 ID (이메일)
+     * @param applicationId 봉사 신청 ID
+     * @param volunteerDate 봉사 날짜
+     * @param category 봉사 카테고리
+     * @return 생성된 알림 개수
+     */
+    int createVolunteerNotifications(String userId, Long applicationId, java.sql.Date volunteerDate, String category);
+
+    /**
+     * 봉사활동 승인 알림 생성
+     * @param userId 사용자 ID (이메일)
+     * @param applicationId 봉사 신청 ID
+     * @param facilityName 배정된 시설명
+     * @param volunteerDate 봉사 날짜
+     * @return 생성된 알림 ID
+     */
+    Long createVolunteerApprovalNotification(String userId, Long applicationId, String facilityName, String volunteerDate);
 }

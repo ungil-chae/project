@@ -41,7 +41,9 @@
             role,
             birth,
             COALESCE(status, 'ACTIVE') AS status,
-            DATE_FORMAT(created_at, '%Y-%m-%d') AS createdAt
+            DATE_FORMAT(created_at, '%Y-%m-%d %H:%i') AS createdAt,
+            DATE_FORMAT(last_login_at, '%Y-%m-%d %H:%i') AS lastLoginAt,
+            DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i') AS statusUpdatedAt
         FROM member
         ORDER BY
             CASE WHEN role = 'ADMIN' THEN 0 ELSE 1 END,
@@ -98,7 +100,7 @@
         ORDER BY d.created_at DESC
     </select>
 
-    <!-- 봉사 신청 내역 조회 -->
+    <!-- 봉사 신청 내역 조회 (신청대기 상태 우선 정렬) -->
     <select id="getAllVolunteers" resultType="hashmap">
         SELECT
             va.application_id AS applicationId,
@@ -107,14 +109,31 @@
             va.applicant_name AS applicantName,
             va.applicant_phone AS applicantPhone,
             va.applicant_email AS applicantEmail,
+            va.applicant_address AS applicantAddress,
             va.selected_category AS selectedCategory,
             DATE_FORMAT(va.volunteer_date, '%Y-%m-%d') AS volunteerDate,
+            va.volunteer_time AS volunteerTime,
             va.status,
+            va.assigned_facility_name AS assignedFacilityName,
+            va.assigned_facility_address AS assignedFacilityAddress,
+            va.assigned_facility_lat AS assignedFacilityLat,
+            va.assigned_facility_lng AS assignedFacilityLng,
+            va.admin_note AS adminNote,
+            DATE_FORMAT(va.approved_at, '%Y-%m-%d %H:%i') AS approvedAt,
             act.activity_name AS activityName,
-            DATE_FORMAT(va.created_at, '%Y-%m-%d') AS createdAt
+            DATE_FORMAT(va.created_at, '%Y-%m-%d %H:%i') AS createdAt
         FROM volunteer_applications va
         LEFT JOIN volunteer_activities act ON va.activity_id = act.activity_id
-        ORDER BY va.created_at DESC
+        ORDER BY
+            CASE va.status
+                WHEN 'APPLIED' THEN 1
+                WHEN 'CONFIRMED' THEN 2
+                WHEN 'COMPLETED' THEN 3
+                WHEN 'REJECTED' THEN 4
+                WHEN 'CANCELLED' THEN 5
+                ELSE 6
+            END,
+            va.created_at DESC
     </select>
 
     <!-- 회원 정보 수정 -->
@@ -125,11 +144,14 @@
         WHERE email = #{userId}
     </update>
 
-    <!-- 회원 삭제 -->
-    <delete id="deleteMember" parameterType="string">
-        DELETE FROM member
+    <!-- 회원 탈퇴 처리 (소프트 삭제 - DORMANT 상태로 변경) -->
+    <update id="deleteMember" parameterType="string">
+        UPDATE member
+        SET status = 'DORMANT',
+            deleted_at = NOW(),
+            updated_at = NOW()
         WHERE email = #{userId}
-    </delete>
+    </update>
 
     <!-- 회원 계정 정지 -->
     <update id="suspendMember" parameterType="string">
@@ -162,9 +184,226 @@
             member_id,
             email,
             name,
-            status
+            status,
+            role
         FROM member
         WHERE email = #{userId}
     </select>
+
+    <!-- 회원 상태 변경 -->
+    <update id="updateMemberStatus" parameterType="map">
+        UPDATE member
+        SET status = #{status}
+        WHERE email = #{userId}
+    </update>
+
+    <!-- 회원 등급 변경 -->
+    <update id="updateMemberRole" parameterType="map">
+        UPDATE member
+        SET role = #{role}
+        WHERE email = #{userId}
+    </update>
+
+    <!-- 봉사활동 승인 및 시설 배정 -->
+    <update id="approveVolunteerApplication" parameterType="map">
+        UPDATE volunteer_applications
+        SET
+            status = 'CONFIRMED',
+            approved_by = (SELECT member_id FROM member WHERE email = #{adminUserId} LIMIT 1),
+            approved_at = NOW(),
+            assigned_facility_name = #{facilityName},
+            assigned_facility_address = #{facilityAddress},
+            assigned_facility_lat = #{facilityLat, jdbcType=DECIMAL},
+            assigned_facility_lng = #{facilityLng, jdbcType=DECIMAL},
+            admin_note = #{adminNote}
+        WHERE application_id = #{applicationId}
+    </update>
+
+    <!-- 봉사활동 거절 -->
+    <update id="rejectVolunteerApplication" parameterType="map">
+        UPDATE volunteer_applications
+        SET
+            status = 'REJECTED',
+            reject_reason = #{reason}
+        WHERE application_id = #{applicationId}
+    </update>
+
+    <!-- ===== 대시보드 통계 관련 쿼리 ===== -->
+
+    <!-- 오늘 기부 건수 -->
+    <select id="getTodayDonationCount" resultType="int">
+        SELECT COUNT(*)
+        FROM donations
+        WHERE DATE(created_at) = CURDATE()
+        AND payment_status = 'COMPLETED'
+    </select>
+
+    <!-- 이번 달 진행된 봉사활동 수 -->
+    <select id="getActiveVolunteerCount" resultType="int">
+        SELECT COUNT(*)
+        FROM volunteer_applications
+        WHERE YEAR(volunteer_date) = YEAR(CURDATE())
+        AND MONTH(volunteer_date) = MONTH(CURDATE())
+    </select>
+
+    <!-- 봉사 완료율 -->
+    <select id="getVolunteerCompletionRate" resultType="double">
+        SELECT
+            CASE
+                WHEN COUNT(*) = 0 THEN 0
+                ELSE (COUNT(CASE WHEN status = 'COMPLETED' THEN 1 END) * 100.0 / COUNT(*))
+            END as rate
+        FROM volunteer_applications
+    </select>
+
+    <!-- 활동 중인 회원 수 -->
+    <select id="getActiveMembers" resultType="int">
+        SELECT COUNT(*)
+        FROM member
+        WHERE status = 'ACTIVE'
+        AND deleted_at IS NULL
+    </select>
+
+    <!-- ===== 대시보드 차트 관련 쿼리 ===== -->
+
+    <!-- 월별 기부금 추이 (최근 6개월) -->
+    <select id="getMonthlyDonationTrend" resultType="map">
+        SELECT
+            DATE_FORMAT(m.month_date, '%c월') as month,
+            COALESCE(SUM(d.amount), 0) as amount
+        FROM (
+            SELECT DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL n MONTH), '%Y-%m-01') as month_date
+            FROM (SELECT 0 n UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5) numbers
+        ) m
+        LEFT JOIN donations d ON DATE_FORMAT(d.created_at, '%Y-%m') = DATE_FORMAT(m.month_date, '%Y-%m')
+            AND d.payment_status = 'COMPLETED'
+        GROUP BY m.month_date
+        ORDER BY m.month_date
+    </select>
+
+    <!-- 회원 증가 추이 (최근 6개월) - 신규 회원만 표시 -->
+    <select id="getMemberGrowthTrend" resultType="map">
+        SELECT
+            DATE_FORMAT(m.month_date, '%c월') as month,
+            COUNT(CASE WHEN DATE_FORMAT(mb.created_at, '%Y-%m') = DATE_FORMAT(m.month_date, '%Y-%m') THEN 1 END) as new_members
+        FROM (
+            SELECT DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL n MONTH), '%Y-%m-01') as month_date
+            FROM (SELECT 0 n UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5) numbers
+        ) m
+        LEFT JOIN member mb ON DATE_FORMAT(mb.created_at, '%Y-%m') = DATE_FORMAT(m.month_date, '%Y-%m')
+        GROUP BY m.month_date
+        ORDER BY m.month_date
+    </select>
+
+    <!-- 봉사활동 카테고리별 통계 -->
+    <select id="getVolunteerCategoryStats" resultType="map">
+        SELECT
+            CASE selected_category
+                WHEN 'ELDERLY' THEN '노인돌봄'
+                WHEN 'CHILD' THEN '아동교육'
+                WHEN 'ENVIRONMENT' THEN '환경보호'
+                WHEN 'DISABLED' THEN '의료봉사'
+                WHEN 'COMMUNITY' THEN '재난구호'
+                WHEN 'EDUCATION' THEN '문화행사'
+                ELSE '기타'
+            END as category,
+            CASE
+                WHEN (SELECT COUNT(*) FROM volunteer_applications) = 0 THEN 0
+                ELSE COUNT(*) * 100.0 / (SELECT COUNT(*) FROM volunteer_applications)
+            END as rate
+        FROM volunteer_applications
+        GROUP BY selected_category
+        ORDER BY rate DESC
+        LIMIT 6
+    </select>
+
+    <!-- 월별 봉사활동 현황 (최근 6개월) -->
+    <select id="getMonthlyVolunteerStats" resultType="map">
+        SELECT
+            DATE_FORMAT(m.month_date, '%c월') as month,
+            COUNT(v.application_id) as count
+        FROM (
+            SELECT DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL n MONTH), '%Y-%m-01') as month_date
+            FROM (SELECT 0 n UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5) numbers
+        ) m
+        LEFT JOIN volunteer_applications v ON DATE_FORMAT(v.created_at, '%Y-%m') = DATE_FORMAT(m.month_date, '%Y-%m')
+        GROUP BY m.month_date
+        ORDER BY m.month_date
+    </select>
+
+    <!-- 후원 방식별 통계 -->
+    <select id="getPaymentMethodStats" resultType="map">
+        SELECT
+            CASE payment_method
+                WHEN 'CREDIT_CARD' THEN '신용카드'
+                WHEN 'BANK_TRANSFER' THEN '계좌이체'
+                WHEN 'KAKAO_PAY' THEN '카카오페이'
+                WHEN 'NAVER_PAY' THEN '네이버페이'
+                WHEN 'TOSS_PAY' THEN '토스페이'
+                ELSE '기타'
+            END as method,
+            COUNT(*) as count
+        FROM donations
+        WHERE payment_status = 'COMPLETED'
+        GROUP BY payment_method
+        ORDER BY count DESC
+    </select>
+
+    <!-- 복지서비스 이용 통계 -->
+    <select id="getWelfareServiceStats" resultType="map">
+        SELECT '기부' as service_type, COUNT(*) as count FROM donations WHERE payment_status = 'COMPLETED'
+        UNION ALL
+        SELECT '봉사' as service_type, COUNT(*) as count FROM volunteer_applications
+        UNION ALL
+        SELECT '복지진단' as service_type, COUNT(*) as count FROM welfare_diagnoses
+        UNION ALL
+        SELECT '복지지도' as service_type, COUNT(*) as count FROM favorite_welfare_services
+    </select>
+
+    <!-- 기부 카테고리별 분포 (상위 9개 카테고리: 위기가정~범죄피해) -->
+    <select id="getDonationCategoryStats" resultType="map">
+        SELECT
+            dc.category_name as category,
+            COALESCE(SUM(d.amount), 0) as amount
+        FROM donation_categories dc
+        LEFT JOIN donations d ON dc.category_id = d.category_id AND d.payment_status = 'COMPLETED'
+        WHERE dc.is_active = TRUE
+        AND dc.display_order &lt;= 9
+        GROUP BY dc.category_id, dc.category_name, dc.display_order
+        ORDER BY dc.display_order ASC
+    </select>
+
+    <!-- 봉사 신청 정보 조회 (알림 발송용) -->
+    <select id="getVolunteerApplicationById" parameterType="long" resultType="map">
+        SELECT
+            va.application_id AS applicationId,
+            va.member_id AS memberId,
+            m.email AS userEmail,
+            va.applicant_name AS applicantName,
+            va.selected_category AS selectedCategory,
+            DATE_FORMAT(va.volunteer_date, '%Y-%m-%d') AS volunteerDate,
+            va.volunteer_time AS volunteerTime,
+            va.status,
+            va.assigned_facility_name AS assignedFacilityName,
+            va.assigned_facility_address AS assignedFacilityAddress,
+            va.admin_note AS adminNote
+        FROM volunteer_applications va
+        LEFT JOIN member m ON va.member_id = m.member_id
+        WHERE va.application_id = #{applicationId}
+    </select>
+
+    <!-- 시간 경과된 봉사활동 자동 완료 처리 -->
+    <update id="completeExpiredVolunteerApplications">
+        UPDATE volunteer_applications
+        SET status = 'COMPLETED'
+        WHERE status = 'CONFIRMED'
+        AND CONCAT(volunteer_date, ' ',
+            CASE volunteer_time
+                WHEN 'MORNING' THEN '12:00:00'
+                WHEN 'AFTERNOON' THEN '18:00:00'
+                WHEN 'EVENING' THEN '22:00:00'
+                ELSE '23:59:59'
+            END) &lt; NOW()
+    </update>
 
 </mapper>

@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
 
 import org.slf4j.Logger;
@@ -34,9 +35,6 @@ public class ProfileImageApiController {
 
     private static final Logger logger = LoggerFactory.getLogger(ProfileImageApiController.class);
 
-    // 업로드 디렉토리 (실제 서버 경로)
-    private static final String UPLOAD_DIR = "C:/workspace/Study/Welfare/src/main/webapp/resources/uploads/profiles/";
-
     // 웹 접근 경로
     private static final String WEB_PATH = "/resources/uploads/profiles/";
 
@@ -49,6 +47,9 @@ public class ProfileImageApiController {
     @Autowired
     private ProjectMemberDao memberDao;
 
+    @Autowired
+    private ServletContext servletContext;
+
     /**
      * 프로필 이미지 업로드
      */
@@ -60,8 +61,11 @@ public class ProfileImageApiController {
         Map<String, Object> response = new HashMap<>();
 
         try {
-            // 로그인 확인
-            String userEmail = (String) session.getAttribute("userId");
+            // 로그인 확인 (세션에서 "id" 또는 "userId" 확인)
+            String userEmail = (String) session.getAttribute("id");
+            if (userEmail == null) {
+                userEmail = (String) session.getAttribute("userId");
+            }
             if (userEmail == null) {
                 response.put("success", false);
                 response.put("message", "로그인이 필요합니다.");
@@ -102,16 +106,17 @@ public class ProfileImageApiController {
                 return response;
             }
 
-            // 업로드 디렉토리 생성
-            File uploadDir = new File(UPLOAD_DIR);
-            if (!uploadDir.exists()) {
-                uploadDir.mkdirs();
-                logger.info("업로드 디렉토리 생성: {}", UPLOAD_DIR);
+            // 업로드 디렉토리 경로 동적 생성
+            String uploadDir = servletContext.getRealPath("/resources/uploads/profiles");
+            File uploadDirFile = new File(uploadDir);
+            if (!uploadDirFile.exists()) {
+                uploadDirFile.mkdirs();
+                logger.info("업로드 디렉토리 생성: {}", uploadDir);
             }
 
             // 고유 파일명 생성 (UUID + 확장자)
             String newFilename = UUID.randomUUID().toString() + extension;
-            Path filePath = Paths.get(UPLOAD_DIR + newFilename);
+            Path filePath = Paths.get(uploadDir, newFilename);
 
             // 파일 저장
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
@@ -169,7 +174,11 @@ public class ProfileImageApiController {
         Map<String, Object> response = new HashMap<>();
 
         try {
-            String userEmail = (String) session.getAttribute("userId");
+            // 로그인 확인 (세션에서 "id" 또는 "userId" 확인)
+            String userEmail = (String) session.getAttribute("id");
+            if (userEmail == null) {
+                userEmail = (String) session.getAttribute("userId");
+            }
             if (userEmail == null) {
                 response.put("success", false);
                 response.put("message", "로그인이 필요합니다.");
@@ -201,7 +210,8 @@ public class ProfileImageApiController {
         try {
             if (imageUrl.startsWith(WEB_PATH)) {
                 String filename = imageUrl.substring(WEB_PATH.length());
-                Path oldFilePath = Paths.get(UPLOAD_DIR + filename);
+                String uploadDir = servletContext.getRealPath("/resources/uploads/profiles");
+                Path oldFilePath = Paths.get(uploadDir, filename);
                 Files.deleteIfExists(oldFilePath);
                 logger.info("기존 이미지 삭제: {}", oldFilePath);
             }

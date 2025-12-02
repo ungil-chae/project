@@ -28,11 +28,6 @@
           sans-serif;
       }
 
-      /* --- 2. 배경색 설정 --- */
-      .main-background-section {
-      
-      }
-
       /* 2. 배경 위에 대각선 패널을 추가하는 부분 */
       .main-background-section::before {
         content: "";
@@ -72,7 +67,7 @@
         height: 94vh; /* 세로 길이 줄임 */
         z-index: -1; /* 모든 콘텐츠 뒤에 위치 */
         background-image: url("resources/image/배경5.png");
-        background-size: cover; /* ★★★ 수정됨 ★★★ */
+        background-size: cover;
         background-repeat: no-repeat;
         background-position: center center;
         overflow: hidden; /* 스크롤 방지 */

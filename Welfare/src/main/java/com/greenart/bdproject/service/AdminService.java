@@ -89,10 +89,34 @@ public class AdminService {
     }
 
     /**
-     * 회원 삭제
+     * 회원 탈퇴 처리 (소프트 삭제 - DORMANT 상태로 변경)
      */
     public boolean deleteMember(String userId) {
-        return adminDao.deleteMember(userId);
+        // 변경 전 회원 상태 조회
+        Map<String, Object> memberInfo = adminDao.getMemberStatusByUserId(userId);
+        if (memberInfo == null) {
+            return false;
+        }
+
+        String oldStatus = (String) memberInfo.get("status");
+        Long memberId = ((Number) memberInfo.get("member_id")).longValue();
+
+        // 상태 변경 실행 (DORMANT로 변경)
+        boolean success = adminDao.deleteMember(userId);
+
+        // 성공 시 이력 저장
+        if (success) {
+            MemberStatusHistoryDto history = new MemberStatusHistoryDto();
+            history.setMemberId(memberId);
+            history.setAdminId(null); // 관리자 ID는 컨트롤러에서 설정 필요
+            history.setOldStatus(oldStatus);
+            history.setNewStatus("DORMANT");
+            history.setReason("관리자에 의한 계정 탈퇴 처리");
+
+            saveMemberStatusHistory(history);
+        }
+
+        return success;
     }
 
     /**
@@ -195,5 +219,183 @@ public class AdminService {
             e.printStackTrace();
             return false;
         }
+    }
+
+    /**
+     * 회원 상태 변경 (일괄 처리용)
+     */
+    public boolean updateMemberStatus(String userId, String status) {
+        // 변경 전 회원 상태 조회
+        Map<String, Object> memberInfo = adminDao.getMemberStatusByUserId(userId);
+        if (memberInfo == null) {
+            return false;
+        }
+
+        String oldStatus = (String) memberInfo.get("status");
+        Long memberId = ((Number) memberInfo.get("member_id")).longValue();
+
+        // 상태 변경 실행
+        boolean success = adminDao.updateMemberStatus(userId, status);
+
+        // 성공 시 이력 저장
+        if (success) {
+            MemberStatusHistoryDto history = new MemberStatusHistoryDto();
+            history.setMemberId(memberId);
+            history.setAdminId(null);
+            history.setOldStatus(oldStatus);
+            history.setNewStatus(status);
+            history.setReason("관리자에 의한 상태 변경");
+
+            saveMemberStatusHistory(history);
+        }
+
+        return success;
+    }
+
+    /**
+     * 회원 등급 변경
+     */
+    public boolean updateMemberRole(String userId, String role) {
+        // 변경 전 회원 정보 조회
+        Map<String, Object> memberInfo = adminDao.getMemberStatusByUserId(userId);
+        if (memberInfo == null) {
+            return false;
+        }
+
+        String oldRole = (String) memberInfo.get("role");
+        Long memberId = ((Number) memberInfo.get("member_id")).longValue();
+
+        // 등급 변경 실행
+        boolean success = adminDao.updateMemberRole(userId, role);
+
+        // 성공 시 이력 저장
+        if (success) {
+            MemberStatusHistoryDto history = new MemberStatusHistoryDto();
+            history.setMemberId(memberId);
+            history.setAdminId(null);
+            history.setOldStatus(oldRole);  // 이전 등급
+            history.setNewStatus(role);      // 새 등급
+            history.setReason("관리자에 의한 회원 등급 변경");
+
+            saveMemberStatusHistory(history);
+        }
+
+        return success;
+    }
+
+    /**
+     * 봉사활동 승인 및 시설 배정
+     */
+    public boolean approveVolunteerApplication(
+            Long applicationId,
+            String adminUserId,
+            String facilityName,
+            String facilityAddress,
+            String facilityLat,
+            String facilityLng,
+            String adminNote) {
+
+        return adminDao.approveVolunteerApplication(
+            applicationId,
+            adminUserId,
+            facilityName,
+            facilityAddress,
+            facilityLat,
+            facilityLng,
+            adminNote
+        );
+    }
+
+    /**
+     * 봉사활동 거절
+     */
+    public boolean rejectVolunteerApplication(Long applicationId, String reason) {
+        return adminDao.rejectVolunteerApplication(applicationId, reason);
+    }
+
+    /**
+     * 봉사 신청 정보 조회
+     */
+    public Map<String, Object> getVolunteerApplicationById(Long applicationId) {
+        return adminDao.getVolunteerApplicationById(applicationId);
+    }
+
+    /**
+     * 시간 경과된 봉사활동 자동 완료 처리
+     */
+    public int completeExpiredVolunteerApplications() {
+        return adminDao.completeExpiredVolunteerApplications();
+    }
+
+    /**
+     * 대시보드 통계 카드 데이터 조회
+     */
+    public Map<String, Object> getDashboardStats() {
+        Map<String, Object> stats = new HashMap<>();
+
+        try {
+            // 오늘 기부 건수
+            stats.put("todayDonations", adminDao.getTodayDonationCount());
+
+            // 진행 중인 봉사활동 수
+            stats.put("activeVolunteers", adminDao.getActiveVolunteerCount());
+
+            // 봉사 완료율
+            stats.put("volunteerCompletionRate", adminDao.getVolunteerCompletionRate());
+
+            // 총 기부금액
+            Long totalDonations = adminDao.getTotalDonations();
+            stats.put("totalDonations", totalDonations != null ? totalDonations : 0L);
+
+            // 복지 진단 건수
+            stats.put("totalDiagnoses", adminDao.getTotalDiagnoses());
+
+            // 활동 중인 총 회원 수
+            stats.put("totalMembers", adminDao.getActiveMembers());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            // 기본값 설정
+            stats.put("todayDonations", 0);
+            stats.put("activeVolunteers", 0);
+            stats.put("volunteerCompletionRate", 0.0);
+            stats.put("totalDonations", 0L);
+            stats.put("totalDiagnoses", 0);
+            stats.put("totalMembers", 0);
+        }
+
+        return stats;
+    }
+
+    /**
+     * 대시보드 차트 데이터 조회
+     */
+    public Map<String, Object> getDashboardChartData() {
+        Map<String, Object> chartData = new HashMap<>();
+
+        try {
+            // 1. 최근 6개월 기부금 현황
+            chartData.put("donationTrend", adminDao.getMonthlyDonationTrend());
+
+            // 2. 회원 증가 추이
+            chartData.put("memberGrowth", adminDao.getMemberGrowthTrend());
+
+            // 3. 봉사활동 카테고리별 신청률
+            chartData.put("volunteerCategory", adminDao.getVolunteerCategoryStats());
+
+            // 4. 후원 방식별 현황
+            chartData.put("paymentMethod", adminDao.getPaymentMethodStats());
+
+            // 5. 복지서비스 이용 비율
+            chartData.put("welfareService", adminDao.getWelfareServiceStats());
+
+            // 6. 기부 카테고리별 분포
+            chartData.put("donationCategory", adminDao.getDonationCategoryStats());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return chartData;
     }
 }

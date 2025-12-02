@@ -96,7 +96,7 @@ public class KindnessTemperatureApiController {
                 response.put("message", "선행 온도가 " + amount + "도 올랐습니다!");
 
                 logger.info("선행 온도 증가 - userId: {}, action: {}, amount: {}, newTemp: {}",
-                           userId, action, amount, newTemperature);
+                           new Object[]{userId, action, amount, newTemperature});
             } else {
                 response.put("success", false);
                 response.put("message", "온도 업데이트에 실패했습니다.");

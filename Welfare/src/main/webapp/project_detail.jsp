@@ -350,54 +350,6 @@
             padding: 20px 0 0 0;
         }
 
-        .custom-radio-group { display: flex; flex-direction: column; gap: 15px; margin-top: 15px; }
-        .custom-radio-item { display: flex; align-items: center; cursor: pointer; }
-        .custom-radio-item input[type="radio"] { display: none; }
-        .custom-radio-box { width: 22px; height: 22px; border: 2px solid #e9ecef; border-radius: 50%; margin-right: 12px; position: relative; transition: all 0.2s ease; }
-        .custom-radio-item input[type="radio"]:checked + .custom-radio-box { border-color: #0061ff; }
-        .custom-radio-item input[type="radio"]:checked + .custom-radio-box::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 12px; height: 12px; background: #0061ff; border-radius: 50%; }
-        .custom-radio-item span { font-size: 14px; font-weight: 500; }
-
-        .consent-details { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, margin 0.4s ease; margin-top: 0; }
-        .consent-details.expanded { max-height: 300px; margin-top: 20px; }
-        
-        .warning-box {
-            max-height: 0;
-            overflow: hidden;
-            transition: all 0.4s ease;
-            padding: 0;
-            background: #e3f2fd;
-            border-left: 4px solid #2196f3;
-            border-radius: 5px;
-            margin-top: 0;
-            color: #1565c0;
-            border: none;
-        }
-        .warning-box.expanded {
-            max-height: 200px;
-            padding: 15px 20px;
-            margin-top: 15px;
-        }
-        .warning-box p {
-            margin: 0;
-            font-weight: 500;
-            text-align: left;
-        }
-        
-        .agreement-item { display: flex; align-items: center; margin-bottom: 15px; }
-        .agreement-item label { display: flex; align-items: center; cursor: pointer; font-size: 14px; font-weight: normal; margin: 0; }
-        .agreement-item input[type="checkbox"] { width: 20px; height: 20px; margin-right: 10px; }
-        .agreement-item a { margin-left: auto; color: #6c757d; text-decoration: underline; font-size: 13px; cursor: pointer; }
-        .agreement-item.all-agree label { font-weight: 600; font-size: 15px; }
-        
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; display: none; align-items: center; justify-content: center; }
-        .modal-overlay.active { display: flex; }
-        .modal-content { background: white; padding: 40px; border-radius: 12px; width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto; position: relative; }
-        .modal-title { font-size: 20px; font-weight: 600; margin-bottom: 20px; }
-        .modal-body { font-size: 14px; line-height: 1.7; color: #444; }
-        .modal-body h4 { font-size: 15px; margin: 15px 0 8px 0; }
-        .modal-body p { margin-bottom: 10px; }
-        .modal-close-btn { position: absolute; top: 15px; right: 15px; font-size: 24px; font-weight: bold; color: #888; cursor: pointer; border: none; background: none; }
 
         @media (max-width: 768px) {
             .form-grid, .date-group, .location-group, .checkbox-group { grid-template-columns: 1fr; }
@@ -655,51 +607,6 @@
                 </div>
             </div>
             
-            <div class="form-card">
-                    <label style="font-weight: 600; font-size: 15px; color: #495057;">
-                        진단 결과를 마이페이지에 저장하시겠습니까? (선택)
-                    </label>
-                    <div class="custom-radio-group">
-                        <label class="custom-radio-item">
-                            <input type="radio" name="consent_storage" value="yes" id="consent-yes-radio">
-                            <span class="custom-radio-box"></span>
-                            <span>예</span>
-                        </label>
-                        <label class="custom-radio-item">
-                            <input type="radio" name="consent_storage" value="no" id="consent-no-radio">
-                            <span class="custom-radio-box"></span>
-                            <span>아니오</span>
-                        </label>
-                    </div>
-
-                    <div class="consent-details" id="consent-details">
-                        <div class="agreement-item all-agree">
-                            <label>
-                                <input type="checkbox" class="agreeAll">
-                                개인정보 수집 및 이용에 모두 동의합니다.
-                            </label>
-                        </div>
-                        <div class="agreement-item">
-                            <label>
-                                <input type="checkbox" class="agree-item" id="personal-info-collect">
-                                개인정보 수집 및 이용 동의
-                            </label>
-                            <a class="view-details-btn" data-modal="modal1">상세보기</a>
-                        </div>
-                        <div class="agreement-item">
-                            <label>
-                                <input type="checkbox" class="agree-item" id="personal-info-provide">
-                                제3자 제공 동의
-                            </label>
-                            <a class="view-details-btn" data-modal="modal2">상세보기</a>
-                        </div>
-                    </div>
-
-                    <div class="warning-box" id="warning-box">
-                        <p>저장하지 않으시면 진단 결과가 별도로 보관되지 않습니다.</p>
-                    </div>
-                </div>
-            
             <div class="btn-group">
                 <button type="button" class="btn btn-secondary" onclick="history.back()">이전으로</button>
                 <button type="submit" class="btn btn-primary">복지 혜택 분석 시작</button>
@@ -707,43 +614,7 @@
         </form>
     </div>
     
-    <div id="modal1" class="modal-overlay">
-        <div class="modal-content">
-            <button class="modal-close-btn">&times;</button>
-            <h3 class="modal-title">개인정보 및 고유식별정보 수집 및 이용 동의</h3>
-            <div class="modal-body">
-                <p>개인정보 및 고유식별정보 수집‧이용에 대한 동의를 거부할 권리가 있습니다. 단, 동의를 거부할 경우 복지서비스 신청 및 이력 확인, 사용자 서비스 등이 제한될 수 있습니다.</p>
-                <h4>가. 개인정보 및 고유식별정보 수집‧이용 항목:</h4>
-                <p>- 필수 항목: 성명, 생년월일, 성별, 연락처, 주소, 가구정보<br>
-                - 선택 항목: 이메일, 특별상황 정보</p>
-                <h4>나. 수집‧이용 목적:</h4>
-                <p>복지서비스 관련 업무 (복지 혜택 매칭, 신청 지원, 맞춤형 서비스 제공 등)</p>
-                <h4>다. 보유기간:</h4>
-                <p>관계 법령에 의거 서비스 종료 후 3년간 보존 후 파기</p>
-            </div>
-        </div>
-    </div>
-    <div id="modal2" class="modal-overlay">
-        <div class="modal-content">
-            <button class="modal-close-btn">&times;</button>
-            <h3 class="modal-title">개인정보 제3자 제공·이용 동의</h3>
-            <div class="modal-body">
-                <p>개인정보 제3자 제공‧이용에 대한 동의를 거부할 권리가 있습니다. 단, 동의를 거부할 경우 복지서비스 신청이 제한될 수 있습니다.</p>
-                <h4>가. 제공받는 곳</h4>
-                <p>- 복지로, 국민연금공단, 각 지자체, 복지서비스 제공기관</p>
-                <h4>나. 제공 항목</h4>
-                <p>- 성명, 생년월일, 성별, 주소, 가구정보<br>
-                - 복지서비스 신청을 위한 필수 정보</p>
-                <h4>다. 제공 목적</h4>
-                <p>- 복지서비스 자격확인 및 신청 지원<br>
-                - 맞춤형 복지 혜택 안내</p>
-                <h4>라. 제공 기간</h4>
-                <p>- 복지서비스 이용 중단시까지<br>
-                - 개인정보 보유기간 내</p>
-            </div>
-        </div>
-    </div>
-       <%@ include file="footer.jsp" %>
+    <%@ include file="footer.jsp" %>
     <script>
         // 생년월일 조합
         function combineDate() {
@@ -863,61 +734,6 @@
                 });
             });
 
-            const consentYesRadio = document.getElementById('consent-yes-radio');
-            const consentNoRadio = document.getElementById('consent-no-radio');
-            const consentDetails = document.getElementById('consent-details');
-            const warningBox = document.getElementById('warning-box');
-            
-            function updateConsentUI() {
-                if (consentYesRadio.checked) {
-                    consentDetails.classList.add('expanded');
-                    warningBox.classList.remove('expanded');
-                } else if (consentNoRadio.checked) {
-                    consentDetails.classList.remove('expanded');
-                    warningBox.classList.add('expanded');
-                } else {
-                    consentDetails.classList.remove('expanded');
-                    warningBox.classList.remove('expanded');
-                }
-            }
-            
-            consentYesRadio.addEventListener('change', updateConsentUI);
-            consentNoRadio.addEventListener('change', updateConsentUI);
-            
-            updateConsentUI();
-
-            const agreeAllCheckbox = consentDetails.querySelector('.agreeAll');
-            const agreeItemCheckboxes = consentDetails.querySelectorAll('.agree-item');
-
-            if (agreeAllCheckbox) {
-                agreeAllCheckbox.addEventListener('change', e => {
-                    agreeItemCheckboxes.forEach(checkbox => checkbox.checked = e.target.checked);
-                });
-            }
-            agreeItemCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', () => {
-                    if (agreeAllCheckbox) {
-                       agreeAllCheckbox.checked = [...agreeItemCheckboxes].every(item => item.checked);
-                    }
-                });
-            });
-
-            document.querySelectorAll('.view-details-btn').forEach(button => {
-                button.addEventListener('click', () => {
-                    const modal = document.getElementById(button.dataset.modal);
-                    if(modal) modal.classList.add('active');
-                });
-            });
-            document.querySelectorAll('.modal-close-btn').forEach(button => {
-                button.addEventListener('click', () => {
-                    button.closest('.modal-overlay').classList.remove('active');
-                });
-            });
-            document.querySelectorAll('.modal-overlay').forEach(modal => {
-                modal.addEventListener('click', e => {
-                    if (e.target === modal) modal.classList.remove('active');
-                });
-            });
 
         // 폼 제출 처리 함수
         function handleSubmit(event) {
@@ -932,15 +748,7 @@
             if (!convertIncomeToRange()) {
                 return false;
             }
-            
-            const consentStorage = document.querySelector('input[name="consent_storage"]:checked');
-            if (consentStorage && consentStorage.value === 'yes') {
-                if (!document.getElementById('personal-info-collect').checked || !document.getElementById('personal-info-provide').checked) {
-                    alert('개인정보 저장에 동의하시려면 필수 약관에 동의해야 합니다.');
-                    return false;
-                }
-            }
-            
+
             showLoading();
 
             const formData = new FormData(document.getElementById('detailedDiagnosisForm'));
@@ -988,90 +796,6 @@
                 // 결과 페이지로 이동 - project_result.jsp로 데이터 전달
                 sessionStorage.setItem('welfareResults', JSON.stringify(data));
                 sessionStorage.setItem('userInfo', JSON.stringify(userData));
-
-                // 개인정보 저장 동의 시 진단 결과 저장
-                const consentStorage = document.querySelector('input[name="consent_storage"]:checked');
-                if (consentStorage && consentStorage.value === 'yes') {
-                    console.log('진단 결과 저장 시작...');
-
-                    // 필수 약관 동의 확인
-                    const personalInfoCollect = document.getElementById('personal-info-collect');
-                    const personalInfoProvide = document.getElementById('personal-info-provide');
-
-                    if (!personalInfoCollect || !personalInfoCollect.checked || !personalInfoProvide || !personalInfoProvide.checked) {
-                        console.warn('필수 약관 동의가 완료되지 않았습니다.');
-                        alert('개인정보 저장을 위해서는 필수 약관에 모두 동의해야 합니다.');
-                        return;
-                    }
-
-                    // 상위 10개 결과만 저장
-                    const topResults = data.slice(0, 10);
-                    const matchedServicesJson = JSON.stringify(topResults);
-
-                    const saveFormData = new URLSearchParams();
-                    saveFormData.append('birthdate', userData.birthdate);
-                    saveFormData.append('gender', userData.gender);
-                    saveFormData.append('household_size', userData.household_size || '1');
-                    saveFormData.append('income', userData.income);
-                    saveFormData.append('marital_status', userData.marital_status || 'single');
-                    saveFormData.append('children_count', userData.children_count || '0');
-                    saveFormData.append('employment_status', userData.employment_status || 'other');
-                    saveFormData.append('sido', userData.sido || '');
-                    saveFormData.append('sigungu', userData.sigungu || '');
-
-                    // Boolean 값을 명시적으로 true/false로 변환
-                    saveFormData.append('isPregnant', (userData.isPregnant === 'true' || userData.isPregnant === true) ? 'true' : 'false');
-                    saveFormData.append('isDisabled', (userData.isDisabled === 'true' || userData.isDisabled === true) ? 'true' : 'false');
-                    saveFormData.append('isMulticultural', (userData.isMulticultural === 'true' || userData.isMulticultural === true) ? 'true' : 'false');
-                    saveFormData.append('isVeteran', (userData.isVeteran === 'true' || userData.isVeteran === true) ? 'true' : 'false');
-                    saveFormData.append('isSingleParent', (userData.isSingleParent === 'true' || userData.isSingleParent === true) ? 'true' : 'false');
-
-                    saveFormData.append('matchedServices', matchedServicesJson);
-                    saveFormData.append('saveConsent', 'true');
-
-                    console.log('저장 데이터:', {
-                        birthdate: userData.birthdate,
-                        gender: userData.gender,
-                        household_size: userData.household_size,
-                        income: userData.income,
-                        resultsCount: topResults.length
-                    });
-
-                    // 비동기로 진단 결과 저장
-                    fetch('/bdproject/api/welfare/diagnosis/save', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded'
-                        },
-                        body: saveFormData.toString()
-                    })
-                    .then(response => {
-                        console.log('서버 응답 상태:', response.status);
-                        return response.json();
-                    })
-                    .then(saveData => {
-                        console.log('저장 응답:', saveData);
-                        if (saveData.success) {
-                            console.log('✅ 진단 결과가 마이페이지에 저장되었습니다!');
-                            sessionStorage.setItem('diagnosisSaved', 'true');
-                            sessionStorage.setItem('diagnosisSaveMessage', '진단 결과가 마이페이지에 저장되었습니다.');
-                        } else {
-                            console.error('❌ 진단 결과 저장 실패:', saveData.message);
-                            sessionStorage.setItem('diagnosisSaved', 'false');
-                            sessionStorage.setItem('diagnosisSaveMessage', saveData.message || '저장 실패');
-
-                            // 로그인 필요 메시지
-                            if (saveData.message && saveData.message.includes('로그인')) {
-                                alert('진단 결과를 저장하려면 로그인이 필요합니다.\n로그인 후 다시 시도해주세요.');
-                            }
-                        }
-                    })
-                    .catch(error => {
-                        console.error('❌ 진단 결과 저장 오류:', error);
-                        sessionStorage.setItem('diagnosisSaved', 'false');
-                        sessionStorage.setItem('diagnosisSaveMessage', '저장 중 오류 발생');
-                    });
-                }
 
                 // POST 방식으로 데이터 전달
                 var form = document.createElement('form');
