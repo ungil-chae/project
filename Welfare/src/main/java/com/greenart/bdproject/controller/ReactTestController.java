@@ -16,7 +16,7 @@ public class ReactTestController {
 	@ResponseBody
 	public ResponseEntity<Member> test() {
 		Member m = new Member();
-		m.setId("asdf");
+		m.setUsername("asdf");
 		m.setPwd("1234");
 		return new ResponseEntity<Member>(m,HttpStatus.OK);
 	}

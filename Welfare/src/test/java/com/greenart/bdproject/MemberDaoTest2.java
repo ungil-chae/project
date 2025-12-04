@@ -20,27 +20,25 @@ public class MemberDaoTest2 {
 	public void updateTest() throws Exception{
 		dao.deleteAll();
 		Member m = new Member();
-		m.setId("asdf");
+		m.setUsername("asdf");
 		m.setPwd("1234");
-		m.setName("ȫ�浿");
+		m.setName("홍길동");
 		m.setEmail("asdf@naver.com");
 		m.setBirth(java.sql.Date.valueOf("2012-12-12"));
-		m.setSns("facebook");
 		int res = dao.insert(m);
 		assertTrue(res==1);
-		
+
 		Member m2 = new Member();
-		m2.setId("asdf");
+		m2.setUsername("asdf");
 		m2.setPwd("3456");
-		m2.setName("��浿");
+		m2.setName("김길동");
 		m2.setEmail("asdf@naver.com");
-		m2.setSns("kakatalk");
 		m2.setBirth(java.sql.Date.valueOf("2012-12-12"));
-		
+
 		res = dao.update(m2);
 		assertTrue(res==1);
-		
-		m = dao.select(m2.getId());
+
+		m = dao.select(m2.getUsername());
 		System.out.println(m);
 		assertTrue(m.equals(m2));
 	}

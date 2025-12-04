@@ -1,5 +1,6 @@
 package com.greenart.bdproject.dao;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -23,23 +24,23 @@ public class MemberDaoImpl implements MemberDao {
 	public int insert(Member m){
 		Connection con = null;
 		PreparedStatement psmt = null;
-		
-		String sql = "insert into member(id, pwd, name, email, phone, role, birth, sns)"
-				+ " values(?, ?, ?, ?, ?, ?, ?, ?)";
+
+		// username을 id 컬럼에 저장 (기존 스키마 호환)
+		String sql = "insert into member(id, pwd, name, email, phone, role, birth)"
+				+ " values(?, ?, ?, ?, ?, ?, ?)";
 
 		int res = 0;
 		try {
 			con = ds.getConnection();
 			psmt = con.prepareStatement(sql);
-			psmt.setString(1, m.getId());
+			psmt.setString(1, m.getUsername());
 			psmt.setString(2, m.getPwd());
 			psmt.setString(3, m.getName());
 			psmt.setString(4, m.getEmail());
 			psmt.setString(5, m.getPhone());
 			psmt.setString(6, m.getRole() != null ? m.getRole() : "USER");
 			psmt.setDate(7, m.getBirth());
-			psmt.setString(8, m.getSns());
-			
+
 			res = psmt.executeUpdate();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -56,8 +57,9 @@ public class MemberDaoImpl implements MemberDao {
 		PreparedStatement psmt = null;
 		ResultSet rs = null;
 		Member m = null;
-		
-		String sql = "select id, pwd, name, email, phone, role, birth, sns, regDate from member where id = ?";
+
+		// sns, regDate 컬럼 제외 (새 스키마에서 제거됨)
+		String sql = "select id, pwd, name, email, phone, role, birth from member where id = ?";
 		try {
 			con = ds.getConnection();
 			psmt = con.prepareStatement(sql);
@@ -65,15 +67,13 @@ public class MemberDaoImpl implements MemberDao {
 			rs = psmt.executeQuery();
 			if(rs.next()) {
 				m = new Member();
-				m.setId(rs.getString(1));
+				m.setUsername(rs.getString(1));
 				m.setPwd(rs.getString(2));
 				m.setName(rs.getString(3));
 				m.setEmail(rs.getString(4));
 				m.setPhone(rs.getString(5));
 				m.setRole(rs.getString(6));
 				m.setBirth(rs.getDate(7));
-				m.setSns(rs.getString(8));
-				m.setRegDate(rs.getTimestamp(9));
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -108,15 +108,15 @@ public class MemberDaoImpl implements MemberDao {
 	
 	@Override
 	public int update(Member m) {
-		String sql ="update member set pwd=?, name=?, email=?, sns=?, regDate =now() where id = ?";
+		// sns, regDate 컬럼 제외 (새 스키마에서 제거됨)
+		String sql ="update member set pwd=?, name=?, email=? where id = ?";
 		int res = 0;
 		try(Connection con = ds.getConnection(); PreparedStatement psmt = con.prepareStatement(sql);) {
 			psmt.setString(1, m.getPwd());
 			psmt.setString(2, m.getName());
 			psmt.setString(3, m.getEmail());
-			psmt.setString(4, m.getSns());
-			psmt.setString(5, m.getId());
-			
+			psmt.setString(4, m.getUsername());
+
 			res = psmt.executeUpdate();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -150,24 +150,23 @@ public class MemberDaoImpl implements MemberDao {
 		PreparedStatement psmt = null;
 		ResultSet rs = null;
 		Member m = null;
-		
-		String sql = "select id, pwd, name, email, phone, role, birth, sns, regDate from member";
+
+		// sns, regDate 컬럼 제외 (새 스키마에서 제거됨)
+		String sql = "select id, pwd, name, email, phone, role, birth from member";
 		try {
 			con = ds.getConnection();
 			psmt = con.prepareStatement(sql);
 			rs = psmt.executeQuery();
 			while(rs.next()) {
 				m = new Member();
-				m.setId(rs.getString(1));
+				m.setUsername(rs.getString(1));
 				m.setPwd(rs.getString(2));
 				m.setName(rs.getString(3));
 				m.setEmail(rs.getString(4));
 				m.setPhone(rs.getString(5));
 				m.setRole(rs.getString(6));
 				m.setBirth(rs.getDate(7));
-				m.setSns(rs.getString(8));
-				m.setRegDate(rs.getTimestamp(9));
-				
+
 				mlist.add(m);
 			}
 		} catch (Exception e) {
@@ -185,5 +184,38 @@ public class MemberDaoImpl implements MemberDao {
 	@Override
 	public Member selectByUsername(String username) throws Exception {
 		return select(username); // id로 조회하는 것과 동일
+	}
+
+	// ============ 아래 메서드들은 이 클래스가 비활성화되어 있어 stub 구현 ============
+	// MemberDaoImpl2를 사용하므로 이 클래스는 @Repository 주석 처리됨
+
+	@Override
+	public BigDecimal getKindnessTemperature(String userId) throws Exception {
+		throw new UnsupportedOperationException("MemberDaoImpl은 비활성화됨. MemberDaoImpl2 사용");
+	}
+
+	@Override
+	public int updateKindnessTemperature(String userId, BigDecimal temperature) throws Exception {
+		throw new UnsupportedOperationException("MemberDaoImpl은 비활성화됨. MemberDaoImpl2 사용");
+	}
+
+	@Override
+	public int increaseKindnessTemperature(String userId, BigDecimal amount) throws Exception {
+		throw new UnsupportedOperationException("MemberDaoImpl은 비활성화됨. MemberDaoImpl2 사용");
+	}
+
+	@Override
+	public Member findByNameAndEmail(String name, String email) throws Exception {
+		throw new UnsupportedOperationException("MemberDaoImpl은 비활성화됨. MemberDaoImpl2 사용");
+	}
+
+	@Override
+	public Member findByNameAndPhone(String name, String phone) throws Exception {
+		throw new UnsupportedOperationException("MemberDaoImpl은 비활성화됨. MemberDaoImpl2 사용");
+	}
+
+	@Override
+	public Member findByIdAndSecurityAnswer(String id, String securityAnswer) throws Exception {
+		throw new UnsupportedOperationException("MemberDaoImpl은 비활성화됨. MemberDaoImpl2 사용");
 	}
 }

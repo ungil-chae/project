@@ -26,7 +26,7 @@
     <!-- insert: INSERT INTO donation_reviews -->
     <insert id="insertReview" parameterType="com.greenart.bdproject.dto.DonationReviewDto" useGeneratedKeys="true" keyProperty="reviewId">
         INSERT INTO donation_reviews (member_id, donation_id, reviewer_name, title, rating, content, is_anonymous, helpful_count, created_at, updated_at)
-        VALUES (#{userId}, #{donationId}, #{reviewerName}, #{title}, #{rating}, #{content}, #{isAnonymous}, COALESCE(#{helpfulCount}, 0), NOW(), NOW())
+        VALUES (#{userId}, #{donationId}, #{reviewerName}, #{title}, #{rating}, #{content}, COALESCE(#{isAnonymous}, false), COALESCE(#{helpfulCount}, 0), NOW(), NOW())
     </insert>
 
     <!-- selectById: SELECT * FROM donation_reviews WHERE review_id = #{reviewId} -->

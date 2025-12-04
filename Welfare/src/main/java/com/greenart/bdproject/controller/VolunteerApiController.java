@@ -200,7 +200,7 @@ public class VolunteerApiController {
                             calendarEvent.setTitle(String.format("봉사 활동 (%s)", selectedCategory));
                             calendarEvent.setDescription(String.format("%s 봉사 활동 - %s", selectedCategory, volunteerTime));
 
-                            // 날짜 문자열을 안전하게 변환 (시간대 문제 방지)
+                            // 날짜 문자열 변환 (시간대 문제 방지)
                             java.sql.Date sqlDate = java.sql.Date.valueOf(volunteerDate.trim());
                             calendarEvent.setEventDate(sqlDate);
 

@@ -1199,7 +1199,7 @@
 
             try {
                 // API 호출
-                const url = '/bdproject/api/faq/search?q=' + encodeURIComponent(query) +
+                const url = '/bdproject/api/faqs/search?q=' + encodeURIComponent(query) +
                            (category !== 'all' ? '&category=' + encodeURIComponent(category) : '');
 
                 console.log('검색 API 호출:', url);
@@ -1418,7 +1418,7 @@
             }
 
             try {
-                const url = '/bdproject/api/faq/search?q=' + encodeURIComponent(searchText);
+                const url = '/bdproject/api/faqs/search?q=' + encodeURIComponent(searchText);
                 const response = await fetch(url);
                 const result = await response.json();
 

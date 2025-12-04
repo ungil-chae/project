@@ -993,7 +993,7 @@
                             id: review.reviewId,
                             name: review.reviewerName,
                             initial: review.reviewerName.charAt(0),
-                            date: review.createdAt.split('T')[0],
+                            date: typeof review.createdAt === 'string' ? review.createdAt.split('T')[0] : new Date(review.createdAt).toISOString().split('T')[0],
                             category: review.category || '일반',
                             rating: review.rating,
                             amount: review.donationAmount || 0,

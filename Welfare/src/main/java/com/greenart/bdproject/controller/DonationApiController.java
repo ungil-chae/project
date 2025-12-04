@@ -664,7 +664,7 @@ public class DonationApiController {
 
             if (updated > 0) {
                 logger.info("기부 환불 완료 - donationId: {}, 원금: {}, 수수료: {}, 환불금: {}",
-                        donationId, amount, fee, refundAmount);
+                        new Object[]{donationId, amount, fee, refundAmount});
 
                 response.put("success", true);
                 response.put("originalAmount", amount);

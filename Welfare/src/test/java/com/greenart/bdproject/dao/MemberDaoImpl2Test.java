@@ -31,7 +31,7 @@ class MemberDaoImpl2Test {
 
 
         assertNotNull(selectedMember);
-        assertEquals(member.getId(), selectedMember.getId());
+        assertEquals(member.getUsername(), selectedMember.getUsername());
         assertEquals(member.getPwd(), selectedMember.getPwd());
         assertEquals(member.getName(), selectedMember.getName());
         assertEquals(member.getEmail(), selectedMember.getEmail());

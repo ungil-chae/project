@@ -92,11 +92,12 @@ public class LoginController {
 		try {
 			m = dao.select(id);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		if(m==null) return false;
-		return m.getId().equals(id) && m.getPwd().equals(pwd);
+		// Member에서 id가 username으로 변경됨
+		String username = m.getUsername();
+		return username != null && username.equals(id) && m.getPwd().equals(pwd);
 	}
 	
 	@GetMapping("/logout")

@@ -1370,10 +1370,10 @@
                                 // 버튼 영역 추가 (리뷰 작성, 환불)
                                 '<div style="display: flex; gap: 10px; margin-top: 15px; justify-content: flex-end;">' +
                                     (!donation.hasReview ?
-                                        '<button onclick="event.stopPropagation(); openDonationReviewModal(' + donation.donationId + ', \'' + (titleText || '').replace(/'/g, "\\'") + '\', ' + (donation.amount || 0) + ')" style="padding: 8px 16px; background: #3498db; color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px;"><i class="fas fa-pen"></i>리뷰 작성</button>' :
+                                        '<button onclick="event.stopPropagation(); openDonationReviewModal(' + donation.donationId + ', \'' + (titleText || '').replace(/'/g, "\\'") + '\', ' + (donation.amount || 0) + ')" style="padding: 8px 16px; background: #3498db; color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px;">리뷰 작성</button>' :
                                         '<span style="padding: 8px 16px; background: #95a5a6; color: white; border-radius: 6px; font-size: 13px; display: flex; align-items: center; gap: 6px;"><i class="fas fa-check"></i>리뷰 작성완료</span>') +
                                     (canRefund(donation.createdAt) && donation.paymentStatus !== 'REFUNDED' ?
-                                        '<button onclick="event.stopPropagation(); requestRefund(' + donation.donationId + ', ' + (donation.amount || 0) + ', \'' + donation.createdAt + '\')" style="padding: 8px 16px; background: #e74c3c; color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px;"><i class="fas fa-undo"></i>환불 요청</button>' : '') +
+                                        '<button onclick="event.stopPropagation(); requestRefund(' + donation.donationId + ', ' + (donation.amount || 0) + ', \'' + donation.createdAt + '\')" style="padding: 8px 16px; background: #e74c3c; color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px;">환불 요청</button>' : '') +
                                     (donation.paymentStatus === 'REFUNDED' ?
                                         '<span style="padding: 8px 16px; background: #95a5a6; color: white; border-radius: 6px; font-size: 13px; display: flex; align-items: center; gap: 6px;"><i class="fas fa-ban"></i>환불완료</span>' : '') +
                                 '</div>' +
@@ -4857,11 +4857,10 @@
             currentDonationForReview = { donationId, title, amount };
 
             const modal = document.getElementById('donationReviewModal');
-            document.getElementById('reviewDonationTitle').textContent = title;
-            document.getElementById('reviewDonationAmount').textContent = amount.toLocaleString() + '원';
+            document.getElementById('donationReviewTitle').textContent = title;
+            document.getElementById('donationReviewAmount').textContent = amount.toLocaleString() + '원';
             document.getElementById('donationReviewContent').value = '';
             document.getElementById('donationReviewRating').value = '5';
-            document.getElementById('donationReviewAnonymous').checked = false;
 
             modal.style.display = 'flex';
         }

@@ -148,7 +148,7 @@ public class AutoLoginInterceptor implements HandlerInterceptor {
                 String status = rs.getString("status");
                 Timestamp expiresAt = rs.getTimestamp("expires_at");
 
-                logger.info("토큰 검증 성공 - memberId: {}, email: {}, status: {}", memberId, email, status);
+                logger.info("토큰 검증 성공 - memberId: {}, email: {}, status: {}", new Object[]{memberId, email, status});
                 logger.info("토큰 만료 시간: {}", expiresAt);
 
                 // Member 객체 생성 (필요한 정보만)
