@@ -32,11 +32,6 @@ public class AdminDaoImpl implements AdminDao {
     }
 
     @Override
-    public int getTotalDiagnoses() {
-        return sqlSession.selectOne(NAMESPACE + ".getTotalDiagnoses");
-    }
-
-    @Override
     public List<Map<String, Object>> getAllMembers() {
         return sqlSession.selectList(NAMESPACE + ".getAllMembers");
     }
@@ -250,23 +245,56 @@ public class AdminDaoImpl implements AdminDao {
     }
 
     @Override
-    public Map<String, Object> getPaymentMethodStats() {
-        List<Map<String, Object>> rawData = sqlSession.selectList(NAMESPACE + ".getPaymentMethodStats");
+    public Map<String, Object> getMonthlyReviewStats() {
         Map<String, Object> result = new HashMap<>();
 
+        // 최근 6개월 레이블 생성
         java.util.List<String> labels = new java.util.ArrayList<>();
-        java.util.List<Integer> data = new java.util.ArrayList<>();
+        java.time.LocalDate now = java.time.LocalDate.now();
+        for (int i = 5; i >= 0; i--) {
+            java.time.LocalDate date = now.minusMonths(i);
+            labels.add(date.getMonthValue() + "월");
+        }
 
-        if (rawData != null) {
-            for (Map<String, Object> row : rawData) {
-                labels.add((String) row.get("method"));
-                Object count = row.get("count");
-                data.add(count != null ? ((Number) count).intValue() : 0);
+        // 봉사 후기 월별 통계
+        List<Map<String, Object>> volunteerData = sqlSession.selectList(NAMESPACE + ".getMonthlyVolunteerReviewStats");
+        java.util.List<Integer> volunteerCounts = new java.util.ArrayList<>();
+        for (int i = 5; i >= 0; i--) {
+            java.time.LocalDate date = now.minusMonths(i);
+            String monthKey = String.format("%d-%02d", date.getYear(), date.getMonthValue());
+            int count = 0;
+            if (volunteerData != null) {
+                for (Map<String, Object> row : volunteerData) {
+                    if (monthKey.equals(row.get("month"))) {
+                        count = ((Number) row.get("count")).intValue();
+                        break;
+                    }
+                }
             }
+            volunteerCounts.add(count);
+        }
+
+        // 기부 후기 월별 통계
+        List<Map<String, Object>> donationData = sqlSession.selectList(NAMESPACE + ".getMonthlyDonationReviewStats");
+        java.util.List<Integer> donationCounts = new java.util.ArrayList<>();
+        for (int i = 5; i >= 0; i--) {
+            java.time.LocalDate date = now.minusMonths(i);
+            String monthKey = String.format("%d-%02d", date.getYear(), date.getMonthValue());
+            int count = 0;
+            if (donationData != null) {
+                for (Map<String, Object> row : donationData) {
+                    if (monthKey.equals(row.get("month"))) {
+                        count = ((Number) row.get("count")).intValue();
+                        break;
+                    }
+                }
+            }
+            donationCounts.add(count);
         }
 
         result.put("labels", labels);
-        result.put("data", data);
+        result.put("volunteerData", volunteerCounts);
+        result.put("donationData", donationCounts);
         return result;
     }
 

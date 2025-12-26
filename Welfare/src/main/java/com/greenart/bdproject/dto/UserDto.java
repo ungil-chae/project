@@ -105,7 +105,7 @@ public class UserDto {
         return "UserDto{" +
                 "userId=" + userId +
                 ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
+                ", password='[PROTECTED]'" +
                 ", name='" + name + '\'' +
                 ", email='" + email + '\'' +
                 ", phone='" + phone + '\'' +

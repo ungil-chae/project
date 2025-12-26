@@ -31,7 +31,9 @@ public class KindnessTemperatureService {
     private static final BigDecimal DONATION_LARGE = new BigDecimal("0.5");        // 고액 기부 (20만원 이상)
     private static final BigDecimal VOLUNTEER_REVIEW = new BigDecimal("0.2");      // 봉사 후기 작성
     private static final BigDecimal DONATION_REVIEW = new BigDecimal("0.1");       // 기부 후기 작성
-    private static final BigDecimal WELFARE_DIAGNOSIS = new BigDecimal("0.05");    // 복지 진단 완료
+
+    // 온도 감소 규칙 (단위: 도)
+    private static final BigDecimal VOLUNTEER_CANCELLATION = new BigDecimal("0.5"); // 봉사 취소 (24시간 이내)
 
     /**
      * 현재 선행온도 조회
@@ -94,13 +96,6 @@ public class KindnessTemperatureService {
     }
 
     /**
-     * 복지 진단 완료 시 온도 증가
-     */
-    public void increaseForWelfareDiagnosis(String userId) {
-        increaseTemperature(userId, WELFARE_DIAGNOSIS, "복지 진단 완료");
-    }
-
-    /**
      * 온도 증가 공통 메서드
      */
     private void increaseTemperature(String userId, BigDecimal amount, String reason) {
@@ -135,6 +130,35 @@ public class KindnessTemperatureService {
             logger.info("선행온도 설정 - userId: {}, 온도: {}도", userId, temperature);
         } catch (Exception e) {
             logger.error("선행온도 설정 실패 - userId: {}", userId, e);
+        }
+    }
+
+    /**
+     * 봉사 취소 시 온도 감소 (24시간 이내 취소 시)
+     */
+    public void decreaseForVolunteerCancellation(String userId) {
+        decreaseTemperature(userId, VOLUNTEER_CANCELLATION, "봉사 취소 (24시간 이내)");
+    }
+
+    /**
+     * 온도 감소 공통 메서드 (최소 0.00 보장)
+     */
+    private void decreaseTemperature(String userId, BigDecimal amount, String reason) {
+        if (memberDao == null) {
+            logger.warn("MemberDao가 null입니다. 온도 감소 건너뜀 - userId: {}, 사유: {}", userId, reason);
+            return;
+        }
+        try {
+            int result = memberDao.decreaseKindnessTemperature(userId, amount);
+            if (result > 0) {
+                BigDecimal newTemp = getCurrentTemperature(userId);
+                logger.info("선행온도 감소 성공 - userId: {}, 사유: {}", userId, reason);
+                logger.debug("감소량: {}도, 현재온도: {}도", amount, newTemp);
+            } else {
+                logger.warn("선행온도 감소 실패 - userId: {}, 사유: {}", userId, reason);
+            }
+        } catch (Exception e) {
+            logger.error("선행온도 감소 오류 - userId: " + userId + ", 사유: " + reason, e);
         }
     }
 }

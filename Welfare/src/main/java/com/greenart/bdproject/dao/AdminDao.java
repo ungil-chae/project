@@ -21,11 +21,6 @@ public interface AdminDao {
     int getTotalVolunteers();
 
     /**
-     * 복지 진단 수 조회
-     */
-    int getTotalDiagnoses();
-
-    /**
      * 회원 목록 조회
      */
     List<Map<String, Object>> getAllMembers();
@@ -158,9 +153,9 @@ public interface AdminDao {
     Map<String, Object> getVolunteerCategoryStats();
 
     /**
-     * 후원 방식별 통계 조회
+     * 월별 후기 작성 통계 조회
      */
-    Map<String, Object> getPaymentMethodStats();
+    Map<String, Object> getMonthlyReviewStats();
 
     /**
      * 복지서비스 이용 통계 조회

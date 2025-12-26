@@ -21,7 +21,7 @@ public class ReviewDAO {
 	        List<ReviewListDisplayDTO> userReviews = new ArrayList<>();
 	        String sql = "SELECT r.review_id, r.user_id, r.review_text, r.rating, r.created_at, r.updated_at, " +
 	                     "rb.book_id, rb.isbn, rb.title AS book_title, rb.author AS book_author, rb.cover_image_url AS book_cover_image_url " +
-	                     "FROM reviews r JOIN ReviewBook rb ON r.book_id = rb.book_id " +
+	                     "FROM reviews r JOIN books rb ON r.book_id = rb.book_id " +
 	                     "WHERE r.user_id = ? " + // <-- user_id로 필터링
 	                     "ORDER BY r.created_at DESC"; // 최신 리뷰부터 표시
 
@@ -131,7 +131,7 @@ public class ReviewDAO {
 				+ "rb.book_id, rb.isbn, rb.title AS book_title, rb.author AS book_author, rb.cover_image_url AS book_cover_image_url " // <<--
 																																		// rb.isbn
 																																		// 추가됨!
-				+ "FROM reviews r JOIN ReviewBook rb ON r.book_id = rb.book_id " + "ORDER BY r.created_at DESC";
+				+ "FROM reviews r JOIN books rb ON r.book_id = rb.book_id " + "ORDER BY r.created_at DESC";
 
 		try (Connection conn = DBUtil.getConnection();
 				PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -165,8 +165,8 @@ public class ReviewDAO {
 		ReviewListDisplayDTO dto = null;
 		String sql = "SELECT r.review_id, r.user_id, r.review_text, r.rating, r.created_at, r.updated_at, "
 				+ "rb.book_id, rb.title AS book_title, rb.author AS book_author, rb.cover_image_url AS book_cover_image_url, "
-				+ "rb.naver_link, rb.isbn, rb.publisher, rb.description, rb.pubdate "
-				+ "FROM reviews r JOIN ReviewBook rb ON r.book_id = rb.book_id " + "WHERE r.review_id = ?";
+				+ "rb.link, rb.isbn, rb.publisher, rb.description, rb.pub_date "
+				+ "FROM reviews r JOIN books rb ON r.book_id = rb.book_id " + "WHERE r.review_id = ?";
 
 		try (Connection conn = DBUtil.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
 

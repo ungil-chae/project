@@ -382,14 +382,14 @@ public class NotificationServiceImpl implements NotificationService {
             logger.info("tomorrow: {}", tomorrow);
 
             // 봉사 신청 중 내일 또는 오늘이 활동일인 봉사 조회
-            // volunteer_date (일반 신청) 또는 activity_date (활동 기반 신청) 확인
-            String sql = "SELECT va.application_id, va.activity_id, va.volunteer_date, " +
-                        "va.selected_category, vact.activity_date, vact.activity_name " +
-                        "FROM volunteer_applications va " +
-                        "LEFT JOIN volunteer_activities vact ON va.activity_id = vact.activity_id " +
+            // vol_date (일반 신청) 또는 activity_date (활동 기반 신청) 확인
+            String sql = "SELECT va.apply_id AS application_id, va.act_id AS activity_id, va.vol_date AS volunteer_date, " +
+                        "va.sel_cat AS selected_category, vact.activity_date, vact.activity_name " +
+                        "FROM vol_apply va " +
+                        "LEFT JOIN volunteer_activities vact ON va.act_id = vact.activity_id " +
                         "WHERE va.member_id = ? " +
                         "AND va.status IN ('APPLIED', 'CONFIRMED') " +
-                        "AND (va.volunteer_date IN (?, ?) OR vact.activity_date IN (?, ?))";
+                        "AND (va.vol_date IN (?, ?) OR vact.activity_date IN (?, ?))";
 
             pstmt = con.prepareStatement(sql);
             pstmt.setLong(1, memberId);

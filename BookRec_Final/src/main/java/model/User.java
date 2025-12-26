@@ -17,6 +17,7 @@ public class User {
     private LocalDateTime lastLoginDate;
     private String status;
     private LocalDateTime deletedAt;
+    private String profileImage; // 프로필 이미지 경로
 
     // 기본 생성자
     public User() {}
@@ -81,6 +82,10 @@ public class User {
     // ✨ 추가: hobbies 필드의 Getter 및 Setter
     public String getHobbies() { return hobbies; }
     public void setHobbies(String hobbies) { this.hobbies = hobbies; }
+
+    // 프로필 이미지 Getter 및 Setter
+    public String getProfileImage() { return profileImage; }
+    public void setProfileImage(String profileImage) { this.profileImage = profileImage; }
 
     @Override
     public String toString() {

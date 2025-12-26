@@ -7,6 +7,16 @@ body{
   background:#fff;
 }
 
+/* 전체 a 태그 밑줄 제거 */
+a {
+  text-decoration: none !important;
+  color: inherit;
+}
+
+a:hover, a:visited, a:active, a:focus {
+  text-decoration: none !important;
+}
+
 /* ===== 헤더 ===== */
 header{
   display:flex;
@@ -101,7 +111,7 @@ nav a:hover{text-decoration:underline;}
   position:relative;display:flex;flex-direction:column;justify-content:space-between;
   height:360px;border-radius:16px;overflow:hidden;
   box-shadow:0 4px 12px rgba(0,0,0,.1);background:#fff;cursor:pointer;
-  transition:transform .3s;
+  transition:transform .3s;text-decoration:none;color:inherit;
 }
 .card:hover{transform:translateY(-5px);}
 .card .bg-img{

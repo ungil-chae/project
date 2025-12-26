@@ -121,10 +121,10 @@ public class VolunteerApiController {
                 return response;
             }
 
-            // schema.sql에 맞춤: member_id, activity_id는 NULL 허용
-            String sql = "INSERT INTO volunteer_applications " +
-                    "(activity_id, member_id, applicant_name, applicant_phone, applicant_email, applicant_address, " +
-                    "volunteer_experience, selected_category, volunteer_date, volunteer_end_date, volunteer_time, status) " +
+            // schema.sql에 맞춤: vol_apply 테이블 사용
+            String sql = "INSERT INTO vol_apply " +
+                    "(act_id, member_id, appl_name, appl_phone, appl_email, appl_addr, " +
+                    "vol_exp, sel_cat, vol_date, vol_end_date, vol_time, status) " +
                     "VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'APPLIED')";
 
             pstmt = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
@@ -269,18 +269,27 @@ public class VolunteerApiController {
 
             con = dataSource.getConnection();
 
-            // 새 스키마: member_id (BIGINT), email로 회원 식별
+            // 새 스키마: vol_apply 테이블 사용
             // 봉사 신청 내역 조회 + 리뷰 작성 여부 확인
-            // member_id가 있으면 member로 조회, 없으면 applicant_email로 조회
-            String sql = "SELECT va.*, " +
+            String sql = "SELECT va.apply_id AS application_id, va.act_id AS activity_id, va.member_id, " +
+                    "va.appl_name AS applicant_name, va.appl_email AS applicant_email, va.appl_phone AS applicant_phone, " +
+                    "va.appl_birth AS applicant_birth, va.appl_gender AS applicant_gender, va.appl_addr AS applicant_address, " +
+                    "va.vol_exp AS volunteer_experience, va.sel_cat AS selected_category, va.motivation, " +
+                    "va.vol_date AS volunteer_date, va.vol_end_date AS volunteer_end_date, va.vol_time AS volunteer_time, " +
+                    "va.status, va.attend_yn AS attendance_checked, va.actual_hr AS actual_hours, " +
+                    "va.cancel_rsn AS cancel_reason, va.reject_rsn AS reject_reason, " +
+                    "va.completed_at, va.cancelled_at, va.created_at, va.updated_at, " +
+                    "va.assign_fac_nm AS assigned_facility_name, va.assign_fac_addr AS assigned_facility_address, " +
+                    "va.assign_fac_lat AS assigned_facility_lat, va.assign_fac_lng AS assigned_facility_lng, " +
+                    "va.admin_memo AS admin_note, va.appr_by AS approved_by, va.appr_at AS approved_at, " +
                     "CASE WHEN vr.review_id IS NOT NULL THEN 1 ELSE 0 END AS has_review, " +
                     "CASE WHEN va.status = 'COMPLETED' AND va.completed_at IS NOT NULL AND " +
                     "TIMESTAMPDIFF(DAY, va.completed_at, NOW()) <= 3 AND vr.review_id IS NULL " +
                     "THEN 1 ELSE 0 END AS can_write_review " +
-                    "FROM volunteer_applications va " +
-                    "LEFT JOIN volunteer_reviews vr ON va.application_id = vr.application_id " +
+                    "FROM vol_apply va " +
+                    "LEFT JOIN vol_review vr ON va.apply_id = vr.apply_id " +
                     "LEFT JOIN member m ON va.member_id = m.member_id " +
-                    "WHERE (m.email = ? OR va.applicant_email = ?) " +
+                    "WHERE (m.email = ? OR va.appl_email = ?) " +
                     "ORDER BY va.created_at DESC";
 
             pstmt = con.prepareStatement(sql);
@@ -404,11 +413,11 @@ public class VolunteerApiController {
                 reviewerName = "익명"; // 이름이 없을 경우 기본값
             }
 
-            // 1. 봉사 신청 확인 및 3일 이내 확인 (volunteer_end_date 기준)
-            String checkSql = "SELECT volunteer_end_date, selected_category, " +
-                    "DATEDIFF(CURDATE(), volunteer_end_date) AS days_passed " +
-                    "FROM volunteer_applications " +
-                    "WHERE application_id = ? AND member_id = ?";
+            // 1. 봉사 신청 확인 및 3일 이내 확인 (vol_end_date 기준)
+            String checkSql = "SELECT vol_end_date AS volunteer_end_date, sel_cat AS selected_category, " +
+                    "DATEDIFF(CURDATE(), vol_end_date) AS days_passed " +
+                    "FROM vol_apply " +
+                    "WHERE apply_id = ? AND member_id = ?";
 
             pstmt = con.prepareStatement(checkSql);
             pstmt.setLong(1, applicationId);
@@ -442,7 +451,7 @@ public class VolunteerApiController {
             pstmt.close();
 
             // 2. 이미 리뷰가 있는지 확인
-            String checkReviewSql = "SELECT COUNT(*) FROM volunteer_reviews WHERE application_id = ?";
+            String checkReviewSql = "SELECT COUNT(*) FROM vol_review WHERE apply_id = ?";
             pstmt = con.prepareStatement(checkReviewSql);
             pstmt.setLong(1, applicationId);
             rs = pstmt.executeQuery();
@@ -456,9 +465,9 @@ public class VolunteerApiController {
             rs.close();
             pstmt.close();
 
-            // 3. 리뷰 저장 (schema.sql에 맞춤: member_id, reviewer_name 사용)
-            String insertSql = "INSERT INTO volunteer_reviews " +
-                    "(member_id, application_id, reviewer_name, title, content, rating) " +
+            // 3. 리뷰 저장 (schema.sql에 맞춤: vol_review 테이블 사용)
+            String insertSql = "INSERT INTO vol_review " +
+                    "(member_id, apply_id, reviewer_nm, title, content, rating) " +
                     "VALUES (?, ?, ?, ?, ?, ?)";
 
             pstmt = con.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS);
@@ -529,9 +538,11 @@ public class VolunteerApiController {
         try {
             con = dataSource.getConnection();
 
-            String sql = "SELECT vr.*, va.applicant_name, va.selected_category " +
-                    "FROM volunteer_reviews vr " +
-                    "JOIN volunteer_applications va ON vr.application_id = va.application_id " +
+            String sql = "SELECT vr.review_id, vr.reviewer_nm AS applicant_name, va.sel_cat AS selected_category, " +
+                    "vr.title, vr.content, vr.rating, vr.created_at " +
+                    "FROM vol_review vr " +
+                    "JOIN vol_apply va ON vr.apply_id = va.apply_id " +
+                    "WHERE vr.visible_yn = TRUE " +
                     "ORDER BY vr.created_at DESC";
 
             pstmt = con.prepareStatement(sql);
@@ -599,9 +610,11 @@ public class VolunteerApiController {
             con = dataSource.getConnection();
 
             // 신청 정보 및 봉사 예정일 조회
-            String selectSql = "SELECT va.*, m.member_id FROM volunteer_applications va " +
+            String selectSql = "SELECT va.apply_id, va.status, va.vol_date AS volunteer_date, " +
+                    "va.vol_time AS volunteer_time, m.member_id " +
+                    "FROM vol_apply va " +
                     "JOIN member m ON va.member_id = m.member_id " +
-                    "WHERE va.application_id = ? AND m.email = ?";
+                    "WHERE va.apply_id = ? AND m.email = ?";
             pstmt = con.prepareStatement(selectSql);
             pstmt.setLong(1, applicationId);
             pstmt.setString(2, userId);
@@ -657,9 +670,9 @@ public class VolunteerApiController {
             boolean isWithin24Hours = diffMs >= 0 && diffMs <= hours24;
 
             // 봉사활동 취소 (상태를 CANCELLED로 변경)
-            String updateSql = "UPDATE volunteer_applications SET status = 'CANCELLED', " +
-                    "cancel_reason = ?, cancelled_at = NOW(), updated_at = NOW() " +
-                    "WHERE application_id = ?";
+            String updateSql = "UPDATE vol_apply SET status = 'CANCELLED', " +
+                    "cancel_rsn = ?, cancelled_at = NOW(), updated_at = NOW() " +
+                    "WHERE apply_id = ?";
             pstmt = con.prepareStatement(updateSql);
 
             String cancelReason = isWithin24Hours ? "사용자 취소 (24시간 이내)" : "사용자 취소";
@@ -669,7 +682,7 @@ public class VolunteerApiController {
             int updated = pstmt.executeUpdate();
 
             if (updated > 0) {
-                // 24시간 이내 취소인 경우 1주일 제한 설정
+                // 24시간 이내 취소인 경우 1주일 제한 설정 + 온도 감소
                 if (isWithin24Hours) {
                     close(pstmt);
 
@@ -680,11 +693,21 @@ public class VolunteerApiController {
                     pstmt.setLong(1, memberId);
                     pstmt.executeUpdate();
 
+                    // 선행 온도 감소 (24시간 이내 취소 패널티)
+                    if (temperatureService != null) {
+                        try {
+                            temperatureService.decreaseForVolunteerCancellation(userId);
+                            logger.info("24시간 이내 취소로 선행온도 감소 - userId: {}", userId);
+                        } catch (Exception e) {
+                            logger.error("선행온도 감소 실패 - userId: {}", userId, e);
+                        }
+                    }
+
                     logger.info("24시간 이내 취소로 1주일 제한 적용 - memberId: {}", memberId);
 
                     response.put("success", true);
                     response.put("banned", true);
-                    response.put("message", "봉사활동이 취소되었습니다. 봉사 시작 24시간 이내 취소로 인해 1주일간 봉사 신청이 제한됩니다.");
+                    response.put("message", "봉사활동이 취소되었습니다. 봉사 시작 24시간 이내 취소로 인해 1주일간 봉사 신청이 제한되며 선행온도가 감소합니다.");
                 } else {
                     response.put("success", true);
                     response.put("banned", false);
@@ -721,6 +744,7 @@ public class VolunteerApiController {
 
     /**
      * 봉사 경험 한글 값을 DB ENUM 값으로 변환
+     * schema.sql ENUM: 'NONE', 'LT_1Y', '1Y_3Y', 'GT_3Y'
      */
     private String convertExperienceToEnum(String koreanExperience) {
         if (koreanExperience == null || koreanExperience.isEmpty()) {
@@ -731,17 +755,17 @@ public class VolunteerApiController {
             case "없음":
                 return "NONE";
             case "1년 미만":
-                return "LESS_THAN_1YEAR";
+                return "LT_1Y";
             case "1-3년":
-                return "1_TO_3YEARS";
+                return "1Y_3Y";
             case "3년 이상":
-                return "MORE_THAN_3YEARS";
+                return "GT_3Y";
             default:
                 // 이미 ENUM 값인 경우 그대로 반환
                 if (koreanExperience.equals("NONE") ||
-                    koreanExperience.equals("LESS_THAN_1YEAR") ||
-                    koreanExperience.equals("1_TO_3YEARS") ||
-                    koreanExperience.equals("MORE_THAN_3YEARS")) {
+                    koreanExperience.equals("LT_1Y") ||
+                    koreanExperience.equals("1Y_3Y") ||
+                    koreanExperience.equals("GT_3Y")) {
                     return koreanExperience;
                 }
                 logger.warn("알 수 없는 봉사 경험 값: {}, 기본값 NONE 사용", koreanExperience);

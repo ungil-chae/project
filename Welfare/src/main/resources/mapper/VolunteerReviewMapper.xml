@@ -4,7 +4,7 @@
 
 <mapper namespace="com.greenart.bdproject.mapper.VolunteerReviewMapper">
 
-    <!-- resultMap: schema.sql의 volunteer_reviews 테이블 구조에 맞춤 -->
+    <!-- resultMap: schema.sql의 vol_review 테이블 구조에 맞춤 -->
     <resultMap id="VolunteerReviewResult" type="com.greenart.bdproject.dto.VolunteerReviewDto">
         <id property="reviewId" column="review_id"/>
         <result property="userId" column="user_id"/>
@@ -20,26 +20,26 @@
 
     <!-- insert: 봉사 후기 등록 -->
     <insert id="insert" parameterType="com.greenart.bdproject.dto.VolunteerReviewDto" useGeneratedKeys="true" keyProperty="reviewId">
-        INSERT INTO volunteer_reviews (user_id, application_id, title, content, rating, created_at)
-        VALUES (#{userId}, #{applicationId}, #{title}, #{content}, #{rating}, NOW())
+        INSERT INTO vol_review (member_id, apply_id, reviewer_nm, title, content, rating, created_at)
+        VALUES (#{userId}, #{applicationId}, #{userName}, #{title}, #{content}, #{rating}, NOW())
     </insert>
 
     <!-- selectById: ID로 후기 조회 (member와 조인하여 user_name 포함) -->
     <select id="selectById" parameterType="long" resultMap="VolunteerReviewResult">
         SELECT
             vr.review_id,
-            vr.user_id,
-            m.name AS user_name,
-            vr.application_id,
-            va.selected_category AS activity_name,
-            va.volunteer_experience,
+            vr.member_id AS user_id,
+            COALESCE(m.name, vr.reviewer_nm) AS user_name,
+            vr.apply_id AS application_id,
+            va.sel_cat AS activity_name,
+            va.vol_exp AS volunteer_experience,
             vr.title,
             vr.content,
             vr.rating,
             vr.created_at
-        FROM volunteer_reviews vr
-        INNER JOIN member m ON vr.user_id = m.id
-        LEFT JOIN volunteer_applications va ON vr.application_id = va.application_id
+        FROM vol_review vr
+        LEFT JOIN member m ON vr.member_id = m.member_id
+        LEFT JOIN vol_apply va ON vr.apply_id = va.apply_id
         WHERE vr.review_id = #{reviewId}
     </select>
 
@@ -47,18 +47,18 @@
     <select id="selectAll" resultMap="VolunteerReviewResult">
         SELECT
             vr.review_id,
-            vr.user_id,
-            m.name AS user_name,
-            vr.application_id,
-            va.selected_category AS activity_name,
-            va.volunteer_experience,
+            vr.member_id AS user_id,
+            COALESCE(m.name, vr.reviewer_nm) AS user_name,
+            vr.apply_id AS application_id,
+            va.sel_cat AS activity_name,
+            va.vol_exp AS volunteer_experience,
             vr.title,
             vr.content,
             vr.rating,
             vr.created_at
-        FROM volunteer_reviews vr
-        INNER JOIN member m ON vr.user_id = m.id
-        LEFT JOIN volunteer_applications va ON vr.application_id = va.application_id
+        FROM vol_review vr
+        LEFT JOIN member m ON vr.member_id = m.member_id
+        LEFT JOIN vol_apply va ON vr.apply_id = va.apply_id
         ORDER BY vr.created_at DESC
     </select>
 
@@ -66,27 +66,27 @@
     <select id="selectByUserId" parameterType="string" resultMap="VolunteerReviewResult">
         SELECT
             vr.review_id,
-            vr.user_id,
-            m.name AS user_name,
-            vr.application_id,
-            va.selected_category AS activity_name,
-            va.volunteer_experience,
+            vr.member_id AS user_id,
+            COALESCE(m.name, vr.reviewer_nm) AS user_name,
+            vr.apply_id AS application_id,
+            va.sel_cat AS activity_name,
+            va.vol_exp AS volunteer_experience,
             vr.title,
             vr.content,
             vr.rating,
             vr.created_at
-        FROM volunteer_reviews vr
-        INNER JOIN member m ON vr.user_id = m.id
-        LEFT JOIN volunteer_applications va ON vr.application_id = va.application_id
-        WHERE vr.user_id = #{userId}
+        FROM vol_review vr
+        LEFT JOIN member m ON vr.member_id = m.member_id
+        LEFT JOIN vol_apply va ON vr.apply_id = va.apply_id
+        WHERE vr.member_id = #{userId}
         ORDER BY vr.created_at DESC
     </select>
 
     <!-- countByApplicationId: 봉사 신청별 후기 존재 여부 확인 -->
     <select id="countByApplicationId" parameterType="long" resultType="int">
         SELECT COUNT(*)
-        FROM volunteer_reviews
-        WHERE application_id = #{applicationId}
+        FROM vol_review
+        WHERE apply_id = #{applicationId}
     </select>
 
 </mapper>

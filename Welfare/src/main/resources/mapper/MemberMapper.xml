@@ -45,22 +45,18 @@
 		WHERE member_id = (SELECT member_id FROM member WHERE email = #{email});
 
 		<!-- 5. 봉사 신청 내역 삭제 -->
-		DELETE FROM volunteer_applications
+		DELETE FROM vol_apply
 		WHERE member_id = (SELECT member_id FROM member WHERE email = #{email});
 
 		<!-- 6. FAQ 질문 삭제 -->
 		DELETE FROM question
 		WHERE member_id = (SELECT member_id FROM member WHERE email = #{email});
 
-		<!-- 7. 복지 진단 결과 삭제 -->
-		DELETE FROM welfare_diagnosis_results
-		WHERE member_id = (SELECT member_id FROM member WHERE email = #{email});
-
-		<!-- 8. 즐겨찾기 복지 서비스 삭제 -->
+		<!-- 7. 즐겨찾기 복지 서비스 삭제 -->
 		DELETE FROM favorite_welfare_services
 		WHERE member_id = (SELECT member_id FROM member WHERE email = #{email});
 
-		<!-- 9. 마지막으로 회원 소프트 삭제 -->
+		<!-- 8. 마지막으로 회원 소프트 삭제 -->
 		UPDATE member SET deleted_at = NOW() WHERE email = #{email};
 	</delete>
 
@@ -107,6 +103,12 @@
 	<update id="increaseKindnessTemperature" parameterType="map">
 		UPDATE member
 		SET kindness_temperature = kindness_temperature + #{amount}
+		WHERE email = #{userId}
+	</update>
+
+	<update id="decreaseKindnessTemperature" parameterType="map">
+		UPDATE member
+		SET kindness_temperature = GREATEST(kindness_temperature - #{amount}, 0.00)
 		WHERE email = #{userId}
 	</update>
 

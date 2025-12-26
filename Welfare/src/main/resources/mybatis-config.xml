@@ -12,7 +12,6 @@
 		<!-- 새로 추가된 DTO (UserDto는 Member로 대체) -->
 		<typeAlias type="com.greenart.bdproject.dto.DonationDto" alias="DonationDto"/>
 		<typeAlias type="com.greenart.bdproject.dto.DonationReviewDto" alias="DonationReviewDto"/>
-		<typeAlias type="com.greenart.bdproject.dto.WelfareDiagnosisDto" alias="WelfareDiagnosisDto"/>
 		<typeAlias type="com.greenart.bdproject.dto.NoticeDto" alias="NoticeDto"/>
 		<typeAlias type="com.greenart.bdproject.dto.FaqDto" alias="FaqDto"/>
 		<typeAlias type="com.greenart.bdproject.dto.VolunteerApplicationDto" alias="VolunteerApplicationDto"/>

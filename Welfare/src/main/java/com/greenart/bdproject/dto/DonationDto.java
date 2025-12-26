@@ -48,9 +48,16 @@ public class DonationDto {
     // 정기 기부 정보
     private java.sql.Date regularStartDate;  // DATE (정기 기부 시작일)
 
+    // 환불 정보
+    private Integer refundAmount;  // 환불 금액 (수수료 제외)
+    private Integer refundFee;  // 환불 수수료
+
     // 시스템 정보
     private Timestamp createdAt;  // TIMESTAMP
     private Timestamp refundedAt;  // TIMESTAMP (환불일)
+
+    // 리뷰 정보 (조회용)
+    private Boolean hasReview;  // 리뷰 작성 여부
 
     // 기본 생성자
     public DonationDto() {
@@ -215,6 +222,30 @@ public class DonationDto {
 
     public void setRegularStartDate(java.sql.Date regularStartDate) {
         this.regularStartDate = regularStartDate;
+    }
+
+    public Boolean getHasReview() {
+        return hasReview;
+    }
+
+    public void setHasReview(Boolean hasReview) {
+        this.hasReview = hasReview;
+    }
+
+    public Integer getRefundAmount() {
+        return refundAmount;
+    }
+
+    public void setRefundAmount(Integer refundAmount) {
+        this.refundAmount = refundAmount;
+    }
+
+    public Integer getRefundFee() {
+        return refundFee;
+    }
+
+    public void setRefundFee(Integer refundFee) {
+        this.refundFee = refundFee;
     }
 
     // 유틸리티 메서드

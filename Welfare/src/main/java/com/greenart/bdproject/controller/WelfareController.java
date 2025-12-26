@@ -1,8 +1,6 @@
 package com.greenart.bdproject.controller;
 
 import com.greenart.bdproject.service.WelfareService;
-import com.greenart.bdproject.dao.WelfareDiagnosisDao;
-import com.greenart.bdproject.dto.WelfareDiagnosisDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,9 +9,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import javax.servlet.http.HttpSession;
-import java.sql.Date;
-import java.util.HashMap;
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.util.List;
 import java.util.Map;
 
@@ -27,7 +25,7 @@ public class WelfareController {
     private WelfareService welfareService;
 
     @Autowired
-    private WelfareDiagnosisDao welfareDiagnosisDao;
+    private DataSource dataSource;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -76,6 +74,9 @@ public class WelfareController {
                 System.out.println("첫 번째 결과 서비스: " + matchedServices.get(0));
             }
 
+            // 복지 진단 이용 로그 기록 (조회수 카운트)
+            saveDiagnosisLog();
+
             // JSON 문자열로 변환
             String jsonResult = objectMapper.writeValueAsString(matchedServices);
             System.out.println("JSON 변환 완료, 길이: " + jsonResult.length());
@@ -88,6 +89,32 @@ public class WelfareController {
             System.out.println("복지 매칭 중 오류 발생: " + e);
             e.printStackTrace();
             return ResponseEntity.status(500).build();
+        }
+    }
+
+    /**
+     * 복지 진단 이용 로그 저장 (조회수 카운트)
+     */
+    private void saveDiagnosisLog() {
+        Connection con = null;
+        PreparedStatement pstmt = null;
+
+        try {
+            con = dataSource.getConnection();
+            String sql = "INSERT INTO welfare_diagnosis_log () VALUES ()";
+            pstmt = con.prepareStatement(sql);
+            pstmt.executeUpdate();
+            logger.info("복지 진단 로그 저장 완료");
+
+        } catch (Exception e) {
+            logger.error("복지 진단 로그 저장 중 오류 발생", e);
+        } finally {
+            try {
+                if (pstmt != null) pstmt.close();
+                if (con != null) con.close();
+            } catch (Exception e) {
+                logger.error("자원 해제 중 오류", e);
+            }
         }
     }
 
@@ -152,6 +179,42 @@ public class WelfareController {
             logger.error("인기 복지 서비스 조회 중 오류 발생: ", e);
             return ResponseEntity.status(500)
                 .body("{\"error\":\"인기 복지 서비스 조회 중 오류가 발생했습니다.\"}");
+        }
+    }
+
+    /**
+     * API 성능 벤치마크 테스트 엔드포인트
+     * 순차 호출 vs 병렬 호출 성능 비교
+     *
+     * 사용법: GET /welfare/benchmark?sido=서울특별시&birthdate=1990-01-01&gender=male
+     */
+    @GetMapping(value = "/benchmark", produces = "application/json; charset=UTF-8")
+    @ResponseBody
+    public ResponseEntity<String> benchmarkApi(@RequestParam Map<String, String> userData) {
+        try {
+            System.out.println("========== 벤치마크 테스트 시작 ==========");
+
+            // 기본값 설정 (테스트용)
+            if (!userData.containsKey("birthdate")) {
+                userData.put("birthdate", "1990-01-01");
+            }
+            if (!userData.containsKey("gender")) {
+                userData.put("gender", "male");
+            }
+            if (!userData.containsKey("sido")) {
+                userData.put("sido", "서울특별시");
+            }
+
+            Map<String, Object> benchmarkResult = welfareService.benchmarkApiCalls(userData);
+
+            String jsonResult = objectMapper.writeValueAsString(benchmarkResult);
+            return ResponseEntity.ok()
+                .header("Content-Type", "application/json; charset=UTF-8")
+                .body(jsonResult);
+
+        } catch (Exception e) {
+            logger.error("벤치마크 테스트 오류: ", e);
+            return ResponseEntity.status(500).body("{\"error\": \"" + e.getMessage() + "\"}");
         }
     }
 

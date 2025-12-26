@@ -1,1 +1,17 @@
 .claude/
+
+# Build artifacts
+**/target/
+**/build/
+
+# IDE
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+
+# Temp files
+*.log
+*.tmp
+nul

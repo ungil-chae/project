@@ -39,10 +39,6 @@ public class AdminService {
         int totalVolunteers = adminDao.getTotalVolunteers();
         stats.put("totalVolunteers", totalVolunteers);
 
-        // 복지 진단 수
-        int totalDiagnoses = adminDao.getTotalDiagnoses();
-        stats.put("totalDiagnoses", totalDiagnoses);
-
         return stats;
     }
 
@@ -347,9 +343,6 @@ public class AdminService {
             Long totalDonations = adminDao.getTotalDonations();
             stats.put("totalDonations", totalDonations != null ? totalDonations : 0L);
 
-            // 복지 진단 건수
-            stats.put("totalDiagnoses", adminDao.getTotalDiagnoses());
-
             // 활동 중인 총 회원 수
             stats.put("totalMembers", adminDao.getActiveMembers());
 
@@ -360,7 +353,6 @@ public class AdminService {
             stats.put("activeVolunteers", 0);
             stats.put("volunteerCompletionRate", 0.0);
             stats.put("totalDonations", 0L);
-            stats.put("totalDiagnoses", 0);
             stats.put("totalMembers", 0);
         }
 
@@ -383,8 +375,8 @@ public class AdminService {
             // 3. 봉사활동 카테고리별 신청률
             chartData.put("volunteerCategory", adminDao.getVolunteerCategoryStats());
 
-            // 4. 후원 방식별 현황
-            chartData.put("paymentMethod", adminDao.getPaymentMethodStats());
+            // 4. 월별 후기 작성 현황
+            chartData.put("monthlyReview", adminDao.getMonthlyReviewStats());
 
             // 5. 복지서비스 이용 비율
             chartData.put("welfareService", adminDao.getWelfareServiceStats());

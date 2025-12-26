@@ -19,51 +19,54 @@
         <result property="updatedAt" column="updated_at"/>
     </resultMap>
 
-    <!-- insert: INSERT INTO volunteer_applications -->
+    <!-- insert: INSERT INTO vol_apply -->
     <insert id="insert" parameterType="com.greenart.bdproject.dto.VolunteerApplicationDto" useGeneratedKeys="true" keyProperty="applicationId">
-        INSERT INTO volunteer_applications (user_id, activity_id, applicant_name, applicant_email, applicant_phone,
-                                           motivation, status, created_at, updated_at)
+        INSERT INTO vol_apply (member_id, act_id, appl_name, appl_email, appl_phone,
+                               motivation, status, created_at, updated_at)
         VALUES (#{userId}, #{activityId}, #{applicantName}, #{applicantEmail}, #{applicantPhone},
                 #{motivation}, #{status}, NOW(), NOW())
     </insert>
 
-    <!-- selectById: SELECT va.*, vact.activity_name FROM volunteer_applications va LEFT JOIN volunteer_activities vact ON va.activity_id = vact.activity_id WHERE va.application_id = #{applicationId} -->
+    <!-- selectById: SELECT va.*, vact.activity_name FROM vol_apply va LEFT JOIN volunteer_activities vact ON va.act_id = vact.activity_id WHERE va.apply_id = #{applicationId} -->
     <select id="selectById" parameterType="int" resultMap="VolunteerApplicationResult">
-        SELECT va.application_id, va.user_id, va.activity_id, va.applicant_name, va.applicant_email, va.applicant_phone,
+        SELECT va.apply_id AS application_id, va.member_id AS user_id, va.act_id AS activity_id,
+               va.appl_name AS applicant_name, va.appl_email AS applicant_email, va.appl_phone AS applicant_phone,
                va.motivation, va.status, va.created_at, va.updated_at,
                vact.activity_name
-        FROM volunteer_applications va
-        LEFT JOIN volunteer_activities vact ON va.activity_id = vact.activity_id
-        WHERE va.application_id = #{applicationId}
+        FROM vol_apply va
+        LEFT JOIN volunteer_activities vact ON va.act_id = vact.activity_id
+        WHERE va.apply_id = #{applicationId}
     </select>
 
-    <!-- selectByUserId: SELECT va.*, vact.activity_name FROM volunteer_applications va LEFT JOIN volunteer_activities vact ON va.activity_id = vact.activity_id WHERE va.user_id = #{userId} ORDER BY va.created_at DESC -->
+    <!-- selectByUserId: SELECT va.*, vact.activity_name FROM vol_apply va LEFT JOIN volunteer_activities vact ON va.act_id = vact.activity_id WHERE va.member_id = #{userId} ORDER BY va.created_at DESC -->
     <select id="selectByUserId" parameterType="int" resultMap="VolunteerApplicationResult">
-        SELECT va.application_id, va.user_id, va.activity_id, va.applicant_name, va.applicant_email, va.applicant_phone,
+        SELECT va.apply_id AS application_id, va.member_id AS user_id, va.act_id AS activity_id,
+               va.appl_name AS applicant_name, va.appl_email AS applicant_email, va.appl_phone AS applicant_phone,
                va.motivation, va.status, va.created_at, va.updated_at,
                vact.activity_name
-        FROM volunteer_applications va
-        LEFT JOIN volunteer_activities vact ON va.activity_id = vact.activity_id
-        WHERE va.user_id = #{userId}
+        FROM vol_apply va
+        LEFT JOIN volunteer_activities vact ON va.act_id = vact.activity_id
+        WHERE va.member_id = #{userId}
         ORDER BY va.created_at DESC
     </select>
 
-    <!-- selectAll: SELECT va.*, vact.activity_name FROM volunteer_applications va LEFT JOIN volunteer_activities vact ON va.activity_id = vact.activity_id ORDER BY va.created_at DESC -->
+    <!-- selectAll: SELECT va.*, vact.activity_name FROM vol_apply va LEFT JOIN volunteer_activities vact ON va.act_id = vact.activity_id ORDER BY va.created_at DESC -->
     <select id="selectAll" resultMap="VolunteerApplicationResult">
-        SELECT va.application_id, va.user_id, va.activity_id, va.applicant_name, va.applicant_email, va.applicant_phone,
+        SELECT va.apply_id AS application_id, va.member_id AS user_id, va.act_id AS activity_id,
+               va.appl_name AS applicant_name, va.appl_email AS applicant_email, va.appl_phone AS applicant_phone,
                va.motivation, va.status, va.created_at, va.updated_at,
                vact.activity_name
-        FROM volunteer_applications va
-        LEFT JOIN volunteer_activities vact ON va.activity_id = vact.activity_id
+        FROM vol_apply va
+        LEFT JOIN volunteer_activities vact ON va.act_id = vact.activity_id
         ORDER BY va.created_at DESC
     </select>
 
-    <!-- updateStatus: UPDATE volunteer_applications SET status = #{status} WHERE application_id = #{applicationId} -->
+    <!-- updateStatus: UPDATE vol_apply SET status = #{status} WHERE apply_id = #{applicationId} -->
     <update id="updateStatus" parameterType="map">
-        UPDATE volunteer_applications
+        UPDATE vol_apply
         SET status = #{status},
             updated_at = NOW()
-        WHERE application_id = #{applicationId}
+        WHERE apply_id = #{applicationId}
     </update>
 
 </mapper>

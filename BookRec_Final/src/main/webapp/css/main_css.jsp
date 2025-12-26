@@ -15,13 +15,21 @@ header {
     justify-content: space-between;
     align-items: center;
     background-color: #eff7e8;
-    padding: 0px;
+    padding: 10px 50px;
+    max-width: 1400px;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+/* 헤더 배경을 전체 너비로 */
+body > header {
+    max-width: none;
+    padding: 10px calc((100% - 1300px) / 2);
 }
 
 #logo img {
     width: 200px;
     height: auto;
-    margin-left: 150px;
 }
 
 #logo a img {
@@ -144,9 +152,8 @@ nav a:hover {
 
 #user-buttons {
     display: flex;
-    align-items: center; /* 버튼과 텍스트 세로 정렬을 위해 추가 */
+    align-items: center;
     gap: 10px;
-    margin-right: 150px;
 } 
 .banner {
     position: relative;
@@ -312,6 +319,11 @@ nav a:hover {
     text-align: center;
     padding: 10px;
     box-sizing: border-box;
+}
+
+.book-item a {
+    text-decoration: none;
+    color: inherit;
 }
 
 .book-item img {

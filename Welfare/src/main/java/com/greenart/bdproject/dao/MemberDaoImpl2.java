@@ -76,6 +76,14 @@ public class MemberDaoImpl2 implements MemberDao {
 	}
 
 	@Override
+	public int decreaseKindnessTemperature(String userId, BigDecimal amount) throws Exception {
+		Map<String, Object> params = new HashMap<>();
+		params.put("userId", userId);
+		params.put("amount", amount);
+		return session.update(namespace+"decreaseKindnessTemperature", params);
+	}
+
+	@Override
 	public Member findByNameAndEmail(String name, String email) throws Exception {
 		Map<String, Object> params = new HashMap<>();
 		params.put("name", name);

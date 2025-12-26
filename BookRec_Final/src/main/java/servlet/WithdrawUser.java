@@ -93,8 +93,8 @@ public class WithdrawUser extends HttpServlet {
                 return;
             }
 
-            // 5. 비밀번호가 일치하면 사용자 상태를 'withdrawn'으로 변경 (소프트 삭제)
-            boolean success = userDao.updateUserStatus(userId, "withdrawn"); 
+            // 5. 비밀번호가 일치하면 사용자 완전 삭제 (하드 삭제)
+            boolean success = userDao.deleteUser(userId); 
 
             if (success) {
                 // 탈퇴 성공 시 세션 무효화 (로그아웃 처리)

@@ -10,7 +10,7 @@ import java.sql.SQLException;
 
 public class DBUtil {
     // 지금은 로컬 테스트를 위해 여기에 직접 입력
-	private static final String JDBC_URL = "jdbc:mysql://localhost:3306/book_recommendation_db?serverTimezone=UTC&useSSL=false&characterEncoding=UTF-8&useUnicode=true";
+	private static final String JDBC_URL = "jdbc:mysql://localhost:3306/book_recommendation_db?serverTimezone=UTC&useSSL=false&characterEncoding=UTF-8&useUnicode=true&allowPublicKeyRetrieval=true";
     private static final String USER = "root";
     private static final String PASSWORD = "1709"; // 여러분의 실제 비밀번호
 

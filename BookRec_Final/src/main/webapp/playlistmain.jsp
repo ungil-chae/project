@@ -17,6 +17,14 @@
 <meta charset="UTF-8">
 <title>플레이리스트</title>
 <style>
+/* a 태그 밑줄 완전 제거 */
+a, a:link, a:visited, a:hover, a:active, a:focus {
+    text-decoration: none !important;
+}
+.card, .card * {
+    text-decoration: none !important;
+}
+
 /* 기존 celebList.css에 정의된 스타일이 여기에 복사되지 않도록 주의하세요. */
 /* 아래 스타일은 celebList.css에 추가되거나, 해당 파일에서 정의되어 있어야 합니다. */
 
@@ -205,11 +213,6 @@ body.delete-mode-active .card-actions {
 	</nav>
 	
 	<div class="container">
-		<div class="action-buttons">
-			<a href="celebForm.jsp" class="create-btn">작성하기</a>
-			<button id="deleteSelectedBtn" class="delete-selected-btn">선택 삭제</button>
-		</div>
-		
 		<div class="grid" id="cards-grid">
 			<script>
 				// 전역변수로 contextPath 정의 (JSP EL 값을 JS에서 사용)

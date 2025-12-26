@@ -444,7 +444,7 @@ footer {
 /* 찜 목록 각 카드에 적용될 스타일 */
 .book-card {
     position: relative; /* 자식 요소인 삭제 버튼의 위치 기준점 */
-    overflow: hidden; /* 카드를 벗어나는 요소 숨김 */
+    overflow: visible; /* X버튼 표시를 위해 visible로 변경 */
 }
 
 /* 삭제 버튼 (X) 스타일 */
@@ -452,29 +452,32 @@ footer {
     position: absolute;
     top: 8px;
     right: 8px;
-    width: 24px;
-    height: 24px;
-    background-color: rgba(0, 0, 0, 0.6);
+    width: 26px;
+    height: 26px;
+    background-color: rgba(0, 0, 0, 0.7);
     color: white;
     border: none;
     border-radius: 50%;
-    font-size: 14px;
+    font-size: 18px;
     font-weight: bold;
-    line-height: 24px;
+    line-height: 26px;
     text-align: center;
     cursor: pointer;
-    opacity: 0; /* 평소에는 숨김 */
-    transition: opacity 0.2s, background-color 0.2s;
-    z-index: 10;
+    opacity: 1; /* 항상 표시 */
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* 카드에 마우스를 올렸을 때 삭제 버튼 표시 */
+/* 카드에 마우스를 올렸을 때 삭제 버튼 색상 변경 */
+.card:hover .wishlist-delete-btn,
 .book-card:hover .wishlist-delete-btn {
-    opacity: 1;
+    background-color: rgba(220, 53, 69, 0.95);
 }
 
 .wishlist-delete-btn:hover {
-    background-color: rgba(255, 0, 0, 0.8);
+    background-color: rgba(220, 53, 69, 0.95);
 }
 
 /* 선택 삭제 버튼 스타일 */
@@ -494,7 +497,7 @@ footer {
 }
 
 /* --- 카드 2중 이미지 겹치기 전용 --- */
-.card{position:relative;overflow:hidden;}        /* 기준점 + 잘라내기 */
+.card{position:relative;overflow:visible;}        /* 기준점 - overflow visible로 X버튼 표시 */
 .card .bg-img{position:absolute;inset:0;object-fit:cover;filter:blur(8px);opacity:.35;transform:scale(1.1);}
 .card .cover-img{position:relative;z-index:1;display:block;width:100%;}
 
@@ -566,3 +569,183 @@ footer {
 
 .delete-mode .wishlist-item-checkbox{display:block;}  /* 삭제 모드에서만 표시 */
 .delete-mode .card{cursor:pointer;}
+
+/* ========================================
+   프로필 이미지 스타일
+======================================== */
+.profile-image-wrapper {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 10px;
+}
+
+.profile-image-wrapper .image,
+.profile-image-wrapper .default-profile-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: block;
+    margin: 0 auto;
+    object-fit: cover;
+}
+
+.default-profile-icon {
+    background-color: #ccc;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    font-size: 32px;
+}
+
+.profile-add-btn {
+    position: absolute;
+    bottom: 0;
+    right: 5px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #4CAF50;
+    color: white;
+    border: 2px solid white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: background-color 0.2s ease;
+    padding: 0;
+}
+
+.profile-add-btn:hover {
+    background-color: #45a049;
+}
+
+/* ========================================
+   찜목록 컨트롤 영역 스타일
+======================================== */
+.wishlist-controls {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.wishlist-delete-all-btn {
+    background-color: #4CAF50 !important;
+    color: white !important;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s ease;
+}
+
+.wishlist-delete-all-btn:hover {
+    background-color: #45a049 !important;
+}
+
+/* ========================================
+   최근 본 책들 스타일
+======================================== */
+.recent-books-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 10px 0;
+}
+
+.recent-book-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100px;
+    text-align: center;
+}
+
+.recent-book-img {
+    width: 100px;
+    height: 145px;
+    object-fit: cover;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+}
+
+.recent-book-img:hover {
+    transform: scale(1.05);
+}
+
+.recent-book-info {
+    margin-top: 8px;
+    width: 100%;
+}
+
+.recent-book-title {
+    font-size: 12px;
+    font-weight: bold;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100px;
+}
+
+.recent-book-author {
+    font-size: 11px;
+    color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100px;
+}
+
+/* ========================================
+   찜목록 X 삭제 버튼 스타일 (인라인 스타일 대체)
+======================================== */
+.grid > .card {
+    position: relative;
+    overflow: visible;
+}
+
+.grid > .card > .wishlist-delete-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 24px;
+    height: 24px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 14px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 100;
+    line-height: 1;
+    transition: background-color 0.2s ease;
+}
+
+.grid > .card > .wishlist-delete-btn:hover {
+    background: rgba(220, 53, 69, 0.95);
+}
+
+/* ========================================
+   리뷰 관리 섹션 링크 스타일
+======================================== */
+#review-manage a,
+.review-grid a,
+.review-item a {
+    text-decoration: none;
+    color: inherit;
+}
+
+#review-manage a:hover,
+.review-grid a:hover,
+.review-item a:hover {
+    text-decoration: none;
+}

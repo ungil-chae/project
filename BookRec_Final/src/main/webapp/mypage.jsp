@@ -20,53 +20,11 @@ if (loggedInUser == null) {
    type="image/x-icon">
 <link rel="stylesheet" type="text/css"
    href="<%=contextPath%>/css/mypage.css">
+<link rel="stylesheet"
+   href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <%@ include file="css/main_css.jsp"%>
 
-<style>
-/* ────────── 찜 카드 축소 & 체크박스 토글 ────────── */
-.grid {
-   display: grid;
-   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-   gap: 20px;
-   justify-content: center
-}
-
-.grid>.card {
-   width: 120px !important;
-   max-width: 120px !important;
-   position: relative;
-   text-decoration: none
-}
-
-.grid>.card img {
-   width: 100% !important;
-   height: auto !important;
-   display: block
-}
-
-.grid>.card .bg-img {
-   position: absolute;
-   inset: 0;
-   object-fit: cover;
-   filter: blur(8px);
-   opacity: .35;
-   transform: scale(1.1)
-}
-
-.grid>.card .cover-img {
-   position: relative;
-   z-index: 1
-}
-
-/* 체크박스 기본 숨김 → delete-mode 에서만 표시 */
-.wishlist-item-checkbox {
-   display: none
-}
-
-.delete-mode .wishlist-item-checkbox {
-   display: block
-}
-</style>
+<!-- 모든 스타일은 css/mypage.css에서 관리됩니다 -->
 </head>
 
 <body>
@@ -83,14 +41,28 @@ if (loggedInUser == null) {
    <div class="main-content-wrapper">
       <div class="sidebar">
          <div class="profile">
-            <img src="<%=contextPath%>/img/사진.jpg" alt="프로필사진" class="image">
+            <div class="profile-image-wrapper">
+               <%
+               String profileImageUrl = (loggedInUser != null && loggedInUser.getProfileImage() != null && !loggedInUser.getProfileImage().isEmpty())
+                  ? contextPath + "/" + loggedInUser.getProfileImage()
+                  : null;
+               %>
+               <% if (profileImageUrl != null) { %>
+                  <img src="<%=profileImageUrl%>" alt="프로필사진" class="image" id="profile-image">
+               <% } else { %>
+                  <div class="default-profile-icon" id="profile-image">
+                     <i class="fas fa-user"></i>
+                  </div>
+               <% } %>
+               <button type="button" class="profile-add-btn" id="profile-add-btn" title="프로필 이미지 변경">
+                  <i class="fas fa-plus"></i>
+               </button>
+               <input type="file" id="profile-image-input" accept="image/*" style="display: none;">
+            </div>
             <%
             String nicknameDisplay = (loggedInUser != null) ? loggedInUser.getNickname() : "Guest";
             %>
             <p class="nickname-display"><%=nicknameDisplay%></p>
-            <div class="link-group">
-               <a href="#" class="a">찜</a>
-            </div>
          </div>
 
          <div class="sidebar-menu">
@@ -121,17 +93,15 @@ if (loggedInUser == null) {
                   <c:when test="${not empty sessionScope.recentBooks}">
                      <%-- 목록을 반복하면서 각 책(book)에 대한 링크와 이미지를 생성합니다. --%>
                      <c:forEach var="book" items="${sessionScope.recentBooks}">
-                        <%-- 
-                  - a 태그: 책의 상세 링크(book.link)로 이동합니다.
-                  - title 속성: 마우스를 올렸을 때 책 제목과 저자를 보여줍니다.
-                --%>
-                        <a href="${book.link}" target="_blank"
-                           title="${book.title} | ${book.author}"> <%-- 
-                      - img 태그: 책 이미지(book.image)를 표시합니다.
-                      - style 속성: CSS 파일과 별개로 이미지 크기, 그림자 등 간단한 스타일을 직접 적용했습니다.
-                    --%> <img src="${book.image}" alt="${book.title}"
-                           style="width: 100px; height: 145px; object-fit: cover; margin: 0 5px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-                        </a>
+                        <div class="recent-book-item">
+                           <a href="${book.link}" target="_blank" title="${book.title} | ${book.author}">
+                              <img src="${book.image}" alt="${book.title}" class="recent-book-img">
+                           </a>
+                           <div class="recent-book-info">
+                              <div class="recent-book-title">${book.title}</div>
+                              <div class="recent-book-author">${book.author}</div>
+                           </div>
+                        </div>
                      </c:forEach>
                   </c:when>
 
@@ -155,9 +125,8 @@ if (loggedInUser == null) {
             </div>
             <div id="order-delivery-content" class="content-section">
                <h2>리뷰 관리</h2>
-               <div id="my-reviews-list-area" class="grid review-grid">
-                  <p style="text-align: center; padding: 20px;">작성하신 리뷰들을 불러오는
-                     중...</p>
+               <div id="my-reviews-list-area">
+                  <p style="text-align: center; padding: 20px;">리뷰를 불러오는 중...</p>
                </div>
             </div>
 
@@ -175,7 +144,6 @@ if (loggedInUser == null) {
             <div id="withdraw-content" class="content-section">
                <h2>회원 탈퇴</h2>
                <form id="withdraw-form" class="password-check-form">
-                  <p>회원 탈퇴 시 모든 정보가 삭제되며 복구할 수 없습니다.</p>
                   <label for="withdraw-reason">탈퇴 사유 (선택 사항):</label>
                   <textarea id="withdraw-reason" name="withdraw-reason" rows="5"
                      placeholder="탈퇴하시려는 이유를 알려주시면 서비스 개선에 큰 도움이 됩니다."></textarea>
@@ -530,80 +498,111 @@ sidebarLinks.forEach(link=>{
 
       const controls=document.createElement('div'); controls.className='wishlist-controls';
       controls.innerHTML=`
-        <label id="wishlist-select-all-wrapper" style="display:none;">
-          <input type="checkbox" id="wishlist-select-all"> 전체 선택
-        </label>
-        <button id="wishlist-select-toggle-btn" class="wishlist-delete-selected-btn">선택 삭제</button>
-        <button id="wishlist-cancel-btn" class="wishlist-cancel-btn" style="display:none;">취소</button>`;
+        <button id="wishlist-delete-all-btn" class="wishlist-delete-all-btn">전체 삭제</button>`;
       con.appendChild(controls);
 
       const grid=document.createElement('div'); grid.className='grid';
       items.forEach(book=>{
         const img = book.coverImageUrl ? contextPath+'/'+book.coverImageUrl : contextPath+'/img/icon2.png';
-        const a   = document.createElement('a');
-        a.className='card'; a.href=`${'${book.link}'}`; a.target='_blank';
-        a.dataset.bookId=`${'${book.bookId}'}`;
-        a.innerHTML=`
-          <input type="checkbox" class="wishlist-item-checkbox"
-                 style="position:absolute;top:12px;left:12px;z-index:10;">
-          <img class="bg-img"    src="${'${img}'}" alt="">
-          <img class="cover-img" src="${'${img}'}" alt="${'${book.title}'}">
-          <div class="card-content">
-            <div class="book-title">${'${book.title}'}</div>
-            <div class="book-author">${'${book.author}'}</div>
-          </div>`;
-        grid.appendChild(a);
+        const card = document.createElement('div');
+        card.className='card';
+        card.dataset.bookId = book.bookId;
+        card.dataset.link = book.link;
+
+        // X 삭제 버튼 (스타일은 mypage.css에서 관리)
+        const deleteBtn = document.createElement('span');
+        deleteBtn.className = 'wishlist-delete-btn';
+        deleteBtn.dataset.bookId = book.bookId;
+        deleteBtn.title = '삭제';
+        deleteBtn.textContent = '×';
+        card.appendChild(deleteBtn);
+
+        // 배경 이미지
+        const bgImg = document.createElement('img');
+        bgImg.className = 'bg-img';
+        bgImg.src = img;
+        bgImg.alt = '';
+        card.appendChild(bgImg);
+
+        // 커버 이미지
+        const coverImg = document.createElement('img');
+        coverImg.className = 'cover-img';
+        coverImg.src = img;
+        coverImg.alt = book.title;
+        card.appendChild(coverImg);
+
+        // 카드 내용
+        const content = document.createElement('div');
+        content.className = 'card-content';
+        content.innerHTML = '<div class="book-title">' + book.title + '</div><div class="book-author">' + book.author + '</div>';
+        card.appendChild(content);
+
+        // 카드 클릭 시 링크 이동 (X 버튼 제외)
+        card.addEventListener('click', (e)=>{
+          if(!e.target.classList.contains('wishlist-delete-btn')){
+            window.open(book.link, '_blank');
+          }
+        });
+        grid.appendChild(card);
       });
       con.appendChild(grid);
-      attachWishlistHandlers(grid);
+      attachWishlistHandlers(grid, items);
     }catch(e){
       con.innerHTML='<h2>찜목록</h2><p>불러오기 실패</p>';
     }
   }
 
-  function attachWishlistHandlers(grid){
-    const toggleBtn = document.getElementById('wishlist-select-toggle-btn');
-    const cancelBtn = document.getElementById('wishlist-cancel-btn');
-    const selectAllW= document.getElementById('wishlist-select-all-wrapper');
-    const master    = document.getElementById('wishlist-select-all');
-    let deleteMode  = false;
+  function attachWishlistHandlers(grid, items){
+    const deleteAllBtn = document.getElementById('wishlist-delete-all-btn');
 
-    if(master){
-      master.onchange = e=>{
-        grid.querySelectorAll('.wishlist-item-checkbox').forEach(cb=>cb.checked=e.target.checked);
-      };
-    }
+    // 개별 삭제 X 버튼 이벤트
+    grid.querySelectorAll('.wishlist-delete-btn').forEach(btn=>{
+      btn.addEventListener('click', async(e)=>{
+        e.preventDefault();
+        e.stopPropagation();
+        const bookId = btn.dataset.bookId;
+        const card = btn.closest('.card');
+        const bookTitle = card.querySelector('.book-title').textContent;
 
-    function enter(){
-      deleteMode=true;
-      grid.classList.add('delete-mode');
-      selectAllW.style.display='inline-block';
-      cancelBtn.style.display='inline-block';
-      toggleBtn.textContent='삭제 실행';
-    }
-    function exit(){
-      deleteMode=false;
-      grid.classList.remove('delete-mode');
-      selectAllW.style.display='none';
-      cancelBtn.style.display='none';
-      toggleBtn.textContent='선택 삭제';
-      grid.querySelectorAll('.wishlist-item-checkbox').forEach(cb=>cb.checked=false);
-      if(master) master.checked=false;
-    }
+        if(!confirm(`"${'${bookTitle}'}"을(를) 찜목록에서 삭제하시겠습니까?`)) return;
 
-    toggleBtn.addEventListener('click',async()=>{
-      if(!deleteMode){enter();return;}
-      const checked=grid.querySelectorAll('.wishlist-item-checkbox:checked');
-      if(!checked.length){alert('선택된 책이 없습니다.');return;}
-      if(!confirm(`선택한 ${'${checked.length}'}권을 삭제하시겠습니까?`))return;
-      await Promise.all(Array.from(checked).map(cb=>{
-        const id=cb.closest('.card').dataset.bookId;
-        return fetch(contextPath+'/api/users/me/wishlists?bookId='+id,{method:'POST'})
-               .then(r=>{if(r.ok) cb.closest('.card').remove();});
-      }));
-      exit();
+        try {
+          const res = await fetch(contextPath+'/api/users/me/wishlists?bookId='+bookId, {method:'POST'});
+          if(res.ok) {
+            card.remove();
+            // 찜목록이 비었는지 확인
+            if(grid.querySelectorAll('.card').length === 0) {
+              const con = document.getElementById('recent-history-content');
+              con.innerHTML = '<h2>찜목록</h2><p style="text-align:center;padding:50px;">찜한 도서가 없습니다.</p>';
+            }
+          }
+        } catch(err) {
+          alert('삭제 중 오류가 발생했습니다.');
+        }
+      });
     });
-    cancelBtn.addEventListener('click',exit);
+
+    // 전체 삭제 버튼 이벤트
+    if(deleteAllBtn){
+      deleteAllBtn.addEventListener('click', async()=>{
+        const cards = grid.querySelectorAll('.card');
+        if(!cards.length) { alert('삭제할 항목이 없습니다.'); return; }
+        if(!confirm(`찜목록의 모든 도서(${'${cards.length}'}권)를 삭제하시겠습니까?`)) return;
+
+        try {
+          await Promise.all(Array.from(cards).map(card=>{
+            const id = card.dataset.bookId;
+            return fetch(contextPath+'/api/users/me/wishlists?bookId='+id, {method:'POST'})
+                   .then(r=>{ if(r.ok) card.remove(); });
+          }));
+          // 모두 삭제 후 빈 메시지 표시
+          const con = document.getElementById('recent-history-content');
+          con.innerHTML = '<h2>찜목록</h2><p style="text-align:center;padding:50px;">찜한 도서가 없습니다.</p>';
+        } catch(err) {
+          alert('삭제 중 오류가 발생했습니다.');
+        }
+      });
+    }
   }
 
   /* ========================================================
@@ -685,6 +684,63 @@ if(firstContent){firstContent.style.display='block';firstContent.classList.add('
 const firstSidebarLink = document.querySelector('.sidebar-menu a[data-content="recent-history"]');
 if(firstSidebarLink) firstSidebarLink.classList.add('active');
 loadWishlist();  // 최초 찜목록 조회
+
+/* ========================================================
+  7.  프로필 이미지 업로드 기능
+======================================================== */
+const profileAddBtn = document.getElementById('profile-add-btn');
+const profileImageInput = document.getElementById('profile-image-input');
+
+if(profileAddBtn && profileImageInput) {
+    // + 버튼 클릭 시 파일 선택 창 열기
+    profileAddBtn.addEventListener('click', () => {
+        profileImageInput.click();
+    });
+
+    // 파일 선택 시 업로드 처리
+    profileImageInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if(!file) return;
+
+        // 파일 크기 체크 (5MB)
+        if(file.size > 5 * 1024 * 1024) {
+            alert('파일 크기는 5MB 이하만 가능합니다.');
+            return;
+        }
+
+        // 이미지 파일 여부 체크
+        if(!file.type.startsWith('image/')) {
+            alert('이미지 파일만 업로드 가능합니다.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('profileImage', file);
+
+        try {
+            const res = await fetch(contextPath + '/api/uploadProfileImage', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await res.json();
+
+            if(res.ok && result.success) {
+                alert('프로필 이미지가 변경되었습니다.');
+                // 페이지 새로고침하여 새 이미지 표시
+                window.location.reload();
+            } else {
+                alert(result.message || '프로필 이미지 업로드에 실패했습니다.');
+            }
+        } catch(error) {
+            console.error('프로필 이미지 업로드 오류:', error);
+            alert('프로필 이미지 업로드 중 오류가 발생했습니다.');
+        }
+
+        // 같은 파일 재선택 가능하도록 초기화
+        profileImageInput.value = '';
+    });
+}
 
 }); /* DOMContentLoaded 끝 */
 </script>

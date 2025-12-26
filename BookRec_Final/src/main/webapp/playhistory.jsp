@@ -18,6 +18,15 @@ String contextPath = request.getContextPath();
 <link rel="icon" href="img/icon2.png" type="image/x-icon">
 <link rel="stylesheet" type="text/css"
 	href="<%=contextPath%>/css/playlist.css">
+<style>
+/* a 태그 밑줄 완전 제거 */
+a, a:link, a:visited, a:hover, a:active, a:focus {
+    text-decoration: none !important;
+}
+.card, .card * {
+    text-decoration: none !important;
+}
+</style>
 </head>
 <body>
 	<%@ include file="header.jsp"%>

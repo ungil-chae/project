@@ -1,10 +1,5 @@
 -- ================================================
--- 복지24 데이터베이스 스키마 (최적화 버전)
--- 버전: 2.1.0
--- 최종 수정일: 2025-01-21
--- 변경사항:
---   v2.0.0: 미사용 테이블 5개 제거, 미사용 컬럼 4개 제거
---   v2.1.0: 알림 설정 테이블(notification_settings) 추가
+-- 복지24 데이터베이스 스키마
 -- ================================================
 
 SET SQL_SAFE_UPDATES = 0;
@@ -307,82 +302,10 @@ CREATE TABLE donation_reviews (
 ) ENGINE=InnoDB COMMENT='기부 후기 테이블';
 
 -- ========================================================================
--- PART 4: 복지 진단 도메인
+-- PART 4: 복지 즐겨찾기 도메인
 -- ========================================================================
 
--- 4-1. 복지 진단 결과 테이블
-CREATE TABLE welfare_diagnoses (
-    -- 기본키
-    diagnosis_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '진단 ID',
-
-    -- 외래키
-    member_id BIGINT UNSIGNED NULL COMMENT '회원 고유번호 (비로그인 시 NULL)',
-
-    -- 기본 정보
-    birth_date DATE NOT NULL COMMENT '생년월일',
-    age INT UNSIGNED NOT NULL COMMENT '나이 (성능을 위해 저장)',
-    gender ENUM('MALE', 'FEMALE', 'OTHER') NOT NULL DEFAULT 'OTHER' COMMENT '성별',
-
-    -- 가구 정보
-    household_size INT UNSIGNED NULL COMMENT '가구원 수',
-    marital_status ENUM('SINGLE', 'MARRIED', 'DIVORCED', 'WIDOWED', 'SEPARATED') NULL COMMENT '결혼 상태',
-    children_count INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '자녀 수',
-
-    -- 경제 정보
-    income_level ENUM('LEVEL_1', 'LEVEL_2', 'LEVEL_3', 'LEVEL_4', 'LEVEL_5') NOT NULL COMMENT '소득 수준 (5단계)',
-    monthly_income DECIMAL(12, 2) NULL COMMENT '월 소득 (원)',
-    employment_status ENUM('EMPLOYED', 'UNEMPLOYED', 'SELF_EMPLOYED', 'STUDENT', 'RETIRED', 'HOMEMAKER') NULL COMMENT '취업 상태',
-
-    -- 지역 정보
-    sido VARCHAR(50) NULL COMMENT '시도',
-    sigungu VARCHAR(50) NULL COMMENT '시군구',
-
-    -- 특성 정보
-    is_pregnant BOOLEAN NOT NULL DEFAULT FALSE COMMENT '임신 여부',
-    is_disabled BOOLEAN NOT NULL DEFAULT FALSE COMMENT '장애 여부',
-    disability_grade INT UNSIGNED NULL COMMENT '장애 등급 (1-6)',
-    is_multicultural BOOLEAN NOT NULL DEFAULT FALSE COMMENT '다문화 가정',
-    is_veteran BOOLEAN NOT NULL DEFAULT FALSE COMMENT '보훈 대상',
-    is_single_parent BOOLEAN NOT NULL DEFAULT FALSE COMMENT '한부모 가정',
-    is_elderly_living_alone BOOLEAN NOT NULL DEFAULT FALSE COMMENT '독거노인 여부',
-    is_low_income BOOLEAN NOT NULL DEFAULT FALSE COMMENT '저소득층 여부',
-
-    -- 매칭 결과
-    matched_services JSON NULL COMMENT '매칭된 서비스 JSON 배열',
-    matched_services_count INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '매칭된 서비스 수',
-    total_matching_score INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '전체 매칭 점수 합계',
-
-    -- 개인정보 동의
-    save_consent BOOLEAN NOT NULL DEFAULT TRUE COMMENT '저장 동의 여부',
-    privacy_consent BOOLEAN NOT NULL DEFAULT FALSE COMMENT '개인정보 수집 동의',
-    marketing_consent BOOLEAN NOT NULL DEFAULT FALSE COMMENT '마케팅 활용 동의',
-
-    -- 시스템 정보
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '진단일',
-
-    INDEX idx_member_id (member_id),
-    INDEX idx_created_at (created_at DESC),
-    INDEX idx_sido (sido),
-    INDEX idx_sigungu (sigungu),
-    INDEX idx_income_level (income_level),
-    INDEX idx_age (age),
-    INDEX idx_composite_member_date (member_id, created_at DESC),
-    INDEX idx_matched_count (matched_services_count DESC),
-
-    CHECK (household_size IS NULL OR household_size > 0),
-    CHECK (children_count >= 0),
-    CHECK (age IS NULL OR age BETWEEN 0 AND 150),
-    CHECK (disability_grade IS NULL OR disability_grade BETWEEN 1 AND 6),
-    CHECK (monthly_income IS NULL OR monthly_income >= 0),
-
-    FOREIGN KEY (member_id) REFERENCES member(member_id) ON DELETE SET NULL
-) ENGINE=InnoDB COMMENT='복지 진단 결과 테이블 (ip_address, user_agent, referrer_url 컬럼 제거 - 개인정보 이슈)';
-
--- 4-2. 복지 진단 매칭 결과 테이블 (제거됨 - welfare_diagnoses.matched_services JSON으로 대체, Java 코드에서 미사용)
-
--- 4-3. 복지 서비스 캐시 테이블 (제거됨 - API 실시간 호출 사용, Java 코드에서 미사용)
-
--- 4-4. 관심 복지 서비스 테이블
+-- 4-1. 관심 복지 서비스 테이블
 CREATE TABLE favorite_welfare_services (
     -- 복합키
     member_id BIGINT UNSIGNED NOT NULL COMMENT '회원 고유번호',
@@ -408,6 +331,12 @@ CREATE TABLE favorite_welfare_services (
 
     FOREIGN KEY (member_id) REFERENCES member(member_id) ON DELETE CASCADE
 ) ENGINE=InnoDB COMMENT='관심 복지 서비스 테이블';
+
+-- 4-2. 복지 진단 이용 로그 테이블 (통계용 - 조회수 카운트)
+CREATE TABLE welfare_diagnosis_log (
+    log_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '로그 ID',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '진단 일시'
+) ENGINE=InnoDB COMMENT='복지 진단 이용 로그 테이블';
 
 -- ========================================================================
 -- PART 5: 봉사 활동 도메인
@@ -468,49 +397,49 @@ CREATE TABLE volunteer_activities (
 ) ENGINE=InnoDB COMMENT='봉사 활동 마스터 테이블';
 
 -- 5-2. 봉사 신청 테이블
-CREATE TABLE volunteer_applications (
+CREATE TABLE vol_apply (
     -- 기본키
-    application_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '신청 ID',
+    apply_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '신청 ID',
 
     -- 외래키
-    activity_id BIGINT UNSIGNED NULL COMMENT '봉사 활동 ID (일반 신청의 경우 NULL)',
+    act_id BIGINT UNSIGNED NULL COMMENT '봉사 활동 ID (일반 신청의 경우 NULL)',
     member_id BIGINT UNSIGNED NULL COMMENT '회원 고유번호 (비로그인 시 NULL)',
 
     -- 신청자 정보
-    applicant_name VARCHAR(100) NOT NULL COMMENT '신청자명',
-    applicant_email VARCHAR(100) NULL COMMENT '이메일',
-    applicant_phone CHAR(11) NOT NULL COMMENT '전화번호 (하이픈 제거)',
-    applicant_birth DATE NULL COMMENT '생년월일',
-    applicant_gender ENUM('MALE', 'FEMALE', 'OTHER') NULL COMMENT '성별',
-    applicant_address VARCHAR(255) NULL COMMENT '주소',
+    appl_name VARCHAR(100) NOT NULL COMMENT '신청자명',
+    appl_email VARCHAR(100) NULL COMMENT '이메일',
+    appl_phone CHAR(11) NOT NULL COMMENT '전화번호',
+    appl_birth DATE NULL COMMENT '생년월일',
+    appl_gender ENUM('MALE', 'FEMALE', 'OTHER') NULL COMMENT '성별',
+    appl_addr VARCHAR(255) NULL COMMENT '주소',
 
     -- 봉사 정보
-    volunteer_experience ENUM('NONE', 'LESS_THAN_1YEAR', '1_TO_3YEARS', 'MORE_THAN_3YEARS') NULL COMMENT '봉사 경험',
-    selected_category VARCHAR(100) NOT NULL COMMENT '선택한 봉사 분야',
+    vol_exp ENUM('NONE', 'LT_1Y', '1Y_3Y', 'GT_3Y') NULL COMMENT '봉사 경험',
+    sel_cat VARCHAR(100) NOT NULL COMMENT '선택한 봉사 분야',
     motivation TEXT NULL COMMENT '지원 동기',
 
     -- 일정 정보
-    volunteer_date DATE NOT NULL COMMENT '봉사 시작 날짜',
-    volunteer_end_date DATE NULL COMMENT '봉사 종료 날짜',
-    volunteer_time VARCHAR(50) NOT NULL COMMENT '봉사 시간대',
+    vol_date DATE NOT NULL COMMENT '봉사 시작 날짜',
+    vol_end_date DATE NULL COMMENT '봉사 종료 날짜',
+    vol_time VARCHAR(50) NOT NULL COMMENT '봉사 시간대',
 
     -- 상태 정보
     status ENUM('APPLIED', 'CONFIRMED', 'COMPLETED', 'CANCELLED', 'REJECTED') NOT NULL DEFAULT 'APPLIED' COMMENT '신청 상태',
-    attendance_checked BOOLEAN NOT NULL DEFAULT FALSE COMMENT '출석 확인 여부',
-    actual_hours INT UNSIGNED NULL COMMENT '실제 봉사 시간',
+    attend_yn BOOLEAN NOT NULL DEFAULT FALSE COMMENT '출석 확인 여부',
+    actual_hr INT UNSIGNED NULL COMMENT '실제 봉사 시간',
 
     -- 사유
-    cancel_reason TEXT NULL COMMENT '취소 사유',
-    reject_reason TEXT NULL COMMENT '거절 사유',
+    cancel_rsn TEXT NULL COMMENT '취소 사유',
+    reject_rsn TEXT NULL COMMENT '거절 사유',
 
     -- 관리자 승인 및 시설 매칭 정보
-    approved_by BIGINT UNSIGNED NULL COMMENT '승인한 관리자 ID',
-    approved_at TIMESTAMP NULL COMMENT '승인 일시',
-    assigned_facility_name VARCHAR(200) NULL COMMENT '배정된 복지시설명',
-    assigned_facility_address VARCHAR(500) NULL COMMENT '배정된 시설 주소',
-    assigned_facility_lat DECIMAL(10, 8) NULL COMMENT '시설 위도',
-    assigned_facility_lng DECIMAL(11, 8) NULL COMMENT '시설 경도',
-    admin_note TEXT NULL COMMENT '관리자 메모',
+    appr_by BIGINT UNSIGNED NULL COMMENT '승인한 관리자 ID',
+    appr_at TIMESTAMP NULL COMMENT '승인 일시',
+    assign_fac_nm VARCHAR(200) NULL COMMENT '배정된 복지시설명',
+    assign_fac_addr VARCHAR(500) NULL COMMENT '배정된 시설 주소',
+    assign_fac_lat DECIMAL(10,7) NULL COMMENT '배정된 시설 위도',
+    assign_fac_lng DECIMAL(10,7) NULL COMMENT '배정된 시설 경도',
+    admin_memo TEXT NULL COMMENT '관리자 메모',
 
     -- 시스템 정보
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '신청 일시',
@@ -518,46 +447,46 @@ CREATE TABLE volunteer_applications (
     completed_at TIMESTAMP NULL COMMENT '봉사 완료 일시',
     cancelled_at TIMESTAMP NULL COMMENT '취소 일시',
 
-    INDEX idx_activity_id (activity_id),
+    INDEX idx_act_id (act_id),
     INDEX idx_member_id (member_id),
     INDEX idx_status (status),
-    INDEX idx_volunteer_date (volunteer_date DESC),
+    INDEX idx_vol_date (vol_date DESC),
     INDEX idx_created_at (created_at DESC),
-    INDEX idx_applicant_email (applicant_email),
-    INDEX idx_applicant_phone (applicant_phone),
-    INDEX idx_approved_by (approved_by),
-    INDEX idx_approved_at (approved_at DESC),
-    INDEX idx_composite_activity_status (activity_id, status),
+    INDEX idx_appl_email (appl_email),
+    INDEX idx_appl_phone (appl_phone),
+    INDEX idx_appr_by (appr_by),
+    INDEX idx_appr_at (appr_at DESC),
+    INDEX idx_composite_act_status (act_id, status),
     INDEX idx_composite_member_status (member_id, status),
 
-    CHECK (actual_hours IS NULL OR actual_hours <= 24),
-    CHECK (volunteer_end_date IS NULL OR volunteer_end_date >= volunteer_date),
+    CHECK (actual_hr IS NULL OR actual_hr <= 24),
+    CHECK (vol_end_date IS NULL OR vol_end_date >= vol_date),
 
-    FOREIGN KEY (activity_id) REFERENCES volunteer_activities(activity_id) ON DELETE SET NULL,
+    FOREIGN KEY (act_id) REFERENCES volunteer_activities(activity_id) ON DELETE SET NULL,
     FOREIGN KEY (member_id) REFERENCES member(member_id) ON DELETE SET NULL,
-    FOREIGN KEY (approved_by) REFERENCES member(member_id) ON DELETE SET NULL
+    FOREIGN KEY (appr_by) REFERENCES member(member_id) ON DELETE SET NULL
 ) ENGINE=InnoDB COMMENT='봉사 신청 테이블';
 
 -- 5-3. 봉사 후기 테이블
-CREATE TABLE volunteer_reviews (
+CREATE TABLE vol_review (
     -- 기본키
     review_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '후기 ID',
 
     -- 외래키
     member_id BIGINT UNSIGNED NULL COMMENT '회원 고유번호 (비회원 후기 허용)',
-    application_id BIGINT UNSIGNED NOT NULL COMMENT '봉사 신청 ID',
+    apply_id BIGINT UNSIGNED NOT NULL COMMENT '봉사 신청 ID',
 
     -- 후기 정보
-    reviewer_name VARCHAR(100) NOT NULL COMMENT '후기 작성자명',
+    reviewer_nm VARCHAR(100) NOT NULL COMMENT '후기 작성자명',
     title VARCHAR(200) NOT NULL COMMENT '후기 제목',
     content TEXT NOT NULL COMMENT '후기 내용',
     rating INT UNSIGNED NOT NULL COMMENT '별점 (1-5)',
-    image_urls JSON NULL COMMENT '후기 이미지 URL 배열',
+    img_urls JSON NULL COMMENT '후기 이미지 URL 배열',
 
     -- 부가 정보
-    is_visible BOOLEAN NOT NULL DEFAULT TRUE COMMENT '노출 여부',
-    helpful_count INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '도움됨 카운트',
-    report_count INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '신고 횟수',
+    visible_yn BOOLEAN NOT NULL DEFAULT TRUE COMMENT '노출 여부',
+    helpful_cnt INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '도움됨 카운트',
+    report_cnt INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '신고 횟수',
 
     -- 시스템 정보
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '작성일',
@@ -565,18 +494,18 @@ CREATE TABLE volunteer_reviews (
     deleted_at TIMESTAMP NULL COMMENT '삭제일 (소프트 삭제)',
 
     INDEX idx_member_id (member_id),
-    INDEX idx_application_id (application_id),
+    INDEX idx_apply_id (apply_id),
     INDEX idx_created_at (created_at DESC),
     INDEX idx_deleted_at (deleted_at),
     INDEX idx_rating (rating DESC),
-    INDEX idx_helpful_count (helpful_count DESC),
+    INDEX idx_helpful_cnt (helpful_cnt DESC),
 
     CHECK (rating IS NULL OR rating BETWEEN 1 AND 5),
-    CHECK (helpful_count >= 0),
-    CHECK (report_count <= 100),
+    CHECK (helpful_cnt >= 0),
+    CHECK (report_cnt <= 100),
 
     FOREIGN KEY (member_id) REFERENCES member(member_id) ON DELETE SET NULL,
-    FOREIGN KEY (application_id) REFERENCES volunteer_applications(application_id) ON DELETE CASCADE
+    FOREIGN KEY (apply_id) REFERENCES vol_apply(apply_id) ON DELETE CASCADE
 ) ENGINE=InnoDB COMMENT='봉사 후기 테이블';
 
 -- ========================================================================
@@ -584,7 +513,7 @@ CREATE TABLE volunteer_reviews (
 -- ========================================================================
 
 -- 6-1. 공지사항 테이블
-CREATE TABLE notices (
+CREATE TABLE notice (
     -- 기본키
     notice_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '공지사항 ID',
 
@@ -599,7 +528,7 @@ CREATE TABLE notices (
 
     -- 부가 정보
     views INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '조회수',
-    is_pinned BOOLEAN NOT NULL DEFAULT FALSE COMMENT '상단 고정 여부',
+    pinned_yn BOOLEAN NOT NULL DEFAULT FALSE COMMENT '상단 고정 여부',
 
     -- 노출 기간
     published_at TIMESTAMP NULL COMMENT '게시 시작일',
@@ -612,12 +541,12 @@ CREATE TABLE notices (
 
     INDEX idx_admin_id (admin_id),
     INDEX idx_created_at (created_at DESC),
-    INDEX idx_is_pinned (is_pinned),
+    INDEX idx_pinned_yn (pinned_yn),
     INDEX idx_deleted_at (deleted_at),
     INDEX idx_category (category),
     INDEX idx_priority (priority DESC),
     INDEX idx_published_at (published_at),
-    INDEX idx_composite_active (is_pinned DESC, priority DESC, created_at DESC),
+    INDEX idx_composite_active (pinned_yn DESC, priority DESC, created_at DESC),
 
     CHECK (views >= 0),
     CHECK (expired_at IS NULL OR published_at IS NULL OR expired_at >= published_at),
@@ -626,12 +555,12 @@ CREATE TABLE notices (
 ) ENGINE=InnoDB COMMENT='공지사항 테이블';
 
 -- 6-2. FAQ 테이블
-CREATE TABLE faqs (
+CREATE TABLE faq (
     -- 기본키
     faq_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT 'FAQ ID',
 
     -- 외래키
-    category_id INT UNSIGNED NOT NULL COMMENT 'FAQ 카테고리 ID',
+    cat_id INT UNSIGNED NOT NULL COMMENT 'FAQ 카테고리 ID',
 
     -- FAQ 정보
     question VARCHAR(500) NOT NULL COMMENT '질문',
@@ -640,24 +569,24 @@ CREATE TABLE faqs (
     -- 부가 정보
     order_num INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '정렬 순서 (낮을수록 먼저 표시)',
     views INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '조회수',
-    helpful_count INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '도움됨 카운트',
-    is_active BOOLEAN NOT NULL DEFAULT TRUE COMMENT '활성화 여부',
+    helpful_cnt INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '도움됨 카운트',
+    active_yn BOOLEAN NOT NULL DEFAULT TRUE COMMENT '활성화 여부',
 
     -- 시스템 정보
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '작성일',
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일',
 
-    INDEX idx_category_id (category_id),
+    INDEX idx_cat_id (cat_id),
     INDEX idx_order_num (order_num ASC),
-    INDEX idx_is_active (is_active),
+    INDEX idx_active_yn (active_yn),
     INDEX idx_views (views DESC),
-    INDEX idx_helpful_count (helpful_count DESC),
-    INDEX idx_composite_display (category_id, order_num ASC),
+    INDEX idx_helpful_cnt (helpful_cnt DESC),
+    INDEX idx_composite_display (cat_id, order_num ASC),
 
     CHECK (views >= 0),
-    CHECK (helpful_count >= 0),
+    CHECK (helpful_cnt >= 0),
 
-    FOREIGN KEY (category_id) REFERENCES faq_categories(category_id)
+    FOREIGN KEY (cat_id) REFERENCES faq_categories(category_id)
 ) ENGINE=InnoDB COMMENT='FAQ 테이블';
 
 -- ========================================================================
@@ -667,15 +596,15 @@ CREATE TABLE faqs (
 -- 7-1. 후기 도움됨 테이블 (제거됨 - helpful_count 컬럼으로 충분, Java 코드에서 미사용)
 
 -- 7-2. 알림 테이블
-CREATE TABLE IF NOT EXISTS notifications (
+CREATE TABLE IF NOT EXISTS notification (
     -- 기본키
-    notification_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '알림 ID',
+    noti_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '알림 ID',
 
     -- 외래키
     member_id BIGINT UNSIGNED NOT NULL COMMENT '회원 고유번호',
 
     -- 알림 정보
-    notification_type ENUM('DONATION_REMINDER', 'VOLUNTEER_REMINDER', 'CALENDAR_EVENT', 'GENERAL', 'FAQ_ANSWER', 'VOLUNTEER_APPROVED') NOT NULL COMMENT '알림 유형',
+    noti_type ENUM('DONA_REMIND', 'VOL_REMIND', 'CALENDAR', 'GENERAL', 'FAQ_ANS', 'VOL_APPR') NOT NULL COMMENT '알림 유형',
     title VARCHAR(200) NOT NULL COMMENT '알림 제목',
     message TEXT NOT NULL COMMENT '알림 내용',
 
@@ -684,8 +613,8 @@ CREATE TABLE IF NOT EXISTS notifications (
     event_date DATE NULL COMMENT '이벤트 날짜',
 
     -- 상태
-    is_read BOOLEAN NOT NULL DEFAULT FALSE COMMENT '읽음 여부',
-    is_sent BOOLEAN NOT NULL DEFAULT FALSE COMMENT '전송 여부',
+    read_yn BOOLEAN NOT NULL DEFAULT FALSE COMMENT '읽음 여부',
+    sent_yn BOOLEAN NOT NULL DEFAULT FALSE COMMENT '전송 여부',
 
     -- 시스템 정보
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성일',
@@ -694,19 +623,19 @@ CREATE TABLE IF NOT EXISTS notifications (
     deleted_at TIMESTAMP NULL COMMENT '삭제일 (소프트 삭제)',
 
     INDEX idx_member_id (member_id),
-    INDEX idx_is_read (is_read),
-    INDEX idx_is_sent (is_sent),
+    INDEX idx_read_yn (read_yn),
+    INDEX idx_sent_yn (sent_yn),
     INDEX idx_event_date (event_date),
     INDEX idx_created_at (created_at DESC),
-    INDEX idx_notification_type (notification_type),
+    INDEX idx_noti_type (noti_type),
     INDEX idx_deleted_at (deleted_at),
-    INDEX idx_composite_member_unread (member_id, is_read, created_at DESC),
+    INDEX idx_composite_member_unread (member_id, read_yn, created_at DESC),
 
     FOREIGN KEY (member_id) REFERENCES member(member_id) ON DELETE CASCADE
 ) ENGINE=InnoDB COMMENT='알림 테이블';
 
 -- 7-3. 알림 설정 테이블
-CREATE TABLE IF NOT EXISTS notification_settings (
+CREATE TABLE IF NOT EXISTS noti_setting (
     -- 기본키
     setting_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '설정 ID',
 
@@ -714,10 +643,10 @@ CREATE TABLE IF NOT EXISTS notification_settings (
     member_id BIGINT UNSIGNED NOT NULL COMMENT '회원 고유번호',
 
     -- 알림 설정 항목
-    event_notification BOOLEAN NOT NULL DEFAULT TRUE COMMENT '일정 알림',
-    donation_notification BOOLEAN NOT NULL DEFAULT TRUE COMMENT '기부 알림',
-    volunteer_notification BOOLEAN NOT NULL DEFAULT TRUE COMMENT '봉사 활동 알림',
-    faq_answer_notification BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'FAQ 답변 알림',
+    event_noti BOOLEAN NOT NULL DEFAULT TRUE COMMENT '일정 알림',
+    dona_noti BOOLEAN NOT NULL DEFAULT TRUE COMMENT '기부 알림',
+    vol_noti BOOLEAN NOT NULL DEFAULT TRUE COMMENT '봉사 활동 알림',
+    faq_noti BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'FAQ 답변 알림',
 
     -- 시스템 정보
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성일',
@@ -731,7 +660,7 @@ CREATE TABLE IF NOT EXISTS notification_settings (
 ) ENGINE=InnoDB COMMENT='회원별 알림 설정 테이블';
 
 -- 7-3. 최근 활동 숨김 테이블
-CREATE TABLE IF NOT EXISTS hidden_recent_activities (
+CREATE TABLE IF NOT EXISTS hidden_activity (
     -- 기본키
     hidden_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '숨김 ID',
 
@@ -739,21 +668,21 @@ CREATE TABLE IF NOT EXISTS hidden_recent_activities (
     member_id BIGINT UNSIGNED NOT NULL COMMENT '회원 고유번호',
 
     -- 숨김 대상 정보
-    activity_type ENUM('VOLUNTEER', 'DONATION') NOT NULL COMMENT '활동 유형 (봉사/기부)',
-    activity_id BIGINT UNSIGNED NOT NULL COMMENT '활동 ID (봉사 신청 ID 또는 기부 ID)',
+    act_type ENUM('VOL', 'DONA') NOT NULL COMMENT '활동 유형 (봉사/기부)',
+    act_id BIGINT UNSIGNED NOT NULL COMMENT '활동 ID',
 
     -- 시스템 정보
     hidden_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '숨김 처리 일시',
 
     -- 인덱스
-    UNIQUE INDEX idx_unique_hidden (member_id, activity_type, activity_id) COMMENT '중복 숨김 방지',
+    UNIQUE INDEX idx_unique_hidden (member_id, act_type, act_id) COMMENT '중복 숨김 방지',
     INDEX idx_member_id (member_id),
-    INDEX idx_activity_type (activity_type),
+    INDEX idx_act_type (act_type),
     INDEX idx_hidden_at (hidden_at DESC),
 
     -- 외래키 제약조건
     FOREIGN KEY (member_id) REFERENCES member(member_id) ON DELETE CASCADE
-) ENGINE=InnoDB COMMENT='최근 활동 숨김 테이블 (사용자별 최근 활동 목록 숨김 처리)';
+) ENGINE=InnoDB COMMENT='최근 활동 숨김 테이블';
 
 -- ========================================================================
 -- PART 8: 시스템 관리 테이블
@@ -801,7 +730,7 @@ INSERT INTO member (email, pwd, name, phone, role, birth, gender, kindness_tempe
 ('test2@test.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '김민지', '01098765432', 'USER', '1998-03-22', 'FEMALE', 37.20, NOW());
 
 -- 9-4. FAQ 샘플 데이터
-INSERT INTO faqs (category_id, question, answer, order_num, is_active) VALUES
+INSERT INTO faq (cat_id, question, answer, order_num, active_yn) VALUES
 (1, '복지 혜택은 어떻게 찾나요?', '메인 페이지에서 "복지 혜택 찾기" 메뉴를 클릭하시면 간단한 정보 입력 후 맞춤형 복지 혜택을 추천받으실 수 있습니다. 나이, 가구 구성, 소득 수준 등의 정보를 입력하시면 AI가 자동으로 적합한 복지 서비스를 매칭해 드립니다.', 1, TRUE),
 (1, '복지 혜택 신청은 어떻게 하나요?', '복지 혜택 검색 결과에서 원하는 혜택의 "신청하기" 버튼을 클릭하시면 해당 기관의 신청 페이지로 이동합니다. 온라인 신청이 가능한 경우 바로 신청이 가능하며, 방문 신청이 필요한 경우 주변 시설 정보를 안내해 드립니다.', 2, TRUE),
 (1, '저소득층 기준은 어떻게 되나요?', '저소득층 기준은 정부 정책에 따라 변동될 수 있으며, 일반적으로 기준 중위소득의 일정 비율 이하를 기준으로 합니다. 정확한 기준은 복지 혜택 찾기에서 소득 정보 입력 시 자동으로 판단되어 적용됩니다.', 3, TRUE),
@@ -822,7 +751,7 @@ INSERT INTO volunteer_activities (activity_name, description, category, location
 ('장애인 보조 활동', '장애인 분들의 외출 및 일상생활을 보조하는 활동입니다.', 'DISABLED', '서울시 마포구 장애인복지관', '서울특별시', '마포구', '2025-02-15', '10:00:00', '16:00:00', 6, 10, '최도움', '01045674567', 'RECRUITING');
 
 -- 9-6. 공지사항 샘플 데이터
-INSERT INTO notices (admin_id, title, content, category, priority, views, is_pinned, published_at, created_at) VALUES
+INSERT INTO notice (admin_id, title, content, category, priority, views, pinned_yn, published_at, created_at) VALUES
 (1, '복지24 서비스 오픈 안내', '안녕하세요. 복지24 서비스가 정식으로 오픈되었습니다.\n\n본 서비스는 복지 혜택 진단, 기부, 봉사활동 등 다양한 복지 관련 서비스를 제공합니다.\n\n많은 이용 부탁드립니다.', 'SYSTEM', 'HIGH', 150, TRUE, '2025-01-01 00:00:00', '2025-01-01 10:00:00'),
 (1, '설날 연휴 운영 안내', '설날 연휴 기간(2025-01-28 ~ 02-01) 동안 고객센터 운영이 제한됩니다.\n긴급 문의는 이메일로 보내주시기 바랍니다.', 'GENERAL', 'NORMAL', 80, FALSE, '2025-01-20 00:00:00', '2025-01-20 14:00:00'),
 (1, '개인정보 처리방침 변경 안내', '2025년 2월 1일부터 개인정보 처리방침이 변경됩니다.\n자세한 내용은 홈페이지를 참조해주세요.', 'SYSTEM', 'NORMAL', 60, FALSE, '2025-01-25 00:00:00', '2025-01-25 09:00:00'),
@@ -1006,7 +935,7 @@ INSERT INTO member (email, pwd, name, phone, role, birth, gender, kindness_tempe
 
 -- 9-10-2. 봉사 신청 데이터 (카테고리별 신청률 및 월별 현황 차트용)
 -- 봉사 카테고리: ELDERLY(노인돌봄), CHILD(아동교육), DISABLED(장애인), ENVIRONMENT(환경보호), EDUCATION(교육), COMMUNITY(지역사회), ETC(기타)
-INSERT INTO volunteer_applications (activity_id, member_id, applicant_name, applicant_email, applicant_phone, selected_category, volunteer_date, volunteer_time, status, created_at) VALUES
+INSERT INTO vol_apply (act_id, member_id, appl_name, appl_email, appl_phone, sel_cat, vol_date, vol_time, status, created_at) VALUES
 -- 노인돌봄 카테고리 (30건 - 85% 신청률)
 (1, 4, '이서연', 'user04@welfare24.com', '01011111004', 'ELDERLY', '2025-08-15', '10:00-14:00', 'COMPLETED', '2025-08-10 09:00:00'),
 (1, 7, '강지훈', 'user07@welfare24.com', '01011111007', 'ELDERLY', '2025-08-20', '10:00-14:00', 'COMPLETED', '2025-08-15 10:30:00'),
@@ -1126,47 +1055,7 @@ INSERT INTO volunteer_applications (activity_id, member_id, applicant_name, appl
 (NULL, NULL, '문화나래', 'volunteer22@test.com', '01099990022', 'EDUCATION', '2025-11-10', '13:00-17:00', 'COMPLETED', '2025-11-05 11:30:00'),
 (NULL, NULL, '예술꿈터', 'volunteer23@test.com', '01099990023', 'EDUCATION', '2025-12-15', '13:00-17:00', 'COMPLETED', '2025-12-10 14:15:00');
 
--- 9-10-3. 복지 진단 데이터 (복지서비스 이용 비율 차트용)
-INSERT INTO welfare_diagnoses (member_id, birth_date, age, gender, household_size, income_level, sido, sigungu, is_disabled, is_single_parent, is_elderly_living_alone, is_low_income, matched_services_count, total_matching_score, save_consent, created_at) VALUES
--- 복지 진단 이용자 데이터 (다양한 조건)
-(4, '1995-06-08', 29, 'FEMALE', 3, 'LEVEL_2', '서울특별시', '강남구', FALSE, FALSE, FALSE, TRUE, 8, 245, TRUE, '2025-07-25 10:30:00'),
-(7, '1983-09-03', 41, 'MALE', 4, 'LEVEL_3', '서울특별시', '서초구', FALSE, FALSE, FALSE, FALSE, 5, 180, TRUE, '2025-08-02 14:15:00'),
-(11, '1987-10-05', 37, 'MALE', 2, 'LEVEL_2', '경기도', '성남시', FALSE, FALSE, FALSE, TRUE, 12, 320, TRUE, '2025-08-15 09:45:00'),
-(14, '1993-11-08', 31, 'FEMALE', 1, 'LEVEL_1', '서울특별시', '마포구', FALSE, TRUE, FALSE, TRUE, 15, 410, TRUE, '2025-08-22 16:20:00'),
-(18, '1992-09-12', 32, 'FEMALE', 4, 'LEVEL_3', '인천광역시', '남동구', FALSE, FALSE, FALSE, FALSE, 6, 195, TRUE, '2025-09-03 11:00:00'),
-(22, '1997-02-28', 27, 'FEMALE', 2, 'LEVEL_2', '경기도', '수원시', FALSE, FALSE, FALSE, TRUE, 9, 275, TRUE, '2025-09-10 13:30:00'),
-(25, '1991-08-09', 33, 'MALE', 3, 'LEVEL_2', '서울특별시', '송파구', TRUE, FALSE, FALSE, TRUE, 18, 520, TRUE, '2025-09-18 10:15:00'),
-(30, '1996-09-11', 28, 'FEMALE', 1, 'LEVEL_1', '부산광역시', '해운대구', FALSE, TRUE, FALSE, TRUE, 14, 385, TRUE, '2025-09-25 15:45:00'),
-(33, '1983-07-03', 41, 'MALE', 5, 'LEVEL_4', '서울특별시', '강서구', FALSE, FALSE, FALSE, FALSE, 4, 140, TRUE, '2025-10-02 09:00:00'),
-(38, '1991-11-06', 33, 'MALE', 3, 'LEVEL_2', '대구광역시', '수성구', FALSE, FALSE, FALSE, TRUE, 10, 290, TRUE, '2025-10-08 14:30:00'),
-(42, '1986-12-11', 38, 'MALE', 4, 'LEVEL_3', '경기도', '고양시', TRUE, FALSE, FALSE, FALSE, 16, 465, TRUE, '2025-10-15 11:20:00'),
-(47, '1996-06-05', 28, 'FEMALE', 2, 'LEVEL_2', '서울특별시', '영등포구', FALSE, FALSE, FALSE, TRUE, 11, 315, TRUE, '2025-10-22 16:00:00'),
-(51, '1992-08-27', 32, 'FEMALE', 1, 'LEVEL_1', '광주광역시', '서구', FALSE, TRUE, FALSE, TRUE, 13, 355, TRUE, '2025-10-29 10:45:00'),
-(55, '1997-07-16', 27, 'FEMALE', 3, 'LEVEL_2', '대전광역시', '유성구', FALSE, FALSE, FALSE, TRUE, 8, 240, TRUE, '2025-11-05 13:15:00'),
-(58, '1984-05-26', 40, 'MALE', 2, 'LEVEL_2', '서울특별시', '관악구', FALSE, FALSE, FALSE, TRUE, 9, 265, TRUE, '2025-11-12 09:30:00'),
-(62, '1987-06-18', 37, 'MALE', 4, 'LEVEL_3', '경기도', '용인시', FALSE, FALSE, FALSE, FALSE, 6, 185, TRUE, '2025-11-18 15:00:00'),
-(66, '1983-08-10', 41, 'MALE', 1, 'LEVEL_1', '서울특별시', '종로구', FALSE, FALSE, TRUE, TRUE, 20, 580, TRUE, '2025-11-25 11:45:00'),
-(70, '1990-08-02', 34, 'MALE', 3, 'LEVEL_2', '울산광역시', '남구', TRUE, FALSE, FALSE, TRUE, 17, 490, TRUE, '2025-12-02 14:20:00'),
-(75, '1998-11-07', 26, 'FEMALE', 2, 'LEVEL_2', '세종특별자치시', NULL, FALSE, FALSE, FALSE, TRUE, 7, 210, TRUE, '2025-12-08 10:00:00'),
-(78, '1984-08-16', 40, 'MALE', 5, 'LEVEL_4', '경기도', '화성시', FALSE, FALSE, FALSE, FALSE, 5, 165, TRUE, '2025-12-15 16:30:00'),
-(82, '1986-09-08', 38, 'MALE', 3, 'LEVEL_2', '서울특별시', '동작구', FALSE, FALSE, FALSE, TRUE, 10, 295, TRUE, '2025-12-22 09:15:00'),
-(85, '1999-07-17', 25, 'FEMALE', 1, 'LEVEL_1', '제주특별자치도', '제주시', FALSE, TRUE, FALSE, TRUE, 12, 340, TRUE, '2025-12-28 13:00:00'),
-(88, '1988-05-26', 36, 'MALE', 4, 'LEVEL_3', '경상남도', '창원시', TRUE, FALSE, FALSE, FALSE, 14, 405, TRUE, '2025-11-03 11:30:00'),
-(92, '1983-06-18', 41, 'MALE', 2, 'LEVEL_2', '전라북도', '전주시', FALSE, FALSE, FALSE, TRUE, 8, 235, TRUE, '2025-11-18 15:45:00'),
-(95, '1997-03-27', 27, 'FEMALE', 3, 'LEVEL_2', '충청남도', '천안시', FALSE, FALSE, FALSE, TRUE, 9, 270, TRUE, '2025-11-28 10:20:00'),
--- 비회원 진단 데이터
-(NULL, '1975-03-15', 49, 'MALE', 1, 'LEVEL_1', '서울특별시', '강북구', FALSE, FALSE, TRUE, TRUE, 22, 620, TRUE, '2025-08-10 14:00:00'),
-(NULL, '1960-08-22', 64, 'FEMALE', 1, 'LEVEL_1', '부산광역시', '동래구', FALSE, FALSE, TRUE, TRUE, 25, 710, TRUE, '2025-09-05 10:30:00'),
-(NULL, '1988-12-05', 36, 'FEMALE', 4, 'LEVEL_2', '경기도', '안양시', FALSE, TRUE, FALSE, TRUE, 16, 445, TRUE, '2025-09-28 15:15:00'),
-(NULL, '1955-04-18', 69, 'MALE', 2, 'LEVEL_2', '대구광역시', '중구', TRUE, FALSE, FALSE, TRUE, 28, 790, TRUE, '2025-10-12 11:00:00'),
-(NULL, '1992-07-30', 32, 'MALE', 3, 'LEVEL_3', '인천광역시', '연수구', FALSE, FALSE, FALSE, FALSE, 5, 155, TRUE, '2025-11-08 13:45:00'),
-(NULL, '1978-11-12', 46, 'FEMALE', 5, 'LEVEL_2', '광주광역시', '북구', FALSE, TRUE, FALSE, TRUE, 13, 375, TRUE, '2025-12-01 09:20:00'),
-(NULL, '1965-02-28', 59, 'MALE', 1, 'LEVEL_1', '서울특별시', '노원구', TRUE, FALSE, TRUE, TRUE, 30, 850, TRUE, '2025-12-20 16:00:00'),
-(NULL, '1995-09-08', 29, 'FEMALE', 2, 'LEVEL_2', '경기도', '부천시', FALSE, FALSE, FALSE, TRUE, 9, 260, TRUE, '2025-11-10 10:45:00'),
-(NULL, '1982-06-20', 42, 'MALE', 4, 'LEVEL_3', '대전광역시', '서구', FALSE, FALSE, FALSE, FALSE, 6, 180, TRUE, '2025-11-22 14:30:00'),
-(NULL, '1970-01-05', 54, 'FEMALE', 1, 'LEVEL_1', '강원도', '춘천시', FALSE, FALSE, TRUE, TRUE, 21, 595, TRUE, '2025-12-02 11:15:00');
-
--- 9-10-4. 복지지도 이용 데이터 (관심 복지서비스)
+-- 9-10-3. 복지지도 이용 데이터 (관심 복지서비스)
 INSERT INTO favorite_welfare_services (member_id, service_id, service_name, service_purpose, department, apply_method, support_type, created_at) VALUES
 (4, 'WF001', '기초생활수급자 생계급여', '저소득층 가구의 기본적인 생활 보장', '보건복지부', '주민센터 방문', '현금지원', '2025-08-15 10:00:00'),
 (7, 'WF002', '장애인연금', '중증장애인의 근로능력 상실로 인한 소득감소 보전', '보건복지부', '주민센터 방문', '현금지원', '2025-08-20 14:30:00'),
@@ -1189,8 +1078,20 @@ INSERT INTO favorite_welfare_services (member_id, service_id, service_name, serv
 (75, 'WF005', '영유아보육료', '영유아 보육서비스 이용비용 지원', '보건복지부', '온라인 신청', '바우처', '2025-11-25 15:00:00'),
 (78, 'WF010', '국민기초생활보장 의료급여', '저소득층 의료비 지원', '보건복지부', '주민센터 방문', '의료지원', '2025-12-01 11:20:00');
 
+-- 9-10-4. 복지 진단 이용 로그 샘플 데이터 (조회수 카운트용)
+INSERT INTO welfare_diagnosis_log (created_at) VALUES
+('2025-08-10 09:30:00'), ('2025-08-15 14:20:00'), ('2025-08-20 11:00:00'),
+('2025-08-25 16:45:00'), ('2025-09-01 10:15:00'), ('2025-09-05 13:30:00'),
+('2025-09-10 09:00:00'), ('2025-09-15 15:20:00'), ('2025-09-20 11:45:00'),
+('2025-09-25 14:00:00'), ('2025-10-01 10:30:00'), ('2025-10-05 09:15:00'),
+('2025-10-10 16:00:00'), ('2025-10-15 13:45:00'), ('2025-10-20 11:20:00'),
+('2025-10-25 14:30:00'), ('2025-11-01 10:00:00'), ('2025-11-05 15:15:00'),
+('2025-11-10 09:45:00'), ('2025-11-15 12:30:00'), ('2025-11-20 16:20:00'),
+('2025-11-25 10:45:00'), ('2025-12-01 14:00:00'), ('2025-12-05 11:30:00'),
+('2025-12-10 09:20:00');
+
 -- 9-9. 기존 회원들을 위한 알림 설정 초기 데이터 (모든 알림 활성화)
-INSERT INTO notification_settings (member_id, event_notification, donation_notification, volunteer_notification, faq_answer_notification)
+INSERT INTO noti_setting (member_id, event_noti, dona_noti, vol_noti, faq_noti)
 SELECT
     member_id,
     TRUE,
@@ -1198,7 +1099,7 @@ SELECT
     TRUE,
     TRUE
 FROM member
-WHERE member_id NOT IN (SELECT member_id FROM notification_settings)
+WHERE member_id NOT IN (SELECT member_id FROM noti_setting)
 ON DUPLICATE KEY UPDATE setting_id=setting_id;
 
 -- ========================================================================
@@ -1237,8 +1138,8 @@ ADD COLUMN last_login_fail_at TIMESTAMP NULL COMMENT '마지막 로그인 실패
 
 ALTER TABLE member
 ADD COLUMN account_locked_until TIMESTAMP NULL COMMENT '계정 잠금 해제 시간' AFTER last_login_fail_at;
- ALTER TABLE volunteer_applications MODIFY COLUMN activity_id      
-  BIGINT UNSIGNED NULL COMMENT '봉사 활동 ID (일반 신청의 경우      
+ ALTER TABLE vol_apply MODIFY COLUMN act_id
+  BIGINT UNSIGNED NULL COMMENT '봉사 활동 ID (일반 신청의 경우
   NULL)';
    -- birth를 NULL 허용으로 변경
   ALTER TABLE member MODIFY COLUMN birth DATE NULL;
@@ -1247,60 +1148,51 @@ ADD COLUMN account_locked_until TIMESTAMP NULL COMMENT '계정 잠금 해제 시
   ALTER TABLE member MODIFY COLUMN gender ENUM('MALE', 'FEMALE',
    'OTHER') NULL DEFAULT 'OTHER';
 
- USE springmvc;
+USE springmvc;
 
-  CREATE TABLE IF NOT EXISTS calendar_events (
-      -- 기본키
-      event_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
-  COMMENT '일정 ID',
+CREATE TABLE IF NOT EXISTS cal_event (
+    -- 기본키
+    event_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '일정 ID',
 
-      -- 외래키
-      member_id BIGINT UNSIGNED NOT NULL COMMENT '회원 
-  고유번호',
+    -- 외래키
+    member_id BIGINT UNSIGNED NOT NULL COMMENT '회원 고유번호',
 
-      -- 일정 정보
-      title VARCHAR(200) NOT NULL COMMENT '일정 제목',
-      description TEXT NULL COMMENT '일정 설명',
-      event_date DATE NOT NULL COMMENT '일정 날짜',
-      event_time TIME NULL COMMENT '일정 시간',
-      event_type ENUM('PERSONAL', 'DONATION', 'VOLUNTEER',
-  'ETC') NOT NULL DEFAULT 'PERSONAL' COMMENT '일정 유형',
+    -- 일정 정보
+    title VARCHAR(200) NOT NULL COMMENT '일정 제목',
+    description TEXT NULL COMMENT '일정 설명',
+    event_date DATE NOT NULL COMMENT '일정 날짜',
+    event_time TIME NULL COMMENT '일정 시간',
+    event_type ENUM('PERSONAL', 'DONA', 'VOL', 'ETC') NOT NULL DEFAULT 'PERSONAL' COMMENT '일정 유형',
 
-      -- 알림 설정
-      reminder_enabled BOOLEAN NOT NULL DEFAULT TRUE COMMENT        
-  '알림 활성화 여부',
-      remind_before_days INT UNSIGNED NOT NULL DEFAULT 1 COMMENT    
-   '며칠 전 알림 (기본 1일)',
+    -- 알림 설정
+    reminder_yn BOOLEAN NOT NULL DEFAULT TRUE COMMENT '알림 활성화 여부',
+    remind_days INT UNSIGNED NOT NULL DEFAULT 1 COMMENT '며칠 전 알림',
 
-      -- 상태
-      status ENUM('SCHEDULED', 'COMPLETED', 'CANCELLED') NOT        
-  NULL DEFAULT 'SCHEDULED' COMMENT '일정 상태',
+    -- 상태
+    status ENUM('SCHED', 'DONE', 'CANCEL') NOT NULL DEFAULT 'SCHED' COMMENT '일정 상태',
 
-      -- 시스템 정보
-      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP       
-  COMMENT '등록일',
-      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON    
-   UPDATE CURRENT_TIMESTAMP COMMENT '수정일',
+    -- 시스템 정보
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일',
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일',
 
-      INDEX idx_member_id (member_id),
-      INDEX idx_event_date (event_date),
-      INDEX idx_event_type (event_type),
-      INDEX idx_status (status),
-      INDEX idx_composite_member_date (member_id, event_date),      
+    INDEX idx_member_id (member_id),
+    INDEX idx_event_date (event_date),
+    INDEX idx_event_type (event_type),
+    INDEX idx_status (status),
+    INDEX idx_member_date (member_id, event_date),
 
-      CHECK (remind_before_days <= 30),
+    CHECK (remind_days <= 30),
 
-      FOREIGN KEY (member_id) REFERENCES member(member_id) ON       
-  DELETE CASCADE
-  ) ENGINE=InnoDB COMMENT='캘린더 일정 테이블';
+    FOREIGN KEY (member_id) REFERENCES member(member_id) ON DELETE CASCADE
+) ENGINE=InnoDB COMMENT='캘린더 일정 테이블';
 
 -- 8. 사용자 질문 테이블 (FAQ)
-CREATE TABLE user_questions (
+CREATE TABLE user_qna (
     -- 기본키
-    question_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '질문 ID',
+    qna_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '질문 ID',
 
     -- 작성자 정보
-    user_id VARCHAR(255) NULL COMMENT '로그인 사용자 ID (email, 비회원은 NULL)',
+    user_id VARCHAR(255) NULL COMMENT '로그인 사용자 ID (비회원은 NULL)',
     user_name VARCHAR(100) NOT NULL COMMENT '작성자 이름',
     user_email VARCHAR(255) NOT NULL COMMENT '작성자 이메일',
 
@@ -1311,11 +1203,11 @@ CREATE TABLE user_questions (
 
     -- 답변 정보
     answer TEXT NULL COMMENT '답변 내용',
-    answered_by VARCHAR(255) NULL COMMENT '답변자 ID',
-    answered_at TIMESTAMP NULL COMMENT '답변 일시',
+    ans_by VARCHAR(255) NULL COMMENT '답변자 ID',
+    ans_at TIMESTAMP NULL COMMENT '답변 일시',
 
     -- 상태 정보
-    status ENUM('pending', 'answered') NOT NULL DEFAULT 'pending' COMMENT '답변 상태',
+    status ENUM('PENDING', 'ANSWERED') NOT NULL DEFAULT 'PENDING' COMMENT '답변 상태',
     views INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '조회수',
 
     -- 시스템 정보
@@ -1327,10 +1219,10 @@ CREATE TABLE user_questions (
     INDEX idx_category (category),
     INDEX idx_status (status),
     INDEX idx_created_at (created_at DESC)
-) ENGINE=InnoDB COMMENT='사용자 질문 테이블 (FAQ)';
+) ENGINE=InnoDB COMMENT='사용자 질문 테이블';
 
 
--- 알림 설정 테이블 확인 스크립트
+-- 알림 설정 테이블 확인 스크립트 (noti_setting 사용)
 
 USE springmvc;
 
@@ -1342,127 +1234,19 @@ SELECT
     UPDATE_TIME
 FROM information_schema.TABLES
 WHERE TABLE_SCHEMA = 'springmvc'
-AND TABLE_NAME = 'notification_settings';
+AND TABLE_NAME = 'noti_setting';
 
 -- 2. 테이블 구조 확인
-DESC notification_settings;
+DESC noti_setting;
 
 -- 3. 데이터 확인
-SELECT * FROM notification_settings;
-
--- 4. 테이블이 없을 경우 생성
-CREATE TABLE IF NOT EXISTS notification_settings (
-    setting_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '설정 ID',
-    member_id BIGINT UNSIGNED NOT NULL COMMENT '회원 고유번호',
-    event_notification BOOLEAN NOT NULL DEFAULT TRUE COMMENT '일정 알림',
-    donation_notification BOOLEAN NOT NULL DEFAULT TRUE COMMENT '기부 알림',
-    volunteer_notification BOOLEAN NOT NULL DEFAULT TRUE COMMENT '봉사 활동 알림',
-    faq_answer_notification BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'FAQ 답변 알림',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성일',
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일',
-    UNIQUE INDEX idx_member_id (member_id),
-    FOREIGN KEY (member_id) REFERENCES member(member_id) ON DELETE CASCADE
-) ENGINE=InnoDB COMMENT='회원별 알림 설정 테이블';
-
--- 5. 기존 회원 초기 데이터 생성
-INSERT INTO notification_settings (member_id, event_notification, donation_notification, volunteer_notification, faq_answer_notification)
-SELECT member_id, TRUE, TRUE, TRUE, TRUE
-FROM member
-WHERE member_id NOT IN (SELECT member_id FROM notification_settings)
-ON DUPLICATE KEY UPDATE setting_id=setting_id;
-
--- 6. 최종 확인
-SELECT
-    ns.*,
-    m.email,
-    m.name
-FROM notification_settings ns
-JOIN member m ON ns.member_id = m.member_id
-ORDER BY ns.member_id;
-
-
--- ========================================
--- 알림 설정 테이블 생성 및 초기화 스크립트
--- ========================================
-
-USE springmvc;
-
--- 1. notification_settings 테이블이 존재하는지 확인
-SELECT
-    IF(COUNT(*) > 0, 'notification_settings 테이블이 이미 존재합니다.', 'notification_settings 테이블이 존재하지 않습니다. 아래 CREATE TABLE을 실행하세요.') AS status
-FROM information_schema.TABLES
-WHERE TABLE_SCHEMA = 'springmvc'
-AND TABLE_NAME = 'notification_settings';
-
--- 2. notification_settings 테이블 생성 (테이블이 없을 경우에만 실행)
-CREATE TABLE IF NOT EXISTS notification_settings (
-    setting_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '설정 ID',
-    member_id BIGINT UNSIGNED NOT NULL COMMENT '회원 고유번호',
-    event_notification BOOLEAN NOT NULL DEFAULT TRUE COMMENT '일정 알림',
-    donation_notification BOOLEAN NOT NULL DEFAULT TRUE COMMENT '기부 알림',
-    volunteer_notification BOOLEAN NOT NULL DEFAULT TRUE COMMENT '봉사 활동 알림',
-    faq_answer_notification BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'FAQ 답변 알림',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성일',
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일',
-    UNIQUE INDEX idx_member_id (member_id),
-    FOREIGN KEY (member_id) REFERENCES member(member_id) ON DELETE CASCADE
-) ENGINE=InnoDB COMMENT='회원별 알림 설정 테이블';
-
--- 3. 기존 회원들의 알림 설정 초기 데이터 생성
-INSERT INTO notification_settings (member_id, event_notification, donation_notification, volunteer_notification, faq_answer_notification)
-SELECT
-    member_id,
-    TRUE,  -- 기본값: 모든 알림 활성화
-    TRUE,
-    TRUE,
-    TRUE
-FROM member
-WHERE deleted_at IS NULL  -- 탈퇴하지 않은 회원만
-AND member_id NOT IN (SELECT member_id FROM notification_settings)
-ON DUPLICATE KEY UPDATE setting_id = setting_id;  -- 이미 존재하면 업데이트하지 않음
-
--- 4. 테이블 구조 확인
-DESC notification_settings;
-
--- 5. 생성된 데이터 확인 (최근 10개)
-SELECT
-    ns.setting_id,
-    ns.member_id,
-    m.email,
-    m.name,
-    ns.event_notification AS '일정알림',
-    ns.donation_notification AS '기부알림',
-    ns.volunteer_notification AS '봉사알림',
-    ns.faq_answer_notification AS 'FAQ알림',
-    ns.created_at AS '생성일',
-    ns.updated_at AS '수정일'
-FROM notification_settings ns
-JOIN member m ON ns.member_id = m.member_id
-WHERE m.deleted_at IS NULL
-ORDER BY ns.created_at DESC
-LIMIT 10;
-
--- 6. 통계 정보
-SELECT
-    '전체 회원 수' AS '구분',
-    COUNT(*) AS '개수'
-FROM member
-WHERE deleted_at IS NULL
-
-UNION ALL
-
-SELECT
-    '알림 설정이 있는 회원 수' AS '구분',
-    COUNT(*) AS '개수'
-FROM notification_settings ns
-JOIN member m ON ns.member_id = m.member_id
-WHERE m.deleted_at IS NULL;
+SELECT * FROM noti_setting;
 
 
   USE springmvc;
 
   -- 모든 기존 알림 삭제 (소프트 삭제)
-  UPDATE notifications
+  UPDATE notification
   SET deleted_at = NOW()
   WHERE deleted_at IS NULL;
    SELECT
@@ -1485,20 +1269,19 @@ WHERE m.deleted_at IS NULL;
 
 -- ================================================
 -- 공지사항 샘플 데이터
--- 프로젝트 컨셉에 맞는 현실적인 공지사항 데이터
 -- ================================================
 
 -- Safe mode 임시 비활성화
 SET SQL_SAFE_UPDATES = 0;
 
 -- 기존 공지사항 삭제 (테스트 데이터 정리)
-DELETE FROM notices;
+DELETE FROM notice;
 
 -- 관리자 member_id 조회 (동적으로 사용)
 SET @admin_member_id = (SELECT member_id FROM member WHERE email = 'admin@welfare24.com' LIMIT 1);
 
 -- 1. 긴급/중요 공지사항 (상단 고정)
-INSERT INTO notices (admin_id, title, content, category, priority, is_pinned, published_at, created_at) VALUES
+INSERT INTO notice (admin_id, title, content, category, priority, pinned_yn, published_at, created_at) VALUES
 (@admin_member_id, '복지24 서비스 이용 안내',
 '복지24는 복지 서비스 정보를 제공하는 플랫폼입니다.
 
@@ -1520,7 +1303,7 @@ INSERT INTO notices (admin_id, title, content, category, priority, is_pinned, pu
 'GENERAL', 'URGENT', TRUE, '2025-01-20 00:00:00', '2025-01-20 14:30:00');
 
 -- 2. 시스템 업데이트 공지
-INSERT INTO notices (admin_id, title, content, category, priority, published_at, created_at) VALUES
+INSERT INTO notice (admin_id, title, content, category, priority, published_at, created_at) VALUES
 (@admin_member_id, '2025년 복지 혜택 확대 안내',
 '2025년부터 정부 복지 정책이 확대됩니다.
 
@@ -1545,7 +1328,7 @@ INSERT INTO notices (admin_id, title, content, category, priority, published_at,
 'UPDATE', 'NORMAL', '2025-01-15 00:00:00', '2025-01-15 11:00:00');
 
 -- 3. 일반 공지사항
-INSERT INTO notices (admin_id, title, content, category, priority, published_at, created_at) VALUES
+INSERT INTO notice (admin_id, title, content, category, priority, published_at, created_at) VALUES
 (@admin_member_id, '회원가입 안내',
 '복지24 회원가입 방법을 안내드립니다.
 
@@ -1569,7 +1352,7 @@ INSERT INTO notices (admin_id, title, content, category, priority, published_at,
 'GENERAL', 'NORMAL', '2025-01-05 00:00:00', '2025-01-05 14:00:00');
 
 -- 4. 시스템 점검 공지
-INSERT INTO notices (admin_id, title, content, category, priority, published_at, created_at) VALUES
+INSERT INTO notice (admin_id, title, content, category, priority, published_at, created_at) VALUES
 (@admin_member_id, '서버 점검 안내',
 '안정적인 서비스를 위해 서버 점검을 진행합니다.
 
@@ -1581,7 +1364,7 @@ INSERT INTO notices (admin_id, title, content, category, priority, published_at,
 'MAINTENANCE', 'NORMAL', '2025-02-01 00:00:00', '2025-02-01 15:00:00');
 
 -- 5. 추가 공지사항
-INSERT INTO notices (admin_id, title, content, category, priority, published_at, created_at) VALUES
+INSERT INTO notice (admin_id, title, content, category, priority, published_at, created_at) VALUES
 (@admin_member_id, '개인정보 처리방침 변경 안내',
 '개인정보 처리방침이 변경됩니다.
 
@@ -1630,17 +1413,17 @@ FAQ 주요 내용:
 'GENERAL', 'NORMAL', '2025-01-08 00:00:00', '2025-01-08 14:00:00');
 
 -- 조회수 임의 설정 (현실감 부여)
-UPDATE notices SET views = 1523 WHERE title LIKE '%서비스 이용%';
-UPDATE notices SET views = 892 WHERE title LIKE '%설 연휴%';
-UPDATE notices SET views = 1247 WHERE title LIKE '%복지 혜택 확대%';
-UPDATE notices SET views = 634 WHERE title LIKE '%웹사이트 개선%';
-UPDATE notices SET views = 1089 WHERE title LIKE '%회원가입 안내%';
-UPDATE notices SET views = 756 WHERE title LIKE '%기부 및 봉사%';
-UPDATE notices SET views = 445 WHERE title LIKE '%서버 점검%';
-UPDATE notices SET views = 567 WHERE title LIKE '%개인정보%';
-UPDATE notices SET views = 823 WHERE title LIKE '%복지시설 위치%';
-UPDATE notices SET views = 489 WHERE title LIKE '%FAQ%';
-UPDATE notices SET views = 678 WHERE title LIKE '%복지 혜택 신청 방법%';
+UPDATE notice SET views = 1523 WHERE title LIKE '%서비스 이용%';
+UPDATE notice SET views = 892 WHERE title LIKE '%설 연휴%';
+UPDATE notice SET views = 1247 WHERE title LIKE '%복지 혜택 확대%';
+UPDATE notice SET views = 634 WHERE title LIKE '%웹사이트 개선%';
+UPDATE notice SET views = 1089 WHERE title LIKE '%회원가입 안내%';
+UPDATE notice SET views = 756 WHERE title LIKE '%기부 및 봉사%';
+UPDATE notice SET views = 445 WHERE title LIKE '%서버 점검%';
+UPDATE notice SET views = 567 WHERE title LIKE '%개인정보%';
+UPDATE notice SET views = 823 WHERE title LIKE '%복지시설 위치%';
+UPDATE notice SET views = 489 WHERE title LIKE '%FAQ%';
+UPDATE notice SET views = 678 WHERE title LIKE '%복지 혜택 신청 방법%';
 
 -- Safe mode 다시 활성화
 SET SQL_SAFE_UPDATES = 1;
@@ -1656,49 +1439,37 @@ DELIMITER //
 DROP PROCEDURE IF EXISTS add_volunteer_columns//
 CREATE PROCEDURE add_volunteer_columns()
 BEGIN
-    -- approved_by 컬럼이 없으면 추가
+    -- appr_by 컬럼이 없으면 추가
     IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS
-                   WHERE TABLE_SCHEMA = 'springmvc' AND TABLE_NAME = 'volunteer_applications' AND COLUMN_NAME = 'approved_by') THEN
-        ALTER TABLE volunteer_applications ADD COLUMN approved_by BIGINT UNSIGNED NULL COMMENT '승인한 관리자 ID';
+                   WHERE TABLE_SCHEMA = 'springmvc' AND TABLE_NAME = 'vol_apply' AND COLUMN_NAME = 'appr_by') THEN
+        ALTER TABLE vol_apply ADD COLUMN appr_by BIGINT UNSIGNED NULL COMMENT '승인한 관리자 ID';
     END IF;
 
-    -- approved_at 컬럼이 없으면 추가
+    -- appr_at 컬럼이 없으면 추가
     IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS
-                   WHERE TABLE_SCHEMA = 'springmvc' AND TABLE_NAME = 'volunteer_applications' AND COLUMN_NAME = 'approved_at') THEN
-        ALTER TABLE volunteer_applications ADD COLUMN approved_at TIMESTAMP NULL COMMENT '승인 일시';
+                   WHERE TABLE_SCHEMA = 'springmvc' AND TABLE_NAME = 'vol_apply' AND COLUMN_NAME = 'appr_at') THEN
+        ALTER TABLE vol_apply ADD COLUMN appr_at TIMESTAMP NULL COMMENT '승인 일시';
     END IF;
 
-    -- assigned_facility_name 컬럼이 없으면 추가
+    -- assign_fac_nm 컬럼이 없으면 추가
     IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS
-                   WHERE TABLE_SCHEMA = 'springmvc' AND TABLE_NAME = 'volunteer_applications' AND COLUMN_NAME = 'assigned_facility_name') THEN
-        ALTER TABLE volunteer_applications ADD COLUMN assigned_facility_name VARCHAR(200) NULL COMMENT '배정된 복지시설명';
+                   WHERE TABLE_SCHEMA = 'springmvc' AND TABLE_NAME = 'vol_apply' AND COLUMN_NAME = 'assign_fac_nm') THEN
+        ALTER TABLE vol_apply ADD COLUMN assign_fac_nm VARCHAR(200) NULL COMMENT '배정된 복지시설명';
     END IF;
 
-    -- assigned_facility_address 컬럼이 없으면 추가
+    -- assign_fac_addr 컬럼이 없으면 추가
     IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS
-                   WHERE TABLE_SCHEMA = 'springmvc' AND TABLE_NAME = 'volunteer_applications' AND COLUMN_NAME = 'assigned_facility_address') THEN
-        ALTER TABLE volunteer_applications ADD COLUMN assigned_facility_address VARCHAR(500) NULL COMMENT '배정된 시설 주소';
+                   WHERE TABLE_SCHEMA = 'springmvc' AND TABLE_NAME = 'vol_apply' AND COLUMN_NAME = 'assign_fac_addr') THEN
+        ALTER TABLE vol_apply ADD COLUMN assign_fac_addr VARCHAR(500) NULL COMMENT '배정된 시설 주소';
     END IF;
 
-    -- assigned_facility_lat 컬럼이 없으면 추가
+    -- admin_memo 컬럼이 없으면 추가
     IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS
-                   WHERE TABLE_SCHEMA = 'springmvc' AND TABLE_NAME = 'volunteer_applications' AND COLUMN_NAME = 'assigned_facility_lat') THEN
-        ALTER TABLE volunteer_applications ADD COLUMN assigned_facility_lat DECIMAL(10, 8) NULL COMMENT '시설 위도';
+                   WHERE TABLE_SCHEMA = 'springmvc' AND TABLE_NAME = 'vol_apply' AND COLUMN_NAME = 'admin_memo') THEN
+        ALTER TABLE vol_apply ADD COLUMN admin_memo TEXT NULL COMMENT '관리자 메모';
     END IF;
 
-    -- assigned_facility_lng 컬럼이 없으면 추가
-    IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS
-                   WHERE TABLE_SCHEMA = 'springmvc' AND TABLE_NAME = 'volunteer_applications' AND COLUMN_NAME = 'assigned_facility_lng') THEN
-        ALTER TABLE volunteer_applications ADD COLUMN assigned_facility_lng DECIMAL(11, 8) NULL COMMENT '시설 경도';
-    END IF;
-
-    -- admin_note 컬럼이 없으면 추가
-    IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS
-                   WHERE TABLE_SCHEMA = 'springmvc' AND TABLE_NAME = 'volunteer_applications' AND COLUMN_NAME = 'admin_note') THEN
-        ALTER TABLE volunteer_applications ADD COLUMN admin_note TEXT NULL COMMENT '관리자 메모';
-    END IF;
-
-    SELECT 'volunteer_applications 컬럼 확인/추가 완료' AS message;
+    SELECT 'vol_apply 컬럼 확인/추가 완료' AS message;
 END//
 DELIMITER ;
 
@@ -1706,12 +1477,9 @@ DELIMITER ;
 CALL add_volunteer_columns();
 DROP PROCEDURE IF EXISTS add_volunteer_columns;
 
--- 인덱스 추가 (존재하면 무시)
--- CREATE INDEX IF NOT EXISTS 문법이 MySQL 8.0+에서만 지원됨
--- 인덱스는 수동으로 확인 후 추가
 
 -- 확인
-DESCRIBE volunteer_applications;
+DESCRIBE vol_apply;
 
 
 -- 회원 상태 변경 이력 테이블 생성
@@ -1754,28 +1522,22 @@ CREATE TABLE member_status_history (
 SELECT 'member_status_history 테이블이 성공적으로 생성되었습니다.' AS message;
 SELECT COUNT(*) AS total_count FROM member_status_history;
 
--- volunteer_applications 테이블의 컬럼 확인
+-- vol_apply 테이블의 컬럼 확인
 USE springmvc;
 
 -- 테이블 구조 확인
-DESCRIBE volunteer_applications;
+DESCRIBE vol_apply;
 
 -- 특정 컬럼 존재 여부 확인
 SELECT COLUMN_NAME, DATA_TYPE, COLUMN_COMMENT
 FROM INFORMATION_SCHEMA.COLUMNS
 WHERE TABLE_SCHEMA = 'springmvc'
-  AND TABLE_NAME = 'volunteer_applications'
-  AND COLUMN_NAME IN ('approved_by', 'approved_at', 'assigned_facility_name', 'assigned_facility_address', 'assigned_facility_lat', 'assigned_facility_lng', 'admin_note')
+  AND TABLE_NAME = 'vol_apply'
+  AND COLUMN_NAME IN ('appr_by', 'appr_at', 'assign_fac_nm', 'assign_fac_addr', 'admin_memo')
 ORDER BY ORDINAL_POSITION;
 
-
--- ========================================================================
--- 하드코딩된 FAQ를 DB로 이동
--- project_faq.jsp의 하드코딩된 FAQ 10개를 faqs 테이블에 삽입
--- ========================================================================
-
 -- 기존 FAQ 데이터 삭제 (중복 방지)
-DELETE FROM faqs WHERE faq_id < 100;
+DELETE FROM faq WHERE faq_id < 100;
 
 -- FAQ 카테고리 확인 및 삽입 (이미 존재하면 무시)
 INSERT IGNORE INTO faq_categories (category_code, category_name, display_order) VALUES
@@ -1788,7 +1550,7 @@ INSERT IGNORE INTO faq_categories (category_code, category_name, display_order) 
 
 -- 하드코딩된 FAQ 10개 삽입
 -- category_id: WELFARE=1, SERVICE=2, ACCOUNT=3, ETC=6
-INSERT INTO faqs (category_id, question, answer, order_num, is_active, views, helpful_count) VALUES
+INSERT INTO faq (cat_id, question, answer, order_num, active_yn, views, helpful_cnt) VALUES
 -- 1. 복지혜택 - 복지 혜택은 어떻게 찾나요?
 (1, '복지 혜택은 어떻게 찾나요?',
 '메인 페이지에서 ''복지 혜택 찾기'' 메뉴를 클릭하시면 간단한 정보 입력 후 맞춤형 복지 혜택을 추천받으실 수 있습니다. 나이, 가구 구성, 소득 수준 등의 정보를 입력하시면 AI가 자동으로 적합한 복지 서비스를 매칭해 드립니다.',
@@ -1845,9 +1607,9 @@ SELECT
     fc.category_name,
     f.question,
     f.order_num,
-    f.is_active
-FROM faqs f
-JOIN faq_categories fc ON f.category_id = fc.category_id
+    f.active_yn
+FROM faq f
+JOIN faq_categories fc ON f.cat_id = fc.category_id
 ORDER BY fc.display_order, f.order_num;
 
 
@@ -1859,7 +1621,7 @@ ORDER BY fc.display_order, f.order_num;
 USE springmvc;
 
 -- 노인돌봄 추가 (25건 추가 - 총 55건으로 증가, 약 40%)
-INSERT INTO volunteer_applications (activity_id, member_id, applicant_name, applicant_email, applicant_phone, selected_category, volunteer_date, volunteer_time, status, created_at) VALUES
+INSERT INTO vol_apply (act_id, member_id, appl_name, appl_email, appl_phone, sel_cat, vol_date, vol_time, status, created_at) VALUES
 (1, 3, '박민호', 'user03@welfare24.com', '01011111003', 'ELDERLY', '2025-07-10', '10:00-14:00', 'COMPLETED', '2025-07-05 09:00:00'),
 (1, 5, '정우진', 'user05@welfare24.com', '01011111005', 'ELDERLY', '2025-07-15', '10:00-14:00', 'COMPLETED', '2025-07-10 10:30:00'),
 (1, 8, '윤하은', 'user08@welfare24.com', '01011111008', 'ELDERLY', '2025-07-20', '10:00-14:00', 'COMPLETED', '2025-07-15 11:00:00'),
@@ -1889,19 +1651,19 @@ INSERT INTO volunteer_applications (activity_id, member_id, applicant_name, appl
 -- 카테고리별 분포 확인 (차트 데이터 검증용)
 -- 예상 결과: ELDERLY 40%, CHILD 17%, ENVIRONMENT 15%, DISABLED 11%, COMMUNITY 9%, EDUCATION 8%
 SELECT
-    selected_category,
+    sel_cat,
     COUNT(*) as count,
-    ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM volunteer_applications), 1) as percentage
-FROM volunteer_applications
-GROUP BY selected_category
+    ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM vol_apply), 1) as percentage
+FROM vol_apply
+GROUP BY sel_cat
 ORDER BY count DESC;
 
 -- ========================================================================
 -- 봉사 후기 샘플 데이터
--- volunteer_reviews 테이블에 후기 데이터 삽입
+-- vol_review 테이블에 후기 데이터 삽입
 -- ========================================================================
 
-INSERT INTO volunteer_reviews (member_id, application_id, reviewer_name, title, content, rating, is_visible, helpful_count, created_at) VALUES
+INSERT INTO vol_review (member_id, apply_id, reviewer_nm, title, content, rating, visible_yn, helpful_cnt, created_at) VALUES
 -- 노인돌봄 봉사 후기
 (4, 1, '이서연', '어르신들과 함께한 따뜻한 하루',
 '처음 봉사활동에 참여했는데 정말 뜻깊은 시간이었습니다. 어르신들께서 손주처럼 반겨주셔서 마음이 따뜻해졌어요. 말벗이 되어드리고 함께 산책도 하면서 보람찬 하루를 보냈습니다. 다음에도 꼭 참여하고 싶습니다!',
@@ -1988,14 +1750,14 @@ INSERT INTO volunteer_reviews (member_id, application_id, reviewer_name, title, 
 -- 후기 데이터 확인
 SELECT
     vr.review_id,
-    vr.reviewer_name,
+    vr.reviewer_nm,
     vr.title,
     vr.rating,
-    vr.helpful_count,
-    va.selected_category,
+    vr.helpful_cnt,
+    va.sel_cat,
     vr.created_at
-FROM volunteer_reviews vr
-JOIN volunteer_applications va ON vr.application_id = va.application_id
+FROM vol_review vr
+JOIN vol_apply va ON vr.apply_id = va.apply_id
 ORDER BY vr.created_at DESC;
 
 
@@ -2007,84 +1769,176 @@ ORDER BY vr.created_at DESC;
 USE springmvc;
 
 -- 기존 테스트 데이터 삭제 (중복 방지)
-DELETE FROM user_questions WHERE question_id < 100;
+DELETE FROM user_qna WHERE qna_id < 100;
 
 -- 사용자 질문 10개 삽입 (답변완료 5개, 답변대기 5개)
-INSERT INTO user_questions (user_id, user_name, user_email, category, title, content, answer, answered_by, answered_at, status, views, created_at) VALUES
+INSERT INTO user_qna (user_id, user_name, user_email, category, title, content, answer, ans_by, ans_at, status, views, created_at) VALUES
 
 -- 1. 답변완료 - 복지혜택 (회원 질문)
 ('user01@welfare24.com', '김민수', 'user01@welfare24.com', '복지혜택',
 '기초생활수급자 신청 자격이 궁금합니다',
 '안녕하세요. 현재 1인 가구로 생활하고 있는 30대 직장인입니다. 최근 실직하여 경제적으로 어려운 상황인데, 기초생활수급자 신청 자격이 어떻게 되는지 궁금합니다. 소득과 재산 기준이 어떻게 되나요?',
 '안녕하세요, 복지24입니다.\n\n기초생활수급자 자격 기준은 다음과 같습니다:\n\n1. 소득인정액 기준: 기준 중위소득의 30~50% 이하\n2. 부양의무자 기준: 부양의무자가 없거나 부양능력이 없는 경우\n3. 재산 기준: 대도시 6,900만원, 중소도시 4,200만원, 농어촌 3,500만원 이하\n\n자세한 상담은 주소지 관할 주민센터를 방문하시거나 복지로(www.bokjiro.go.kr)에서 모의계산을 해보실 수 있습니다.\n\n추가 문의사항이 있으시면 언제든 질문해 주세요.',
-'admin@welfare24.com', '2025-11-20 10:30:00', 'answered', 45, '2025-11-18 09:15:00'),
+'admin@welfare24.com', '2025-11-20 10:30:00', 'ANSWERED', 45, '2025-11-18 09:15:00'),
 
 -- 2. 답변완료 - 서비스이용 (비회원 질문)
 (NULL, '이영희', 'yhlee@gmail.com', '서비스이용',
 '복지 지도에서 주변 복지관을 찾을 수 없어요',
 '복지 지도 기능을 이용하려고 하는데, 제 주변에 복지관이 표시되지 않습니다. 위치 권한도 허용했는데 왜 안 나오는 건가요? 서울 강남구에 살고 있습니다.',
 '안녕하세요, 복지24입니다.\n\n복지 지도 이용에 불편을 드려 죄송합니다. 다음 사항을 확인해 주세요:\n\n1. 브라우저 캐시 삭제 후 페이지 새로고침\n2. 다른 브라우저(Chrome, Edge 등)로 시도\n3. 위치 서비스가 정상적으로 활성화되어 있는지 확인\n\n강남구 지역의 복지관은 정상적으로 등록되어 있으며, 위 방법으로도 해결되지 않으시면 고객센터(1544-1234)로 연락 주시면 원격으로 도움 드리겠습니다.\n\n감사합니다.',
-'admin@welfare24.com', '2025-11-22 14:20:00', 'answered', 32, '2025-11-21 16:45:00'),
+'admin@welfare24.com', '2025-11-22 14:20:00', 'ANSWERED', 32, '2025-11-21 16:45:00'),
 
 -- 3. 답변완료 - 계정관리 (회원 질문)
 ('user05@welfare24.com', '박지현', 'user05@welfare24.com', '계정관리',
 '비밀번호 변경이 안됩니다',
 '마이페이지에서 비밀번호를 변경하려고 하는데 "현재 비밀번호가 일치하지 않습니다"라는 오류가 계속 나옵니다. 분명히 맞게 입력했는데 왜 그런 건가요?',
 '안녕하세요, 복지24입니다.\n\n비밀번호 변경 시 오류가 발생하는 경우 다음을 확인해 주세요:\n\n1. Caps Lock이 켜져 있지 않은지 확인\n2. 한/영 전환 상태 확인\n3. 복사-붙여넣기 시 앞뒤 공백이 포함되지 않았는지 확인\n\n위 방법으로도 해결되지 않으시면, 로그아웃 후 "비밀번호 찾기" 기능을 통해 임시 비밀번호를 발급받으신 후 새로운 비밀번호로 설정해 주세요.\n\n추가 도움이 필요하시면 말씀해 주세요.',
-'admin@welfare24.com', '2025-11-25 11:00:00', 'answered', 28, '2025-11-24 08:30:00'),
+'admin@welfare24.com', '2025-11-25 11:00:00', 'ANSWERED', 28, '2025-11-24 08:30:00'),
 
 -- 4. 답변완료 - 기타 (비회원 질문)
 (NULL, '최준호', 'jhchoi1990@naver.com', '기타',
 '봉사활동 시간 인증서 발급은 어떻게 하나요?',
 '복지24를 통해 봉사활동을 했는데, 학교에 제출할 봉사시간 인증서가 필요합니다. 어디서 발급받을 수 있나요? 그리고 발급까지 얼마나 걸리나요?',
 '안녕하세요, 복지24입니다.\n\n봉사활동 시간 인증서 발급 방법을 안내드립니다:\n\n1. 로그인 후 마이페이지 > 봉사활동 내역 메뉴 접속\n2. 해당 봉사활동 우측의 "인증서 발급" 버튼 클릭\n3. PDF 파일로 즉시 다운로드 가능\n\n※ 인증서는 봉사활동 완료 후 담당자 승인이 완료되면 발급 가능합니다.\n※ 승인은 보통 봉사 완료 후 1-3일 이내에 처리됩니다.\n\n비회원으로 활동하셨다면 회원가입 후 동일한 이메일로 로그인하시면 활동 내역이 연동됩니다.\n\n감사합니다.',
-'admin@welfare24.com', '2025-11-28 09:45:00', 'answered', 56, '2025-11-27 14:20:00'),
+'admin@welfare24.com', '2025-11-28 09:45:00', 'ANSWERED', 56, '2025-11-27 14:20:00'),
 
 -- 5. 답변완료 - 복지혜택 (회원 질문)
 ('user12@welfare24.com', '정수아', 'user12@welfare24.com', '복지혜택',
 '한부모가족 지원금 신청 방법',
 '이혼 후 아이 둘을 혼자 키우고 있는 한부모입니다. 한부모가족 지원금이 있다고 들었는데, 어떤 지원을 받을 수 있고 어떻게 신청하면 되나요?',
 '안녕하세요, 복지24입니다.\n\n한부모가족 지원 내용을 안내드립니다:\n\n【지원 대상】\n- 만 18세 미만 자녀를 양육하는 한부모가족\n- 소득인정액이 기준 중위소득 60% 이하\n\n【주요 지원 내용】\n1. 아동양육비: 자녀 1인당 월 20만원\n2. 추가 아동양육비: 조손가족, 미혼 한부모 추가 지원\n3. 학용품비: 연 8.3만원\n4. 생활보조금: 한부모가족복지시설 입소자 월 5만원\n\n【신청 방법】\n- 주소지 관할 주민센터 방문 또는 복지로 온라인 신청\n- 필요서류: 신분증, 가족관계증명서, 소득증빙서류 등\n\n추가 문의사항이 있으시면 말씀해 주세요.',
-'admin@welfare24.com', '2025-11-30 16:30:00', 'answered', 73, '2025-11-29 10:00:00'),
+'admin@welfare24.com', '2025-11-30 16:30:00', 'ANSWERED', 73, '2025-11-29 10:00:00'),
 
 -- 6. 답변대기 - 서비스이용 (회원 질문)
 ('user08@welfare24.com', '강동원', 'user08@welfare24.com', '서비스이용',
 '기부금 영수증 재발급 요청',
 '작년에 기부한 내역에 대해 기부금 영수증을 재발급 받고 싶습니다. 마이페이지에서 확인했는데 다운로드 버튼이 비활성화되어 있네요. 연말정산에 필요해서 급합니다. 빠른 답변 부탁드립니다.',
-NULL, NULL, NULL, 'pending', 12, '2025-12-01 11:20:00'),
+NULL, NULL, NULL, 'PENDING', 12, '2025-12-01 11:20:00'),
 
 -- 7. 답변대기 - 복지혜택 (비회원 질문)
 (NULL, '윤서연', 'sy.yoon@hanmail.net', '복지혜택',
 '장애인 등록 절차와 혜택이 궁금합니다',
 '안녕하세요. 어머니께서 최근 뇌졸중으로 거동이 불편해지셨습니다. 장애인 등록을 하면 어떤 혜택을 받을 수 있는지, 등록 절차는 어떻게 되는지 알고 싶습니다. 서류는 뭐가 필요한가요?',
-NULL, NULL, NULL, 'pending', 8, '2025-12-01 15:45:00'),
+NULL, NULL, NULL, 'PENDING', 8, '2025-12-01 15:45:00'),
 
 -- 8. 답변대기 - 계정관리 (회원 질문)
 ('user15@welfare24.com', '임재혁', 'user15@welfare24.com', '계정관리',
 '회원 탈퇴 후 재가입 문의',
 '이전에 탈퇴했던 계정으로 다시 가입하려고 하는데, "이미 사용 중인 이메일입니다"라고 나옵니다. 탈퇴한 지 2개월 정도 됐는데 언제 다시 가입할 수 있나요?',
-NULL, NULL, NULL, 'pending', 5, '2025-12-02 09:30:00'),
+NULL, NULL, NULL, 'PENDING', 5, '2025-12-02 09:30:00'),
 
 -- 9. 답변대기 - 기타 (비회원 질문)
 (NULL, '한소희', 'sohee.han@gmail.com', '기타',
 '복지24 앱이 있나요?',
 '웹사이트 말고 모바일 앱으로도 이용할 수 있나요? 스마트폰으로 복지 정보를 확인하고 싶은데, 앱스토어에서 검색해도 안 나와서요. 앱 출시 계획이 있는지 궁금합니다.',
-NULL, NULL, NULL, 'pending', 15, '2025-12-02 14:10:00'),
+NULL, NULL, NULL, 'PENDING', 15, '2025-12-02 14:10:00'),
 
 -- 10. 답변대기 - 서비스이용 (회원 질문)
 ('user20@welfare24.com', '송민지', 'user20@welfare24.com', '서비스이용',
 '복지 진단 결과가 너무 적게 나와요',
 '복지 진단을 받았는데 추천되는 복지 서비스가 2개밖에 안 나왔어요. 제가 30대 1인 가구 직장인인데, 받을 수 있는 혜택이 이것밖에 없는 건가요? 다른 조건을 입력하면 더 많이 나올까요?',
-NULL, NULL, NULL, 'pending', 22, '2025-12-03 08:00:00');
+NULL, NULL, NULL, 'PENDING', 22, '2025-12-03 08:00:00');
 
 -- 삽입 완료 확인
 SELECT
-    question_id,
+    qna_id,
     user_name,
     category,
     title,
     status,
     DATE_FORMAT(created_at, '%Y-%m-%d %H:%i') as created_at,
     CASE WHEN answer IS NOT NULL THEN 'O' ELSE 'X' END as has_answer
-FROM user_questions
+FROM user_qna
 ORDER BY created_at DESC;
+
+
+-- ========================================================================
+-- PART 10: 추가 테이블 (코드 호환용)
+-- ========================================================================
+
+-- 10-1. 캘린더 일정 테이블
+CREATE TABLE IF NOT EXISTS calendar_events (
+    -- 기본키
+    event_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '일정 ID',
+
+    -- 외래키
+    member_id BIGINT UNSIGNED NOT NULL COMMENT '회원 고유번호',
+
+    -- 일정 정보
+    title VARCHAR(200) NOT NULL COMMENT '일정 제목',
+    description TEXT NULL COMMENT '일정 설명',
+    event_date DATE NOT NULL COMMENT '일정 날짜',
+    event_time TIME NULL COMMENT '일정 시간',
+    event_type VARCHAR(50) DEFAULT 'USER' COMMENT '일정 유형 (USER, VOLUNTEER, DONATION)',
+
+    -- 알림 설정
+    reminder_enabled BOOLEAN DEFAULT TRUE COMMENT '알림 활성화 여부',
+    remind_before_days INT DEFAULT 1 COMMENT '알림 사전 일수',
+
+    -- 상태 정보
+    status VARCHAR(20) DEFAULT 'ACTIVE' COMMENT '일정 상태 (ACTIVE, COMPLETED, CANCELLED)',
+
+    -- 시스템 정보
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성일',
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일',
+
+    -- 인덱스
+    INDEX idx_member_id (member_id),
+    INDEX idx_event_date (event_date),
+    INDEX idx_status (status),
+
+    -- 외래키 제약조건
+    FOREIGN KEY (member_id) REFERENCES member(member_id) ON DELETE CASCADE
+) ENGINE=InnoDB COMMENT='캘린더 일정 테이블';
+
+-- 10-2. 알림 설정 테이블 (코드 호환용)
+CREATE TABLE IF NOT EXISTS notification_settings (
+    -- 기본키
+    setting_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '설정 ID',
+
+    -- 외래키
+    member_id BIGINT UNSIGNED NOT NULL COMMENT '회원 고유번호',
+
+    -- 알림 설정 항목
+    event_notification BOOLEAN NOT NULL DEFAULT TRUE COMMENT '일정 알림',
+    donation_notification BOOLEAN NOT NULL DEFAULT TRUE COMMENT '기부 알림',
+    volunteer_notification BOOLEAN NOT NULL DEFAULT TRUE COMMENT '봉사 활동 알림',
+    faq_answer_notification BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'FAQ 답변 알림',
+
+    -- 시스템 정보
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성일',
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일',
+
+    -- 인덱스
+    UNIQUE INDEX idx_member_id (member_id),
+
+    -- 외래키 제약조건
+    FOREIGN KEY (member_id) REFERENCES member(member_id) ON DELETE CASCADE
+) ENGINE=InnoDB COMMENT='회원별 알림 설정 테이블 (코드 호환용)';
+
+-- 10-3. 최근 활동 숨김 테이블 (코드 호환용)
+CREATE TABLE IF NOT EXISTS hidden_recent_activities (
+    -- 기본키
+    hidden_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '숨김 ID',
+
+    -- 외래키
+    member_id BIGINT UNSIGNED NOT NULL COMMENT '회원 고유번호',
+
+    -- 숨김 대상 정보
+    activity_type VARCHAR(20) NOT NULL COMMENT '활동 유형 (VOLUNTEER, DONATION)',
+    activity_id BIGINT UNSIGNED NOT NULL COMMENT '활동 ID',
+
+    -- 시스템 정보
+    hidden_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '숨김 처리 일시',
+
+    -- 인덱스
+    UNIQUE INDEX idx_unique_hidden (member_id, activity_type, activity_id) COMMENT '중복 숨김 방지',
+    INDEX idx_member_id (member_id),
+    INDEX idx_activity_type (activity_type),
+
+    -- 외래키 제약조건
+    FOREIGN KEY (member_id) REFERENCES member(member_id) ON DELETE CASCADE
+) ENGINE=InnoDB COMMENT='최근 활동 숨김 테이블 (코드 호환용)';
+
+-- 완료 메시지
+SELECT '추가 테이블 생성 완료' AS message;

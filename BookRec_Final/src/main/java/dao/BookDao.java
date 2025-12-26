@@ -64,11 +64,9 @@ public class BookDao {
      * ------------------------------------------------------------------ */
     public int insert(Book book) throws SQLException {
         // [수정] SQL 쿼리에 category 필드를 추가합니다.
-        final String sql = """
-            INSERT INTO books
-            (isbn, title, author, publisher, pub_date, description, cover_image_url, link, category)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """;
+        final String sql = "INSERT INTO books " +
+            "(isbn, title, author, publisher, pub_date, description, cover_image_url, link, category) " +
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {

@@ -205,6 +205,11 @@ public class MemberDaoImpl implements MemberDao {
 	}
 
 	@Override
+	public int decreaseKindnessTemperature(String userId, BigDecimal amount) throws Exception {
+		throw new UnsupportedOperationException("MemberDaoImpl은 비활성화됨. MemberDaoImpl2 사용");
+	}
+
+	@Override
 	public Member findByNameAndEmail(String name, String email) throws Exception {
 		throw new UnsupportedOperationException("MemberDaoImpl은 비활성화됨. MemberDaoImpl2 사용");
 	}

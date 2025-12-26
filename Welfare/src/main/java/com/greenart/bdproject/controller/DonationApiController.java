@@ -508,12 +508,14 @@ public class DonationApiController {
             con = dataSource.getConnection();
 
             // 새 스키마: member_id (BIGINT), email로 회원 식별
-            // JOIN을 통해 category_name 가져오기
+            // JOIN을 통해 category_name과 리뷰 존재 여부 가져오기
             // member_id가 있으면 member로 조회, 없으면 donor_email로 조회
-            String sql = "SELECT d.*, dc.category_name " +
+            String sql = "SELECT d.*, dc.category_name, " +
+                    "CASE WHEN dr.review_id IS NOT NULL THEN 1 ELSE 0 END AS has_review " +
                     "FROM donations d " +
                     "LEFT JOIN donation_categories dc ON d.category_id = dc.category_id " +
                     "LEFT JOIN member m ON d.member_id = m.member_id " +
+                    "LEFT JOIN donation_reviews dr ON d.donation_id = dr.donation_id " +
                     "WHERE (m.email = ? OR d.donor_email = ?) " +
                     "ORDER BY d.created_at DESC";
 
@@ -545,6 +547,9 @@ public class DonationApiController {
                 dto.setRegularStartDate(rs.getDate("regular_start_date")); // 정기 기부 시작일 추가
                 dto.setCreatedAt(rs.getTimestamp("created_at"));
                 dto.setRefundedAt(rs.getTimestamp("refunded_at"));
+                dto.setRefundAmount((Integer) rs.getObject("refund_amount")); // 환불 금액
+                dto.setRefundFee((Integer) rs.getObject("refund_fee")); // 환불 수수료
+                dto.setHasReview(rs.getInt("has_review") == 1); // 리뷰 작성 여부
 
                 donations.add(dto);
             }
@@ -613,11 +618,20 @@ public class DonationApiController {
             String paymentStatus = rs.getString("payment_status");
             int amount = rs.getInt("amount");
             java.sql.Timestamp createdAt = rs.getTimestamp("created_at");
+            Integer existingRefundAmount = (Integer) rs.getObject("refund_amount");
+            java.sql.Timestamp refundedAt = rs.getTimestamp("refunded_at");
 
             // 이미 환불된 경우
             if ("REFUNDED".equals(paymentStatus)) {
                 response.put("success", false);
                 response.put("message", "이미 환불된 기부입니다.");
+                return response;
+            }
+
+            // 이미 환불 요청한 경우
+            if (existingRefundAmount != null && refundedAt == null) {
+                response.put("success", false);
+                response.put("message", "이미 환불 요청이 접수되었습니다. 관리자 승인을 기다려주세요.");
                 return response;
             }
 
@@ -651,9 +665,10 @@ public class DonationApiController {
                 refundAmount = amount - fee;
             }
 
-            // 기부 상태를 REFUNDED로 변경
-            String updateSql = "UPDATE donations SET payment_status = 'REFUNDED', " +
-                    "refund_amount = ?, refund_fee = ?, refunded_at = NOW(), updated_at = NOW() " +
+            // 환불 요청 상태로 변경 (관리자 승인 대기)
+            // payment_status는 COMPLETED 유지, refund_amount와 refund_fee만 설정, refunded_at은 NULL
+            String updateSql = "UPDATE donations SET " +
+                    "refund_amount = ?, refund_fee = ? " +
                     "WHERE donation_id = ?";
             pstmt = con.prepareStatement(updateSql);
             pstmt.setInt(1, refundAmount);
@@ -663,7 +678,7 @@ public class DonationApiController {
             int updated = pstmt.executeUpdate();
 
             if (updated > 0) {
-                logger.info("기부 환불 완료 - donationId: {}, 원금: {}, 수수료: {}, 환불금: {}",
+                logger.info("기부 환불 요청 - donationId: {}, 원금: {}, 수수료: {}, 환불금: {}",
                         new Object[]{donationId, amount, fee, refundAmount});
 
                 response.put("success", true);
@@ -673,10 +688,10 @@ public class DonationApiController {
                 response.put("hadFee", isAfter24Hours);
 
                 if (isAfter24Hours) {
-                    response.put("message", String.format("환불이 완료되었습니다. (원금: %,d원, 수수료: %,d원, 환불금액: %,d원)",
+                    response.put("message", String.format("환불 요청이 접수되었습니다. 관리자 승인 후 환불 처리됩니다.\n(원금: %,d원, 수수료: %,d원, 환불예정금액: %,d원)",
                             amount, fee, refundAmount));
                 } else {
-                    response.put("message", String.format("환불이 완료되었습니다. (환불금액: %,d원)", refundAmount));
+                    response.put("message", String.format("환불 요청이 접수되었습니다. 관리자 승인 후 환불 처리됩니다.\n(환불예정금액: %,d원)", refundAmount));
                 }
             } else {
                 response.put("success", false);
@@ -687,6 +702,245 @@ public class DonationApiController {
             logger.error("기부 환불 중 오류 발생", e);
             response.put("success", false);
             response.put("message", "환불 중 오류가 발생했습니다: " + e.getMessage());
+        } finally {
+            close(rs, pstmt, con);
+        }
+
+        return response;
+    }
+
+    /**
+     * 관리자 환불 승인 API
+     */
+    @PostMapping("/refund/approve")
+    public Map<String, Object> approveRefund(
+            @RequestParam("donationId") Long donationId,
+            HttpSession session) {
+
+        Map<String, Object> response = new HashMap<>();
+        Connection con = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try {
+            // 관리자 권한 체크
+            String role = (String) session.getAttribute("role");
+            if (!"ADMIN".equals(role)) {
+                response.put("success", false);
+                response.put("message", "관리자 권한이 필요합니다.");
+                return response;
+            }
+
+            logger.info("환불 승인 요청 - donationId: {}", donationId);
+
+            con = dataSource.getConnection();
+
+            // 기부 정보 조회
+            String selectSql = "SELECT * FROM donations WHERE donation_id = ?";
+            pstmt = con.prepareStatement(selectSql);
+            pstmt.setLong(1, donationId);
+            rs = pstmt.executeQuery();
+
+            if (!rs.next()) {
+                response.put("success", false);
+                response.put("message", "해당 기부 내역을 찾을 수 없습니다.");
+                return response;
+            }
+
+            Integer refundAmount = (Integer) rs.getObject("refund_amount");
+            Integer refundFee = (Integer) rs.getObject("refund_fee");
+            String paymentStatus = rs.getString("payment_status");
+
+            // 환불 요청이 없는 경우
+            if (refundAmount == null) {
+                response.put("success", false);
+                response.put("message", "환불 요청이 없는 기부입니다.");
+                return response;
+            }
+
+            // 이미 환불 완료된 경우
+            if ("REFUNDED".equals(paymentStatus)) {
+                response.put("success", false);
+                response.put("message", "이미 환불 완료된 기부입니다.");
+                return response;
+            }
+
+            close(rs, pstmt);
+
+            // 환불 승인: payment_status를 REFUNDED로 변경, refunded_at 설정
+            String updateSql = "UPDATE donations SET payment_status = 'REFUNDED', " +
+                    "refunded_at = NOW() WHERE donation_id = ?";
+            pstmt = con.prepareStatement(updateSql);
+            pstmt.setLong(1, donationId);
+
+            int updated = pstmt.executeUpdate();
+
+            if (updated > 0) {
+                logger.info("환불 승인 완료 - donationId: {}, 환불금액: {}", donationId, refundAmount);
+
+                response.put("success", true);
+                response.put("refundAmount", refundAmount);
+                response.put("refundFee", refundFee != null ? refundFee : 0);
+                response.put("message", "환불이 승인되었습니다.");
+            } else {
+                response.put("success", false);
+                response.put("message", "환불 승인에 실패했습니다.");
+            }
+
+        } catch (Exception e) {
+            logger.error("환불 승인 중 오류 발생", e);
+            response.put("success", false);
+            response.put("message", "환불 승인 중 오류가 발생했습니다: " + e.getMessage());
+        } finally {
+            close(rs, pstmt, con);
+        }
+
+        return response;
+    }
+
+    /**
+     * 관리자 환불 거부 API
+     */
+    @PostMapping("/refund/reject")
+    public Map<String, Object> rejectRefund(
+            @RequestParam("donationId") Long donationId,
+            @RequestParam(value = "reason", required = false) String reason,
+            HttpSession session) {
+
+        Map<String, Object> response = new HashMap<>();
+        Connection con = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try {
+            // 관리자 권한 체크
+            String role = (String) session.getAttribute("role");
+            if (!"ADMIN".equals(role)) {
+                response.put("success", false);
+                response.put("message", "관리자 권한이 필요합니다.");
+                return response;
+            }
+
+            logger.info("환불 거부 요청 - donationId: {}, 사유: {}", donationId, reason);
+
+            con = dataSource.getConnection();
+
+            // 기부 정보 조회
+            String selectSql = "SELECT * FROM donations WHERE donation_id = ?";
+            pstmt = con.prepareStatement(selectSql);
+            pstmt.setLong(1, donationId);
+            rs = pstmt.executeQuery();
+
+            if (!rs.next()) {
+                response.put("success", false);
+                response.put("message", "해당 기부 내역을 찾을 수 없습니다.");
+                return response;
+            }
+
+            Integer refundAmount = (Integer) rs.getObject("refund_amount");
+
+            // 환불 요청이 없는 경우
+            if (refundAmount == null) {
+                response.put("success", false);
+                response.put("message", "환불 요청이 없는 기부입니다.");
+                return response;
+            }
+
+            close(rs, pstmt);
+
+            // 환불 거부: refund_amount와 refund_fee를 NULL로 재설정
+            String updateSql = "UPDATE donations SET refund_amount = NULL, refund_fee = NULL " +
+                    "WHERE donation_id = ?";
+            pstmt = con.prepareStatement(updateSql);
+            pstmt.setLong(1, donationId);
+
+            int updated = pstmt.executeUpdate();
+
+            if (updated > 0) {
+                logger.info("환불 거부 완료 - donationId: {}", donationId);
+
+                response.put("success", true);
+                response.put("message", "환불 요청이 거부되었습니다.");
+            } else {
+                response.put("success", false);
+                response.put("message", "환불 거부에 실패했습니다.");
+            }
+
+        } catch (Exception e) {
+            logger.error("환불 거부 중 오류 발생", e);
+            response.put("success", false);
+            response.put("message", "환불 거부 중 오류가 발생했습니다: " + e.getMessage());
+        } finally {
+            close(rs, pstmt, con);
+        }
+
+        return response;
+    }
+
+    /**
+     * 환불 요청 목록 조회 (관리자용)
+     */
+    @GetMapping("/refund/pending")
+    public Map<String, Object> getPendingRefunds(HttpSession session) {
+
+        Map<String, Object> response = new HashMap<>();
+        Connection con = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try {
+            // 관리자 권한 체크
+            String role = (String) session.getAttribute("role");
+            if (!"ADMIN".equals(role)) {
+                response.put("success", false);
+                response.put("message", "관리자 권한이 필요합니다.");
+                return response;
+            }
+
+            con = dataSource.getConnection();
+
+            // 환불 요청 목록 조회 (refund_amount가 있고 refunded_at이 NULL인 경우)
+            String sql = "SELECT d.*, dc.category_name, m.name as member_name, m.email as member_email " +
+                    "FROM donations d " +
+                    "LEFT JOIN donation_categories dc ON d.category_id = dc.category_id " +
+                    "LEFT JOIN member m ON d.member_id = m.member_id " +
+                    "WHERE d.refund_amount IS NOT NULL AND d.refunded_at IS NULL " +
+                    "ORDER BY d.created_at DESC";
+
+            pstmt = con.prepareStatement(sql);
+            rs = pstmt.executeQuery();
+
+            List<Map<String, Object>> refundRequests = new ArrayList<>();
+
+            while (rs.next()) {
+                Map<String, Object> refund = new HashMap<>();
+                refund.put("donationId", rs.getLong("donation_id"));
+                refund.put("memberId", rs.getLong("member_id"));
+                refund.put("memberName", rs.getString("member_name"));
+                refund.put("memberEmail", rs.getString("member_email"));
+                refund.put("donorName", rs.getString("donor_name"));
+                refund.put("donorEmail", rs.getString("donor_email"));
+                refund.put("amount", rs.getBigDecimal("amount"));
+                refund.put("refundAmount", rs.getInt("refund_amount"));
+                refund.put("refundFee", rs.getInt("refund_fee"));
+                refund.put("categoryName", rs.getString("category_name"));
+                refund.put("packageName", rs.getString("package_name"));
+                refund.put("createdAt", rs.getTimestamp("created_at"));
+                refund.put("donationType", rs.getString("donation_type"));
+                refund.put("paymentMethod", rs.getString("payment_method"));
+
+                refundRequests.add(refund);
+            }
+
+            response.put("success", true);
+            response.put("data", refundRequests);
+            response.put("count", refundRequests.size());
+            logger.info("환불 요청 목록 조회 - 총 {}건", refundRequests.size());
+
+        } catch (Exception e) {
+            logger.error("환불 요청 목록 조회 중 오류 발생", e);
+            response.put("success", false);
+            response.put("message", "환불 요청 목록 조회 중 오류가 발생했습니다.");
         } finally {
             close(rs, pstmt, con);
         }

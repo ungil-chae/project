@@ -171,7 +171,7 @@ body {
       <h2>회원가입</h2>
       <form id="registerForm">
          <div class="input-group">
-            <label for="username">사용자 이름 (아이디)</label> <input type="text"
+            <label for="username">사용자 아이디</label> <input type="text"
                id="username" name="username" required>
          </div>
          <div class="input-group">
@@ -179,16 +179,11 @@ body {
                id="password" name="password" required>
          </div>
          <div class="input-group">
-            <label for="nickname">닉네임</label> <input type="text" id="nickname"
-               name="nickname" required>
-         </div>
-         <div class="input-group">
             <label for="email">이메일</label> <input type="email" id="email"
                name="email" required>
          </div>
          <div class="input-group">
             <label for="name">이름</label>
-            <%-- ✨ 이름 필드 추가 --%>
             <input type="text" id="name" name="name" required>
          </div>
          <div class="input-group">
@@ -268,7 +263,6 @@ body {
             // 폼 필드 값 가져오기
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            const nickname = document.getElementById('nickname').value;
             const email = document.getElementById('email').value;
             const name = document.getElementById('name').value;
             const gender = document.getElementById('gender').value;
@@ -283,7 +277,7 @@ body {
             errorMessageDiv.textContent = ''; // 이전 에러 메시지 초기화
 
             // 클라이언트 측 유효성 검사 (필수 항목 확인)
-            if (!username || !password || !nickname || !email || !name || !gender || !mbti || !selectedHobbies) {
+            if (!username || !password || !email || !name || !gender || !mbti || !selectedHobbies) {
                 errorMessageDiv.textContent = '모든 필수 정보를 입력해주세요.';
                 return;
             }
@@ -302,12 +296,12 @@ body {
                     body: JSON.stringify({
                         username: username,
                         password: password,
-                        nickname: nickname,
+                        nickname: name,      // 이름을 닉네임으로 사용
                         email: email,
                         gender: gender,
                         mbti: mbti,
-                        name: name,         
-                        hobbies: selectedHobbies 
+                        name: name,
+                        hobbies: selectedHobbies
                     })
                 });
 

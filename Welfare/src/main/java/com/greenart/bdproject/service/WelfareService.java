@@ -1,6 +1,7 @@
 package com.greenart.bdproject.service;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import javax.xml.parsers.*;
 import org.w3c.dom.*;
@@ -38,32 +39,47 @@ public class WelfareService {
     }
 
     /**
-     * 복지 혜택 매칭 (중앙 + 지자체)
+     * 복지 혜택 매칭 (중앙 + 지자체) - 병렬 처리로 API 동시 호출
      */
     public List<Map<String, Object>> matchWelfare(Map<String, String> user) {
         List<Map<String, Object>> allResults = new ArrayList<>();
-        
+
         try {
             System.out.println("WelfareService.matchWelfare 시작 - 사용자 데이터: " + user);
-            
+
             // API 파라미터로 변환
             Map<String, String> apiParams = convertUserToAPIParams(user);
             System.out.println("변환된 API 파라미터: " + apiParams);
-            
-            // 1. 중앙부처 복지 서비스 조회
-            logger.info("Fetching central government welfare services...");
-            List<Map<String, Object>> centralResults = getCentralWelfareServices(user, apiParams);
+
+            // 병렬 처리: 중앙부처 API와 지자체 API 동시 호출
+            logger.info("Fetching welfare services in parallel...");
+
+            // 1. 중앙부처 복지 서비스 비동기 조회
+            CompletableFuture<List<Map<String, Object>>> centralFuture = CompletableFuture.supplyAsync(() -> {
+                List<Map<String, Object>> results = getCentralWelfareServices(user, apiParams);
+                results.forEach(r -> r.put("source", "중앙부처"));
+                return results;
+            });
+
+            // 2. 지자체 복지 서비스 비동기 조회
+            CompletableFuture<List<Map<String, Object>>> localFuture = CompletableFuture.supplyAsync(() -> {
+                List<Map<String, Object>> results = getLocalWelfareServices(user, apiParams);
+                results.forEach(r -> r.put("source", "지자체"));
+                return results;
+            });
+
+            // API 호출 완료 대기 및 결과 합치기
+            CompletableFuture.allOf(centralFuture, localFuture).join();
+
+            List<Map<String, Object>> centralResults = centralFuture.get();
+            List<Map<String, Object>> localResults = localFuture.get();
+
             System.out.println("중앙부처 조회 결과 개수: " + centralResults.size());
-            centralResults.forEach(r -> r.put("source", "중앙부처"));
-            allResults.addAll(centralResults);
-            
-            // 2. 지자체 복지 서비스 조회
-            logger.info("Fetching local government welfare services...");
-            List<Map<String, Object>> localResults = getLocalWelfareServices(user, apiParams);
             System.out.println("지자체 조회 결과 개수: " + localResults.size());
-            localResults.forEach(r -> r.put("source", "지자체"));
+
+            allResults.addAll(centralResults);
             allResults.addAll(localResults);
-            
+
             // 3. 점수 기준 정렬 (높은 순서대로)
             return allResults.stream()
                 .sorted((a, b) -> {
@@ -77,7 +93,7 @@ public class WelfareService {
                     return scoreCompare;
                 })
                 .collect(Collectors.toList());
-                
+
         } catch (Exception e) {
             logger.error("Error in matchWelfare: ", e);
             return allResults;
@@ -351,10 +367,10 @@ public class WelfareService {
         return params;
     }
     
-    /**
-     * 매칭 점수 계산
-     */
-    private Map<String, Object> calculateMatchScore(Map<String, String> service, 
+    	/**
+        * 매칭 점수 계산
+        */
+        private Map<String, Object> calculateMatchScore(Map<String, String> service, 
                                                     Map<String, String> user,
                                                     Map<String, String> apiParams,
                                                     String source) {
@@ -465,7 +481,7 @@ public class WelfareService {
             LocalDate birth = LocalDate.parse(birthdate);
             return Period.between(birth, LocalDate.now()).getYears();
         } catch (Exception e) {
-            logger.error("Error calculating age from birthdate: " + birthdate, e);
+            logger.error("Error calculatiSg age from birthdate: " + birthdate, e);
             return 30;  // 기본값
         }
     }
@@ -734,5 +750,75 @@ public class WelfareService {
             logger.error("SSL 설정 실패, 기본 RestTemplate 사용", e);
             return new RestTemplate();
         }
+    }
+
+    /**
+     * 성능 벤치마크: 순차 호출 vs 병렬 호출 비교
+     * @param user 사용자 정보
+     * @return 벤치마크 결과 (순차/병렬 시간, 단축률)
+     */
+    public Map<String, Object> benchmarkApiCalls(Map<String, String> user) {
+        Map<String, Object> result = new HashMap<>();
+        Map<String, String> apiParams = convertUserToAPIParams(user);
+
+        // ========== 1. 순차 호출 테스트 ==========
+        long sequentialStart = System.currentTimeMillis();
+
+        // 중앙부처 API 먼저 호출
+        List<Map<String, Object>> centralResultsSeq = getCentralWelfareServices(user, apiParams);
+        long centralTime = System.currentTimeMillis() - sequentialStart;
+
+        // 그 다음 지자체 API 호출
+        long localStart = System.currentTimeMillis();
+        List<Map<String, Object>> localResultsSeq = getLocalWelfareServices(user, apiParams);
+        long localTime = System.currentTimeMillis() - localStart;
+
+        long sequentialTotal = System.currentTimeMillis() - sequentialStart;
+
+        // ========== 2. 병렬 호출 테스트 ==========
+        long parallelStart = System.currentTimeMillis();
+
+        CompletableFuture<List<Map<String, Object>>> centralFuture =
+            CompletableFuture.supplyAsync(() -> getCentralWelfareServices(user, apiParams));
+
+        CompletableFuture<List<Map<String, Object>>> localFuture =
+            CompletableFuture.supplyAsync(() -> getLocalWelfareServices(user, apiParams));
+
+        CompletableFuture.allOf(centralFuture, localFuture).join();
+
+        long parallelTotal = System.currentTimeMillis() - parallelStart;
+
+        // ========== 3. 결과 계산 ==========
+        double reductionPercent = ((double)(sequentialTotal - parallelTotal) / sequentialTotal) * 100;
+
+        result.put("sequential", Map.of(
+            "centralApiTime", centralTime + "ms",
+            "localApiTime", localTime + "ms",
+            "totalTime", sequentialTotal + "ms"
+        ));
+
+        result.put("parallel", Map.of(
+            "totalTime", parallelTotal + "ms"
+        ));
+
+        result.put("comparison", Map.of(
+            "timeSaved", (sequentialTotal - parallelTotal) + "ms",
+            "reductionPercent", String.format("%.1f%%", reductionPercent),
+            "speedup", String.format("%.2fx", (double)sequentialTotal / parallelTotal)
+        ));
+
+        result.put("dataCount", Map.of(
+            "central", centralResultsSeq.size(),
+            "local", localResultsSeq.size(),
+            "total", centralResultsSeq.size() + localResultsSeq.size()
+        ));
+
+        System.out.println("========== API 성능 벤치마크 결과 ==========");
+        System.out.println("순차 호출: " + sequentialTotal + "ms (중앙: " + centralTime + "ms, 지자체: " + localTime + "ms)");
+        System.out.println("병렬 호출: " + parallelTotal + "ms");
+        System.out.println("시간 단축: " + (sequentialTotal - parallelTotal) + "ms (" + String.format("%.1f%%", reductionPercent) + " 감소)");
+        System.out.println("============================================");
+
+        return result;
     }
 }

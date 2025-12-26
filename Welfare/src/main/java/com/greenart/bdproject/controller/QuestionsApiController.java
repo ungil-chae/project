@@ -67,10 +67,10 @@ public class QuestionsApiController {
             con = dataSource.getConnection();
 
             StringBuilder sql = new StringBuilder(
-                    "SELECT question_id, user_id, user_name, user_email, category, " +
-                    "title, content, answer, answered_by, answered_at, status, views, " +
+                    "SELECT qna_id, user_id, user_name, user_email, category, " +
+                    "title, content, answer, ans_by, ans_at, status, views, " +
                     "created_at, updated_at " +
-                    "FROM user_questions WHERE 1=1");
+                    "FROM user_qna WHERE 1=1");
 
             if (status != null && !status.isEmpty()) {
                 sql.append(" AND status = ?");
@@ -95,7 +95,7 @@ public class QuestionsApiController {
             List<Map<String, Object>> questions = new ArrayList<>();
             while (rs.next()) {
                 Map<String, Object> question = new HashMap<>();
-                question.put("questionId", rs.getLong("question_id"));
+                question.put("questionId", rs.getLong("qna_id"));
                 question.put("userId", rs.getString("user_id"));
                 question.put("userName", rs.getString("user_name"));
                 question.put("userEmail", rs.getString("user_email"));
@@ -103,8 +103,8 @@ public class QuestionsApiController {
                 question.put("title", rs.getString("title"));
                 question.put("content", rs.getString("content"));
                 question.put("answer", rs.getString("answer"));
-                question.put("answeredBy", rs.getString("answered_by"));
-                question.put("answeredAt", rs.getTimestamp("answered_at"));
+                question.put("answeredBy", rs.getString("ans_by"));
+                question.put("answeredAt", rs.getTimestamp("ans_at"));
                 question.put("status", rs.getString("status"));
                 question.put("views", rs.getInt("views"));
                 question.put("createdAt", rs.getTimestamp("created_at"));
@@ -154,8 +154,8 @@ public class QuestionsApiController {
 
             con = dataSource.getConnection();
 
-            String sql = "SELECT question_id, title, content, status, created_at, answered_at " +
-                    "FROM user_questions " +
+            String sql = "SELECT qna_id, title, content, status, created_at, ans_at " +
+                    "FROM user_qna " +
                     "WHERE user_id = ? " +
                     "ORDER BY created_at DESC";
 
@@ -166,12 +166,12 @@ public class QuestionsApiController {
             List<Map<String, Object>> questions = new ArrayList<>();
             while (rs.next()) {
                 Map<String, Object> question = new HashMap<>();
-                question.put("questionId", rs.getLong("question_id"));
+                question.put("questionId", rs.getLong("qna_id"));
                 question.put("title", rs.getString("title"));
                 question.put("content", rs.getString("content"));
                 question.put("status", rs.getString("status"));
                 question.put("createdAt", rs.getTimestamp("created_at"));
-                question.put("answeredAt", rs.getTimestamp("answered_at"));
+                question.put("answeredAt", rs.getTimestamp("ans_at"));
                 questions.add(question);
             }
 
@@ -207,16 +207,16 @@ public class QuestionsApiController {
             con = dataSource.getConnection();
 
             // 조회수 증가
-            String updateSql = "UPDATE user_questions SET views = views + 1 WHERE question_id = ?";
+            String updateSql = "UPDATE user_qna SET views = views + 1 WHERE qna_id = ?";
             updatePstmt = con.prepareStatement(updateSql);
             updatePstmt.setLong(1, id);
             updatePstmt.executeUpdate();
 
             // 질문 조회
-            String sql = "SELECT question_id, user_id, user_name, user_email, category, " +
-                    "title, content, answer, answered_by, answered_at, status, views, " +
+            String sql = "SELECT qna_id, user_id, user_name, user_email, category, " +
+                    "title, content, answer, ans_by, ans_at, status, views, " +
                     "created_at, updated_at " +
-                    "FROM user_questions WHERE question_id = ?";
+                    "FROM user_qna WHERE qna_id = ?";
 
             pstmt = con.prepareStatement(sql);
             pstmt.setLong(1, id);
@@ -224,7 +224,7 @@ public class QuestionsApiController {
 
             if (rs.next()) {
                 Map<String, Object> question = new HashMap<>();
-                question.put("questionId", rs.getLong("question_id"));
+                question.put("questionId", rs.getLong("qna_id"));
                 question.put("userId", rs.getString("user_id"));
                 question.put("userName", rs.getString("user_name"));
                 question.put("userEmail", rs.getString("user_email"));
@@ -232,8 +232,8 @@ public class QuestionsApiController {
                 question.put("title", rs.getString("title"));
                 question.put("content", rs.getString("content"));
                 question.put("answer", rs.getString("answer"));
-                question.put("answeredBy", rs.getString("answered_by"));
-                question.put("answeredAt", rs.getTimestamp("answered_at"));
+                question.put("answeredBy", rs.getString("ans_by"));
+                question.put("answeredAt", rs.getTimestamp("ans_at"));
                 question.put("status", rs.getString("status"));
                 question.put("views", rs.getInt("views"));
                 question.put("createdAt", rs.getTimestamp("created_at"));
@@ -288,9 +288,9 @@ public class QuestionsApiController {
 
             con = dataSource.getConnection();
 
-            String sql = "INSERT INTO user_questions " +
+            String sql = "INSERT INTO user_qna " +
                     "(user_id, user_name, user_email, category, title, content, status) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, 'pending')";
+                    "VALUES (?, ?, ?, ?, ?, ?, 'PENDING')";
 
             pstmt = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             pstmt.setString(1, userId);
@@ -344,11 +344,11 @@ public class QuestionsApiController {
         try {
             con = dataSource.getConnection();
 
-            String sql = "SELECT question_id, user_id, user_name, user_email, category, " +
-                    "title, content, answer, answered_by, answered_at, status, views, " +
+            String sql = "SELECT qna_id, user_id, user_name, user_email, category, " +
+                    "title, content, answer, ans_by, ans_at, status, views, " +
                     "created_at, updated_at " +
-                    "FROM user_questions " +
-                    "WHERE question_id = ? AND user_email = ?";
+                    "FROM user_qna " +
+                    "WHERE qna_id = ? AND user_email = ?";
 
             pstmt = con.prepareStatement(sql);
             pstmt.setLong(1, questionId);
@@ -357,7 +357,7 @@ public class QuestionsApiController {
 
             if (rs.next()) {
                 Map<String, Object> question = new HashMap<>();
-                question.put("questionId", rs.getLong("question_id"));
+                question.put("questionId", rs.getLong("qna_id"));
                 question.put("userId", rs.getString("user_id"));
                 question.put("userName", rs.getString("user_name"));
                 question.put("userEmail", rs.getString("user_email"));
@@ -365,8 +365,8 @@ public class QuestionsApiController {
                 question.put("title", rs.getString("title"));
                 question.put("content", rs.getString("content"));
                 question.put("answer", rs.getString("answer"));
-                question.put("answeredBy", rs.getString("answered_by"));
-                question.put("answeredAt", rs.getTimestamp("answered_at"));
+                question.put("answeredBy", rs.getString("ans_by"));
+                question.put("answeredAt", rs.getTimestamp("ans_at"));
                 question.put("status", rs.getString("status"));
                 question.put("views", rs.getInt("views"));
                 question.put("createdAt", rs.getTimestamp("created_at"));
@@ -451,12 +451,12 @@ public class QuestionsApiController {
             con = dataSource.getConnection();
             logger.info("데이터베이스 연결 성공");
 
-            String sql = "UPDATE user_questions SET " +
+            String sql = "UPDATE user_qna SET " +
                     "answer = ?, " +
-                    "answered_by = ?, " +
-                    "answered_at = NOW(), " +
-                    "status = 'answered' " +
-                    "WHERE question_id = ?";
+                    "ans_by = ?, " +
+                    "ans_at = NOW(), " +
+                    "status = 'ANSWERED' " +
+                    "WHERE qna_id = ?";
 
             logger.info("SQL 실행: {}", sql);
             pstmt = con.prepareStatement(sql);
@@ -470,7 +470,7 @@ public class QuestionsApiController {
             if (result > 0) {
                 // 질문 정보 조회하여 알림 생성
                 try {
-                    String selectSql = "SELECT user_id, title FROM user_questions WHERE question_id = ?";
+                    String selectSql = "SELECT user_id, title FROM user_qna WHERE qna_id = ?";
                     PreparedStatement selectPstmt = con.prepareStatement(selectSql);
                     selectPstmt.setLong(1, id);
                     ResultSet selectRs = selectPstmt.executeQuery();

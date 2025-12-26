@@ -480,38 +480,6 @@
                 </div>
             </div>
 
-            <!-- 개인정보 저장 동의 섹션 -->
-            <div id="consent-section" class="consent-section" style="background: white; border-radius: 15px; padding: 30px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                <h3 style="margin-bottom: 20px; font-size: 18px; font-weight: 600;">개인 정보를 저장하여 더 나은 맞춤형 서비스를 받아보세요 (선택)</h3>
-                <div style="margin-bottom: 20px;">
-                    <label style="display: flex; align-items: center; margin-bottom: 10px; cursor: pointer;">
-                        <input type="radio" name="saveConsent" value="yes" checked style="margin-right: 10px;">
-                        <span>예</span>
-                    </label>
-                    <label style="display: flex; align-items: center; cursor: pointer;">
-                        <input type="radio" name="saveConsent" value="no" style="margin-right: 10px;">
-                        <span>아니오</span>
-                    </label>
-                </div>
-                <div id="consent-checkboxes" style="margin-bottom: 20px;">
-                    <label style="display: flex; align-items: center; margin-bottom: 10px; cursor: pointer;">
-                        <input type="checkbox" id="consentAll" style="margin-right: 10px;">
-                        <strong>개인정보 수집 및 이용에 모두 동의합니다.</strong>
-                    </label>
-                    <label style="display: flex; align-items: center; margin-bottom: 8px; cursor: pointer; margin-left: 20px; font-size: 14px;">
-                        <input type="checkbox" class="consent-item" style="margin-right: 10px;">
-                        <span>개인정보 수집 및 이용 동의 <a href="#" style="color: #0061ff;">상세보기</a></span>
-                    </label>
-                    <label style="display: flex; align-items: center; cursor: pointer; margin-left: 20px; font-size: 14px;">
-                        <input type="checkbox" class="consent-item" style="margin-right: 10px;">
-                        <span>제3자 제공 동의 <a href="#" style="color: #0061ff;">상세보기</a></span>
-                    </label>
-                </div>
-                <button id="saveDiagnosisBtn" class="btn btn-primary" style="background: linear-gradient(135deg, #0061ff 0%, #0052d4 100%); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-size: 16px; font-weight: 600; cursor: pointer; transition: transform 0.2s;">
-                    진단 결과 저장하기
-                </button>
-            </div>
-
             <div class="results-grid" id="welfare-grid">
                 <!-- 복지 혜택 카드들이 여기에 동적으로 추가됩니다 -->
             </div>
@@ -610,14 +578,22 @@ function fallbackToApiCall() {
     })
     .then(response => {
         if (!response.ok) {
-            throw new Error('서버 응답 오류');
+            // HTTP 상태 코드별 에러 페이지 리다이렉트
+            if (response.status === 404) {
+                window.location.href = '/bdproject/error/error404.jsp';
+            } else if (response.status === 405) {
+                window.location.href = '/bdproject/error/error405.jsp';
+            } else {
+                window.location.href = '/bdproject/error/error500.jsp';
+            }
+            throw new Error('서버 응답 오류: ' + response.status);
         }
         return response.json();
     })
     .then(data => {
         updateProgress(90, '매칭 결과 처리 중...');
         matchedServices = data;
-        
+
         setTimeout(function() {
             updateProgress(100, '분석 완료!');
             displayComprehensiveResults(matchedServices);
@@ -625,7 +601,10 @@ function fallbackToApiCall() {
     })
     .catch(error => {
         console.error('복지 매칭 오류:', error);
-        showError('서버 연결에 실패했습니다. 네트워크 상태를 확인하고 다시 시도해주세요.');
+        // 네트워크 오류 등 기타 오류 시 500 에러 페이지로
+        if (!error.message.includes('서버 응답 오류')) {
+            window.location.href = '/bdproject/error/error500.jsp';
+        }
     });
 }
 
@@ -977,100 +956,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // 진단 결과 저장 버튼
-    var saveDiagnosisBtn = document.getElementById('saveDiagnosisBtn');
-    if (saveDiagnosisBtn) {
-        saveDiagnosisBtn.addEventListener('click', saveDiagnosisResult);
-    }
 });
 
-// 진단 결과 저장 함수
-var welfareResults = []; // 전역 변수로 결과 저장
-
-function saveDiagnosisResult() {
-    // "예" 선택 확인
-    var saveYes = document.querySelector('input[name="saveConsent"][value="yes"]');
-    if (!saveYes || !saveYes.checked) {
-        alert('개인정보 저장에 동의하셔야 합니다.');
-        return;
-    }
-
-    // 동의 항목 확인
-    var consentItems = document.querySelectorAll('.consent-item');
-    var allConsented = Array.from(consentItems).every(function(cb) { return cb.checked; });
-    if (!allConsented) {
-        alert('개인정보 수집 및 이용 동의 항목을 모두 체크해주세요.');
-        return;
-    }
-
-    // 로그인 확인
-    <%
-    String userId = (String) session.getAttribute("id");
-    if (userId == null) userId = (String) session.getAttribute("userId");
-    %>
-    var isLoggedIn = <%= userId != null ? "true" : "false" %>;
-    if (!isLoggedIn) {
-        alert('로그인이 필요한 서비스입니다.');
-        window.location.href = '/bdproject/projectLogin.jsp';
-        return;
-    }
-
-    // 매칭된 복지 서비스 JSON 생성 (score를 matchScore로 변환)
-    var servicesForSave = welfareResults.slice(0, 10).map(function(service) {
-        var serviceData = Object.assign({}, service);
-        serviceData.matchScore = service.score; // score를 matchScore로 변환
-        return serviceData;
-    });
-    var matchedServicesJson = JSON.stringify(servicesForSave);
-
-    // 진단 데이터 전송
-    var formData = new URLSearchParams();
-    formData.append('birthdate', userData.birthdate);
-    formData.append('gender', userData.gender);
-    formData.append('household_size', userData.household_size);
-    formData.append('income', userData.income);
-    formData.append('marital_status', userData.marital_status);
-    formData.append('children_count', userData.children_count);
-    formData.append('employment_status', userData.employment_status);
-    formData.append('sido', userData.sido);
-    formData.append('sigungu', userData.sigungu);
-    formData.append('isPregnant', userData.isPregnant);
-    formData.append('isDisabled', userData.isDisabled);
-    formData.append('isMulticultural', userData.isMulticultural);
-    formData.append('isVeteran', userData.isVeteran);
-    formData.append('isSingleParent', userData.isSingleParent);
-    formData.append('matchedServices', matchedServicesJson);
-    formData.append('saveConsent', true);
-
-    var btn = document.getElementById('saveDiagnosisBtn');
-    btn.disabled = true;
-    btn.textContent = '저장 중...';
-
-    fetch('/bdproject/api/welfare/diagnosis/save', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: formData.toString()
-    })
-    .then(function(response) { return response.json(); })
-    .then(function(data) {
-        if (data.success) {
-            alert('진단 결과가 성공적으로 저장되었습니다!');
-            document.getElementById('consent-section').style.display = 'none';
-        } else {
-            alert(data.message || '저장에 실패했습니다.');
-            btn.disabled = false;
-            btn.textContent = '진단 결과 저장하기';
-        }
-    })
-    .catch(function(error) {
-        console.error('진단 저장 오류:', error);
-        alert('저장 중 오류가 발생했습니다.');
-        btn.disabled = false;
-        btn.textContent = '진단 결과 저장하기';
-    });
-}
+// 전역 변수로 결과 저장
+var welfareResults = [];
 
 // 오류 표시
 function showError(message) {

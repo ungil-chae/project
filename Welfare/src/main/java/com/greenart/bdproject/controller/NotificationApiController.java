@@ -296,6 +296,56 @@ public class NotificationApiController {
     }
 
     /**
+     * 일반 알림 생성
+     * @PostMapping("/api/notifications/create")
+     */
+    @PostMapping("/create")
+    public Map<String, Object> createNotification(@RequestBody Map<String, Object> requestData, HttpSession session) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            String userId = (String) session.getAttribute("id");
+
+            if (userId == null || userId.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "로그인이 필요합니다.");
+                return response;
+            }
+
+            String type = (String) requestData.get("type");
+            String title = (String) requestData.get("title");
+            String message = (String) requestData.get("message");
+            String relatedUrl = (String) requestData.get("related_url");
+
+            Notification notification = new Notification();
+            notification.setUserId(userId);
+            notification.setType(type);
+            notification.setTitle(title);
+            notification.setContent(message);
+            notification.setRelatedUrl(relatedUrl != null ? relatedUrl : "/bdproject/project_mypage.jsp");
+
+            Long notificationId = notificationService.createNotification(notification);
+
+            if (notificationId != null) {
+                response.put("success", true);
+                response.put("message", "알림이 생성되었습니다.");
+                response.put("notificationId", notificationId);
+                logger.info("알림 생성 성공 - userId: {}, type: {}, title: {}", new Object[]{userId, type, title});
+            } else {
+                response.put("success", false);
+                response.put("message", "알림 생성에 실패했습니다.");
+            }
+
+        } catch (Exception e) {
+            logger.error("알림 생성 중 오류", e);
+            response.put("success", false);
+            response.put("message", "알림 생성 중 오류가 발생했습니다: " + e.getMessage());
+        }
+
+        return response;
+    }
+
+    /**
      * 캘린더 일정 알림 생성
      * @PostMapping("/api/notifications/create-calendar")
      */

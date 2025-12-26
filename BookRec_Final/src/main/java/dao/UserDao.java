@@ -72,8 +72,8 @@ public class UserDao {
      * @throws SQLException 데이터베이스 작업 중 오류 발생 시
      */
     public User findByUsername(String username) throws SQLException {
-        // 'name', 'hobbies', 'status', 'deleted_at' 컬럼 추가하여 조회
-        String sql = "SELECT user_id, username, password, nickname, email, gender, mbti, name, hobbies, reg_date, last_login_date, status, deleted_at FROM Users WHERE username = ?";
+        // 'name', 'hobbies', 'status', 'deleted_at', 'profile_image' 컬럼 추가하여 조회
+        String sql = "SELECT user_id, username, password, nickname, email, gender, mbti, name, hobbies, reg_date, last_login_date, status, deleted_at, profile_image FROM Users WHERE username = ?";
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
@@ -100,6 +100,7 @@ public class UserDao {
                 user.setLastLoginDate(rs.getTimestamp("last_login_date") != null ? rs.getTimestamp("last_login_date").toLocalDateTime() : null);
                 user.setStatus(rs.getString("status"));
                 user.setDeletedAt(rs.getTimestamp("deleted_at") != null ? rs.getTimestamp("deleted_at").toLocalDateTime() : null); // ✨ deleted_at 필드 매핑
+                user.setProfileImage(rs.getString("profile_image")); // 프로필 이미지 매핑
             }
             return user;
         } finally {
@@ -231,8 +232,8 @@ public class UserDao {
      * @throws SQLException 데이터베이스 작업 중 오류 발생 시
      */
     public User findByUserId(int userId) throws SQLException {
-        // 'name', 'hobbies', 'status', 'deleted_at' 컬럼 추가하여 조회
-        String sql = "SELECT user_id, username, password, nickname, email, gender, mbti, name, hobbies, reg_date, last_login_date, status, deleted_at FROM Users WHERE user_id = ?";
+        // 'name', 'hobbies', 'status', 'deleted_at', 'profile_image' 컬럼 추가하여 조회
+        String sql = "SELECT user_id, username, password, nickname, email, gender, mbti, name, hobbies, reg_date, last_login_date, status, deleted_at, profile_image FROM Users WHERE user_id = ?";
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
@@ -259,6 +260,7 @@ public class UserDao {
                 user.setLastLoginDate(rs.getTimestamp("last_login_date") != null ? rs.getTimestamp("last_login_date").toLocalDateTime() : null);
                 user.setStatus(rs.getString("status"));
                 user.setDeletedAt(rs.getTimestamp("deleted_at") != null ? rs.getTimestamp("deleted_at").toLocalDateTime() : null); // ✨ deleted_at 필드 매핑
+                user.setProfileImage(rs.getString("profile_image")); // 프로필 이미지 매핑
             }
             return user;
         } finally {
@@ -356,6 +358,56 @@ public class UserDao {
             }
             
             pstmt.setInt(3, userId);
+            int affectedRows = pstmt.executeUpdate();
+            return affectedRows > 0;
+        } finally {
+            DBUtil.close(pstmt);
+            DBUtil.close(conn);
+        }
+    }
+
+    /**
+     * 사용자를 완전히 삭제합니다. (Hard Delete)
+     *
+     * @param userId 삭제할 사용자 ID
+     * @return 성공 시 true, 실패 시 false
+     * @throws SQLException 데이터베이스 오류 발생 시
+     */
+    public boolean deleteUser(int userId) throws SQLException {
+        String sql = "DELETE FROM Users WHERE user_id = ?";
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+
+        try {
+            conn = DBUtil.getConnection();
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, userId);
+            int affectedRows = pstmt.executeUpdate();
+            return affectedRows > 0;
+        } finally {
+            DBUtil.close(pstmt);
+            DBUtil.close(conn);
+        }
+    }
+
+    /**
+     * 사용자의 프로필 이미지를 업데이트합니다.
+     *
+     * @param userId 사용자 ID
+     * @param profileImagePath 프로필 이미지 경로
+     * @return 성공 시 true, 실패 시 false
+     * @throws SQLException 데이터베이스 오류 발생 시
+     */
+    public boolean updateProfileImage(int userId, String profileImagePath) throws SQLException {
+        String sql = "UPDATE Users SET profile_image = ? WHERE user_id = ?";
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+
+        try {
+            conn = DBUtil.getConnection();
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, profileImagePath);
+            pstmt.setInt(2, userId);
             int affectedRows = pstmt.executeUpdate();
             return affectedRows > 0;
         } finally {

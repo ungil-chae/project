@@ -51,6 +51,11 @@ int updateKindnessTemperature(String userId, BigDecimal temperature) throws Exce
 int increaseKindnessTemperature(String userId, BigDecimal amount) throws Exception;
 
 /**
+ * 선행 온도 감소 (상대값, 최소 0.00 보장)
+ */
+int decreaseKindnessTemperature(String userId, BigDecimal amount) throws Exception;
+
+/**
  * 이름과 이메일로 회원 찾기 (아이디 찾기)
  */
 Member findByNameAndEmail(String name, String email) throws Exception;
