@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.greenart.bdproject.mapper.NoticeMapper">
+
+    <!-- resultMap: NoticeResult → NoticeDto (adminName은 users 테이블 조인) -->
+    <resultMap id="NoticeResult" type="com.greenart.bdproject.dto.NoticeDto">
+        <id property="noticeId" column="notice_id"/>
+        <result property="adminId" column="admin_id"/>
+        <result property="adminName" column="admin_name"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="views" column="views"/>
+        <result property="isPinned" column="is_pinned"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- insert: INSERT INTO notices -->
+    <insert id="insert" parameterType="com.greenart.bdproject.dto.NoticeDto" useGeneratedKeys="true" keyProperty="noticeId">
+        INSERT INTO notices (admin_id, title, content, views, is_pinned, created_at, updated_at)
+        VALUES (#{adminId}, #{title}, #{content}, 0, #{isPinned}, NOW(), NOW())
+    </insert>
+
+    <!-- selectById: SELECT n.*, m.name as admin_name FROM notices n LEFT JOIN member m ON n.admin_id = m.id WHERE n.notice_id = #{noticeId} -->
+    <select id="selectById" parameterType="int" resultMap="NoticeResult">
+        SELECT n.notice_id, n.admin_id, n.title, n.content, n.views, n.is_pinned, n.created_at, n.updated_at,
+               m.name as admin_name
+        FROM notices n
+        LEFT JOIN member m ON n.admin_id = m.id
+        WHERE n.notice_id = #{noticeId}
+    </select>
+
+    <!-- selectAll: SELECT n.*, m.name as admin_name FROM notices n LEFT JOIN member m ON n.admin_id = m.id ORDER BY is_pinned DESC, created_at DESC -->
+    <select id="selectAll" resultMap="NoticeResult">
+        SELECT n.notice_id, n.admin_id, n.title, n.content, n.views, n.is_pinned, n.created_at, n.updated_at,
+               m.name as admin_name
+        FROM notices n
+        LEFT JOIN member m ON n.admin_id = m.id
+        ORDER BY n.is_pinned DESC, n.created_at DESC
+    </select>
+
+    <!-- selectPinned: SELECT n.*, m.name as admin_name FROM notices n LEFT JOIN member m ON n.admin_id = m.id WHERE is_pinned = TRUE ORDER BY created_at DESC -->
+    <select id="selectPinned" resultMap="NoticeResult">
+        SELECT n.notice_id, n.admin_id, n.title, n.content, n.views, n.is_pinned, n.created_at, n.updated_at,
+               m.name as admin_name
+        FROM notices n
+        LEFT JOIN member m ON n.admin_id = m.id
+        WHERE n.is_pinned = TRUE
+        ORDER BY n.created_at DESC
+    </select>
+
+    <!-- update: UPDATE notices -->
+    <update id="update" parameterType="com.greenart.bdproject.dto.NoticeDto">
+        UPDATE notices
+        SET title = #{title},
+            content = #{content},
+            is_pinned = #{isPinned},
+            updated_at = NOW()
+        WHERE notice_id = #{noticeId}
+    </update>
+
+    <!-- deleteById: DELETE FROM notices WHERE notice_id = #{noticeId} -->
+    <delete id="deleteById" parameterType="int">
+        DELETE FROM notices
+        WHERE notice_id = #{noticeId}
+    </delete>
+
+    <!-- incrementViews: UPDATE notices SET views = views + 1 WHERE notice_id = #{noticeId} -->
+    <update id="incrementViews" parameterType="int">
+        UPDATE notices
+        SET views = views + 1
+        WHERE notice_id = #{noticeId}
+    </update>
+
+</mapper>

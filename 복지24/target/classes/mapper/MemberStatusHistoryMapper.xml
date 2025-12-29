@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.greenart.bdproject.mapper.MemberStatusHistoryMapper">
+
+    <!-- ResultMap 정의 -->
+    <resultMap id="MemberStatusHistoryResultMap" type="com.greenart.bdproject.dto.MemberStatusHistoryDto">
+        <id property="historyId" column="history_id"/>
+        <result property="memberId" column="member_id"/>
+        <result property="adminId" column="admin_id"/>
+        <result property="oldStatus" column="old_status"/>
+        <result property="newStatus" column="new_status"/>
+        <result property="reason" column="reason"/>
+        <result property="ipAddress" column="ip_address"/>
+        <result property="createdAt" column="created_at"/>
+        <!-- JOIN으로 가져온 추가 정보 -->
+        <result property="memberEmail" column="member_email"/>
+        <result property="memberName" column="member_name"/>
+        <result property="adminEmail" column="admin_email"/>
+        <result property="adminName" column="admin_name"/>
+    </resultMap>
+
+    <!-- 회원 상태 변경 이력 저장 -->
+    <insert id="insertHistory" parameterType="com.greenart.bdproject.dto.MemberStatusHistoryDto"
+            useGeneratedKeys="true" keyProperty="historyId">
+        INSERT INTO member_status_history (
+            member_id,
+            admin_id,
+            old_status,
+            new_status,
+            reason,
+            ip_address,
+            created_at
+        ) VALUES (
+            #{memberId},
+            #{adminId},
+            #{oldStatus},
+            #{newStatus},
+            #{reason},
+            #{ipAddress},
+            CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <!-- 전체 회원 상태 변경 이력 조회 (최신순) -->
+    <select id="selectAllHistory" resultMap="MemberStatusHistoryResultMap">
+        SELECT
+            h.history_id,
+            h.member_id,
+            h.admin_id,
+            h.old_status,
+            h.new_status,
+            h.reason,
+            h.ip_address,
+            h.created_at,
+            m.email AS member_email,
+            m.name AS member_name,
+            a.email AS admin_email,
+            a.name AS admin_name
+        FROM member_status_history h
+        INNER JOIN member m ON h.member_id = m.member_id
+        LEFT JOIN member a ON h.admin_id = a.member_id
+        ORDER BY h.created_at DESC, h.history_id DESC
+    </select>
+
+    <!-- 특정 회원의 상태 변경 이력 조회 -->
+    <select id="selectHistoryByMemberId" parameterType="long" resultMap="MemberStatusHistoryResultMap">
+        SELECT
+            h.history_id,
+            h.member_id,
+            h.admin_id,
+            h.old_status,
+            h.new_status,
+            h.reason,
+            h.ip_address,
+            h.created_at,
+            m.email AS member_email,
+            m.name AS member_name,
+            a.email AS admin_email,
+            a.name AS admin_name
+        FROM member_status_history h
+        INNER JOIN member m ON h.member_id = m.member_id
+        LEFT JOIN member a ON h.admin_id = a.member_id
+        WHERE h.member_id = #{memberId}
+        ORDER BY h.created_at DESC, h.history_id DESC
+    </select>
+
+    <!-- 특정 관리자가 처리한 상태 변경 이력 조회 -->
+    <select id="selectHistoryByAdminId" parameterType="long" resultMap="MemberStatusHistoryResultMap">
+        SELECT
+            h.history_id,
+            h.member_id,
+            h.admin_id,
+            h.old_status,
+            h.new_status,
+            h.reason,
+            h.ip_address,
+            h.created_at,
+            m.email AS member_email,
+            m.name AS member_name,
+            a.email AS admin_email,
+            a.name AS admin_name
+        FROM member_status_history h
+        INNER JOIN member m ON h.member_id = m.member_id
+        LEFT JOIN member a ON h.admin_id = a.member_id
+        WHERE h.admin_id = #{adminId}
+        ORDER BY h.created_at DESC, h.history_id DESC
+    </select>
+
+    <!-- 특정 기간의 상태 변경 이력 조회 -->
+    <select id="selectHistoryByDateRange" parameterType="map" resultMap="MemberStatusHistoryResultMap">
+        SELECT
+            h.history_id,
+            h.member_id,
+            h.admin_id,
+            h.old_status,
+            h.new_status,
+            h.reason,
+            h.ip_address,
+            h.created_at,
+            m.email AS member_email,
+            m.name AS member_name,
+            a.email AS admin_email,
+            a.name AS admin_name
+        FROM member_status_history h
+        INNER JOIN member m ON h.member_id = m.member_id
+        LEFT JOIN member a ON h.admin_id = a.member_id
+        WHERE DATE(h.created_at) BETWEEN #{startDate} AND #{endDate}
+        ORDER BY h.created_at DESC, h.history_id DESC
+    </select>
+
+    <!-- 이메일로 회원 상태 변경 이력 검색 -->
+    <select id="selectHistoryByEmail" parameterType="string" resultMap="MemberStatusHistoryResultMap">
+        SELECT
+            h.history_id,
+            h.member_id,
+            h.admin_id,
+            h.old_status,
+            h.new_status,
+            h.reason,
+            h.ip_address,
+            h.created_at,
+            m.email AS member_email,
+            m.name AS member_name,
+            a.email AS admin_email,
+            a.name AS admin_name
+        FROM member_status_history h
+        INNER JOIN member m ON h.member_id = m.member_id
+        LEFT JOIN member a ON h.admin_id = a.member_id
+        WHERE m.email LIKE CONCAT('%', #{email}, '%')
+        ORDER BY h.created_at DESC, h.history_id DESC
+    </select>
+
+</mapper>

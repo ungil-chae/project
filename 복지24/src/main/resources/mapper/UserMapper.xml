@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.greenart.bdproject.mapper.UserMapper">
+
+    <!-- resultMap: UserResult → UserDto -->
+    <resultMap id="UserResult" type="com.greenart.bdproject.dto.UserDto">
+        <id property="userId" column="user_id"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="name" column="name"/>
+        <result property="email" column="email"/>
+        <result property="phone" column="phone"/>
+        <result property="birthDate" column="birth_date"/>
+        <result property="role" column="role"/>
+        <result property="isActive" column="is_active"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- selectByUsername: SELECT * FROM users WHERE username = #{username} -->
+    <select id="selectByUsername" parameterType="string" resultMap="UserResult">
+        SELECT user_id, username, password, name, email, phone, birth_date, role, is_active, created_at, updated_at
+        FROM users
+        WHERE username = #{username}
+    </select>
+
+    <!-- selectById: SELECT * FROM users WHERE user_id = #{userId} -->
+    <select id="selectById" parameterType="int" resultMap="UserResult">
+        SELECT user_id, username, password, name, email, phone, birth_date, role, is_active, created_at, updated_at
+        FROM users
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- insert: INSERT INTO users -->
+    <insert id="insert" parameterType="com.greenart.bdproject.dto.UserDto" useGeneratedKeys="true" keyProperty="userId">
+        INSERT INTO users (username, password, name, email, phone, birth_date, role, is_active, created_at, updated_at)
+        VALUES (#{username}, #{password}, #{name}, #{email}, #{phone}, #{birthDate}, #{role}, #{isActive}, NOW(), NOW())
+    </insert>
+
+    <!-- update: UPDATE users -->
+    <update id="update" parameterType="com.greenart.bdproject.dto.UserDto">
+        UPDATE users
+        SET username = #{username},
+            password = #{password},
+            name = #{name},
+            email = #{email},
+            phone = #{phone},
+            birth_date = #{birthDate},
+            role = #{role},
+            is_active = #{isActive},
+            updated_at = NOW()
+        WHERE user_id = #{userId}
+    </update>
+
+    <!-- deleteById: DELETE FROM users WHERE user_id = #{userId} -->
+    <delete id="deleteById" parameterType="int">
+        DELETE FROM users
+        WHERE user_id = #{userId}
+    </delete>
+
+    <!-- selectAll: SELECT * FROM users ORDER BY created_at DESC -->
+    <select id="selectAll" resultMap="UserResult">
+        SELECT user_id, username, password, name, email, phone, birth_date, role, is_active, created_at, updated_at
+        FROM users
+        ORDER BY created_at DESC
+    </select>
+
+</mapper>

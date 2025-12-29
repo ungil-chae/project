@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.greenart.bdproject.dao.ProjectMemberDao">
+	<!-- 회원 등록 (신규 스키마: email이 로그인 ID) -->
+	<insert id="insert" parameterType="Member">
+		INSERT INTO member (email, pwd, name, phone, role, status, birth, gender)
+		VALUES (#{email}, #{pwd}, #{name}, #{phone},
+		        COALESCE(#{role}, 'USER'),
+		        COALESCE(#{status}, 'ACTIVE'),
+		        #{birth}, #{gender})
+	</insert>
+
+	<!-- 이메일로 회원 조회 (email이 PK 역할) -->
+	<select id="select" parameterType="String" resultType="Member">
+		SELECT member_id AS memberId, email, pwd, name, phone, role, status, birth, gender,
+		       postcode, address, detail_address AS detailAddress,
+		       kindness_temperature AS kindnessTemperature,
+		       profile_image_url AS profileImageUrl,
+		       login_fail_count AS loginFailCount,
+		       last_login_fail_at AS lastLoginFailAt,
+		       account_locked_until AS accountLockedUntil,
+		       last_login_at AS lastLoginAt, created_at AS createdAt, updated_at AS updatedAt
+		FROM member
+		WHERE email = #{email} AND deleted_at IS NULL
+	</select>
+
+	<!-- 회원 삭제 (소프트 삭제) -->
+	<!-- 관련 데이터를 먼저 삭제한 후 소프트 삭제 수행 -->
+	<delete id="delete" parameterType="String">
+		<!-- 1. 캘린더 이벤트 삭제 -->
+		DELETE FROM calendar_events
+		WHERE member_id = (SELECT member_id FROM member WHERE email = #{email});
+
+		<!-- 2. 알림 삭제 -->
+		DELETE FROM notifications
+		WHERE member_id = (SELECT member_id FROM member WHERE email = #{email});
+
+		<!-- 3. 알림 설정 삭제 -->
+		DELETE FROM notification_settings
+		WHERE member_id = (SELECT member_id FROM member WHERE email = #{email});
+
+		<!-- 4. 기부 내역 삭제 -->
+		DELETE FROM donation
+		WHERE member_id = (SELECT member_id FROM member WHERE email = #{email});
+
+		<!-- 5. 봉사 신청 내역 삭제 -->
+		DELETE FROM vol_apply
+		WHERE member_id = (SELECT member_id FROM member WHERE email = #{email});
+
+		<!-- 6. FAQ 질문 삭제 -->
+		DELETE FROM question
+		WHERE member_id = (SELECT member_id FROM member WHERE email = #{email});
+
+		<!-- 7. 즐겨찾기 복지 서비스 삭제 -->
+		DELETE FROM favorite_welfare_services
+		WHERE member_id = (SELECT member_id FROM member WHERE email = #{email});
+
+		<!-- 8. 마지막으로 회원 소프트 삭제 -->
+		UPDATE member SET deleted_at = NOW() WHERE email = #{email};
+	</delete>
+
+	<!-- 회원 정보 수정 -->
+	<update id="update" parameterType="Member">
+		UPDATE member
+		SET pwd = #{pwd},
+		    name = #{name},
+		    phone = #{phone},
+		    role = #{role},
+		    login_fail_count = #{loginFailCount},
+		    last_login_fail_at = #{lastLoginFailAt},
+		    account_locked_until = #{accountLockedUntil},
+		    last_login_at = #{lastLoginAt}
+		WHERE email = #{email}
+	</update>
+
+	<!-- 전체 회원 삭제 (물리적 삭제) -->
+	<delete id="deleteAll">
+		DELETE FROM member
+	</delete>
+
+	<!-- 전체 회원 조회 -->
+	<select id="selectAll" resultType="Member">
+		SELECT member_id AS memberId, email, pwd, name, phone, role, status, birth, gender,
+		       kindness_temperature AS kindnessTemperature,
+		       created_at AS createdAt, updated_at AS updatedAt
+		FROM member
+		WHERE deleted_at IS NULL
+		ORDER BY created_at DESC
+	</select>
+
+	<!-- 선행 온도 관련 쿼리 -->
+	<select id="getKindnessTemperature" parameterType="String" resultType="java.math.BigDecimal">
+		SELECT kindness_temperature FROM member WHERE email = #{userId}
+	</select>
+
+	<update id="updateKindnessTemperature" parameterType="map">
+		UPDATE member
+		SET kindness_temperature = #{temperature}
+		WHERE email = #{userId}
+	</update>
+
+	<update id="increaseKindnessTemperature" parameterType="map">
+		UPDATE member
+		SET kindness_temperature = kindness_temperature + #{amount}
+		WHERE email = #{userId}
+	</update>
+
+	<update id="decreaseKindnessTemperature" parameterType="map">
+		UPDATE member
+		SET kindness_temperature = GREATEST(kindness_temperature - #{amount}, 0.00)
+		WHERE email = #{userId}
+	</update>
+
+	<!-- 이름과 이메일로 회원 찾기 (아이디 찾기) -->
+	<select id="findByNameAndEmail" parameterType="map" resultType="Member">
+		SELECT member_id AS memberId, email, pwd, name, phone, role, birth, gender,
+		       created_at AS createdAt, updated_at AS updatedAt
+		FROM member
+		WHERE name = #{name} AND email = #{email} AND deleted_at IS NULL
+	</select>
+
+	<!-- 이름과 전화번호로 회원 찾기 (아이디 찾기) -->
+	<select id="findByNameAndPhone" parameterType="map" resultType="Member">
+		SELECT member_id AS memberId, email, pwd, name, phone, role, status, birth, gender,
+		       created_at AS createdAt, updated_at AS updatedAt
+		FROM member
+		WHERE name = #{name} AND phone = #{phone} AND deleted_at IS NULL
+	</select>
+
+	<!-- 이메일로 회원 확인 (비밀번호 찾기 - 이메일 인증 방식) -->
+	<select id="findByEmail" parameterType="String" resultType="Member">
+		SELECT member_id AS memberId, email, pwd, name, phone, role, birth, gender,
+		       created_at AS createdAt, updated_at AS updatedAt
+		FROM member
+		WHERE email = #{email} AND deleted_at IS NULL
+	</select>
+
+	<!-- 이메일 중복 확인 -->
+	<select id="countByEmail" parameterType="String" resultType="int">
+		SELECT COUNT(*) FROM member WHERE email = #{email} AND deleted_at IS NULL
+	</select>
+
+	<!-- 프로필 이미지 업데이트 -->
+	<update id="updateProfileImage" parameterType="map">
+		UPDATE member
+		SET profile_image_url = #{imageUrl}
+		WHERE email = #{email}
+	</update>
+
+	<!-- 프로필 정보 업데이트 (이름, 성별, 생년월일, 전화번호, 주소) -->
+	<update id="updateProfile" parameterType="Member">
+		UPDATE member
+		SET name = #{name},
+		    gender = #{gender},
+		    birth = #{birth},
+		    phone = #{phone},
+		    postcode = #{postcode},
+		    address = #{address},
+		    detail_address = #{detailAddress}
+		WHERE email = #{email}
+	</update>
+</mapper>

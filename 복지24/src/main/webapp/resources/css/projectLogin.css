@@ -1,0 +1,252 @@
+/* projectLogin.css - projectLogin.jsp CSS */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #fafafa;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.top-header {
+    padding: 20px 40px;
+}
+
+.header-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: #333;
+    width: fit-content;
+    transition: opacity 0.2s ease;
+}
+
+.header-logo:hover {
+    opacity: 0.7;
+}
+
+.header-logo-icon {
+    width: 40px;
+    height: 40px;
+    background-image: url('../image/복지로고.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.header-logo-text {
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.main-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: -20px;
+}
+
+.login-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    max-width: 450px;
+    padding: 20px;
+}
+
+.login-card {
+    background: white;
+    border: 1px solid #dbdbdb;
+    border-radius: 8px;
+    padding: 50px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.logo {
+    font-size: 32px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    font-size: 16px;
+    color: #8e8e8e;
+    margin-bottom: 30px;
+    font-weight: 400;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 15px 20px;
+    border: 1px solid #dbdbdb;
+    border-radius: 6px;
+    font-size: 16px;
+    background-color: #fafafa;
+    transition: border-color 0.2s ease;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #0095f6;
+    background-color: white;
+}
+
+.form-input::placeholder {
+    color: #8e8e8e;
+}
+
+.login-btn {
+    width: 100%;
+    padding: 15px;
+    background-color: #4A90E2;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.2s ease;
+}
+
+.login-btn:hover {
+    background-color: #357ABD;
+}
+
+.login-btn:disabled {
+    background-color: #b2dffc;
+    cursor: not-allowed;
+}
+
+/* 로그인 상태 유지 체크박스 스타일 */
+.remember-me {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin: 16px 0;
+    gap: 8px;
+}
+
+.remember-me input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #4A90E2;
+}
+
+.remember-me label {
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+    user-select: none;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    margin: 20px 0;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: #dbdbdb;
+}
+
+.divider span {
+    margin: 0 18px;
+    color: #8e8e8e;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.forgot-password {
+    color: #00376b;
+    font-size: 12px;
+    text-decoration: none;
+    margin-top: 15px;
+    display: inline-block;
+}
+
+.forgot-password:hover {
+    text-decoration: underline;
+}
+
+.bottom-links {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.bottom-links a {
+    color: #8e8e8e;
+    font-size: 14px;
+    text-decoration: none;
+    margin: 0 15px;
+}
+
+.bottom-links a:hover {
+    text-decoration: underline;
+}
+
+.signup-link {
+    color: #0095f6;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.signup-link:hover {
+    text-decoration: underline;
+}
+
+/* 아이디 찾기에서 자동 채워진 입력란 스타일 */
+.form-input.auto-filled {
+    border-color: #4A90E2;
+    background-color: #f0f9ff;
+}
+
+.social-login {
+    margin: 20px 0;
+}
+
+.social-icons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.social-icon {
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.social-icon:hover {
+    transform: scale(1.1);
+}
+
+.social-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}

@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.greenart.bdproject.mapper.FaqMapper">
+
+    <!-- resultMap: FaqResult → FaqDto -->
+    <resultMap id="FaqResult" type="com.greenart.bdproject.dto.FaqDto">
+        <id property="faqId" column="faq_id"/>
+        <result property="category" column="category"/>
+        <result property="question" column="question"/>
+        <result property="answer" column="answer"/>
+        <result property="orderNum" column="order_num"/>
+        <result property="isActive" column="active_yn"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- insert: INSERT INTO faq -->
+    <insert id="insert" parameterType="com.greenart.bdproject.dto.FaqDto" useGeneratedKeys="true" keyProperty="faqId">
+        INSERT INTO faq (cat_id, question, answer, order_num, active_yn, created_at, updated_at)
+        VALUES (
+            (SELECT category_id FROM faq_categories WHERE category_name = #{category} LIMIT 1),
+            #{question}, #{answer}, #{orderNum}, #{isActive}, NOW(), NOW()
+        )
+    </insert>
+
+    <!-- selectById: SELECT * FROM faq WHERE faq_id = #{faqId} -->
+    <select id="selectById" parameterType="java.lang.Long" resultMap="FaqResult">
+        SELECT
+            f.faq_id,
+            fc.category_name AS category,
+            f.question,
+            f.answer,
+            f.order_num,
+            f.active_yn,
+            f.created_at,
+            f.updated_at
+        FROM faq f
+        LEFT JOIN faq_categories fc ON f.cat_id = fc.category_id
+        WHERE f.faq_id = #{faqId,javaType=java.lang.Long,jdbcType=BIGINT}
+    </select>
+
+    <!-- selectAll: SELECT * FROM faq WHERE active_yn = TRUE ORDER BY order_num ASC, created_at DESC -->
+    <select id="selectAll" resultMap="FaqResult">
+        SELECT
+            f.faq_id,
+            fc.category_name AS category,
+            f.question,
+            f.answer,
+            f.order_num,
+            f.active_yn,
+            f.created_at,
+            f.updated_at
+        FROM faq f
+        LEFT JOIN faq_categories fc ON f.cat_id = fc.category_id
+        WHERE f.active_yn = TRUE
+        ORDER BY f.order_num ASC, f.created_at DESC
+    </select>
+
+    <!-- selectActiveFaqs: 활성화된 FAQ만 조회 (selectAll과 동일) -->
+    <select id="selectActiveFaqs" resultMap="FaqResult">
+        SELECT
+            f.faq_id,
+            fc.category_name AS category,
+            f.question,
+            f.answer,
+            f.order_num,
+            f.active_yn,
+            f.created_at,
+            f.updated_at
+        FROM faq f
+        LEFT JOIN faq_categories fc ON f.cat_id = fc.category_id
+        WHERE f.active_yn = TRUE
+        ORDER BY f.order_num ASC, f.created_at DESC
+    </select>
+
+    <!-- selectByCategory: SELECT * FROM faq WHERE category = #{category} AND active_yn = TRUE ORDER BY order_num ASC -->
+    <select id="selectByCategory" parameterType="string" resultMap="FaqResult">
+        SELECT
+            f.faq_id,
+            fc.category_name AS category,
+            f.question,
+            f.answer,
+            f.order_num,
+            f.active_yn,
+            f.created_at,
+            f.updated_at
+        FROM faq f
+        LEFT JOIN faq_categories fc ON f.cat_id = fc.category_id
+        WHERE fc.category_name = #{category}
+          AND f.active_yn = TRUE
+        ORDER BY f.order_num ASC
+    </select>
+
+    <!-- update: UPDATE faq -->
+    <update id="update" parameterType="com.greenart.bdproject.dto.FaqDto">
+        UPDATE faq
+        SET cat_id = (SELECT category_id FROM faq_categories WHERE category_name = #{category} LIMIT 1),
+            question = #{question},
+            answer = #{answer},
+            order_num = #{orderNum},
+            active_yn = #{isActive},
+            updated_at = NOW()
+        WHERE faq_id = #{faqId}
+    </update>
+
+    <!-- deleteById: DELETE FROM faq WHERE faq_id = #{faqId} -->
+    <delete id="deleteById" parameterType="java.lang.Long">
+        DELETE FROM faq
+        WHERE faq_id = #{faqId,javaType=java.lang.Long,jdbcType=BIGINT}
+    </delete>
+
+    <!-- searchFaqs: 고급 검색 쿼리 (질문 + 답변 검색, 관련성 점수 계산) -->
+    <select id="searchFaqs" parameterType="string" resultMap="FaqResult">
+        SELECT
+            f.faq_id,
+            fc.category_name AS category,
+            f.question,
+            f.answer,
+            f.order_num,
+            f.active_yn,
+            f.created_at,
+            f.updated_at
+        FROM faq f
+        LEFT JOIN faq_categories fc ON f.cat_id = fc.category_id
+        
+        // 검색
+        WHERE f.active_yn = TRUE
+          AND (
+              f.question LIKE CONCAT('%', #{keyword}, '%')
+              OR f.answer LIKE CONCAT('%', #{keyword}, '%')
+              OR fc.category_name LIKE CONCAT('%', #{keyword}, '%')
+          )
+        // 우선 순위 정렬
+        ORDER BY
+            CASE
+                WHEN f.question = #{keyword} THEN 1
+                WHEN f.question LIKE CONCAT(#{keyword}, '%') THEN 2
+                WHEN f.question LIKE CONCAT('%', #{keyword}, '%') THEN 3
+                WHEN f.answer LIKE CONCAT(#{keyword}, '%') THEN 4
+                ELSE 5
+            END,
+            f.order_num ASC,
+            f.created_at DESC
+    </select>
+
+    <!-- searchFaqsByCategory: 카테고리 필터링 검색 -->
+    <select id="searchFaqsByCategory" parameterType="map" resultMap="FaqResult">
+        SELECT
+            f.faq_id,
+            fc.category_name AS category,
+            f.question,
+            f.answer,
+            f.order_num,
+            f.active_yn,
+            f.created_at,
+            f.updated_at
+        FROM faq f
+        LEFT JOIN faq_categories fc ON f.cat_id = fc.category_id
+        WHERE f.active_yn = TRUE
+          AND fc.category_name = #{category}
+          AND (
+              f.question LIKE CONCAT('%', #{keyword}, '%')
+              OR f.answer LIKE CONCAT('%', #{keyword}, '%')
+          )
+        ORDER BY
+            CASE
+                WHEN f.question = #{keyword} THEN 1
+                WHEN f.question LIKE CONCAT(#{keyword}, '%') THEN 2
+                WHEN f.question LIKE CONCAT('%', #{keyword}, '%') THEN 3
+                WHEN f.answer LIKE CONCAT(#{keyword}, '%') THEN 4
+                ELSE 5
+            END,
+            f.order_num ASC,
+            f.created_at DESC
+    </select>
+
+</mapper>

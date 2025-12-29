@@ -1,0 +1,235 @@
+/* project_information.css - 간편 복지 진단 페이지 CSS */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f8f9fa;
+    color: #333;
+}
+
+.form-card {
+    background: white;
+    border-radius: 15px;
+    padding: 40px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+}
+
+.form-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.form-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.form-subtitle {
+    font-size: 16px;
+    color: #6c757d;
+    line-height: 1.5;
+}
+
+.info-box {
+    background: #e8f4fd;
+    border-left: 4px solid #0061ff;
+    padding: 15px 20px;
+    border-radius: 5px;
+    margin-bottom: 30px;
+}
+
+.info-box h4 {
+    color: #0052d4;
+    font-size: 16px;
+    margin-bottom: 8px;
+}
+
+.info-box p {
+    color: #1565c0;
+    font-size: 14px;
+    margin: 0;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    color: #495057;
+}
+
+.required {
+    color: #dc3545;
+    font-weight: 700;
+}
+
+select, input[type="number"] {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.2s ease;
+    background: white;
+}
+
+select:focus, input:focus {
+    outline: none;
+    border-color: #0061ff;
+    box-shadow: 0 0 0 3px rgba(0, 97, 255, 0.1);
+}
+
+.date-group {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr;
+    gap: 12px;
+}
+
+.radio-group {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.radio-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.radio-item input {
+    width: auto;
+    margin: 0;
+}
+
+.radio-item label {
+    margin: 0;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+.income-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.income-group input {
+    flex: 1;
+}
+
+.income-unit {
+    font-weight: 600;
+    color: #495057;
+    font-size: 14px;
+}
+
+.location-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.help-text {
+    font-size: 12px;
+    color: #6c757d;
+    margin-top: 5px;
+    line-height: 1.4;
+}
+
+.btn-group {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.container {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.btn {
+    flex: 1;
+    padding: 15px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    text-align: center;
+}
+
+.btn-primary {
+    background: #4A90E2;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #3a7bc8;
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+}
+
+.upgrade-link {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e9ecef;
+}
+
+.upgrade-link a {
+    color: #4A90E2;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.upgrade-link a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .date-group {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .location-group {
+        grid-template-columns: 1fr;
+    }
+
+    .radio-group {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .btn-group {
+        flex-direction: column;
+    }
+
+    .form-card {
+        padding: 25px;
+    }
+}

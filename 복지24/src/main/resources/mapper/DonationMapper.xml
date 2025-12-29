@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.greenart.bdproject.mapper.DonationMapper">
+
+    <!-- resultMap: DonationResult → DonationDto -->
+    <resultMap id="DonationResult" type="com.greenart.bdproject.dto.DonationDto">
+        <id property="donationId" column="donation_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="amount" column="amount"/>
+        <result property="donationType" column="donation_type"/>
+        <result property="category" column="category"/>
+        <result property="packageName" column="package_name"/>
+        <result property="donorName" column="donor_name"/>
+        <result property="donorEmail" column="donor_email"/>
+        <result property="donorPhone" column="donor_phone"/>
+        <result property="message" column="message"/>
+        <result property="paymentStatus" column="payment_status"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <!-- insert: INSERT INTO donations -->
+    <insert id="insert" parameterType="com.greenart.bdproject.dto.DonationDto" useGeneratedKeys="true" keyProperty="donationId">
+        INSERT INTO donations (user_id, amount, donation_type, category, package_name, donor_name, donor_email, donor_phone, message, payment_status, created_at)
+        VALUES (#{userId}, #{amount}, #{donationType}, #{category}, #{packageName}, #{donorName}, #{donorEmail}, #{donorPhone}, #{message}, #{paymentStatus}, NOW())
+    </insert>
+
+    <!-- selectById: SELECT * FROM donations WHERE donation_id = #{donationId} -->
+    <select id="selectById" parameterType="int" resultMap="DonationResult">
+        SELECT donation_id, user_id, amount, donation_type, category, package_name, donor_name, donor_email, donor_phone, message, payment_status, created_at
+        FROM donations
+        WHERE donation_id = #{donationId}
+    </select>
+
+    <!-- selectByUserId: SELECT * FROM donations WHERE user_id = #{userId} ORDER BY created_at DESC -->
+    <select id="selectByUserId" parameterType="string" resultMap="DonationResult">
+        SELECT donation_id, user_id, amount, donation_type, category, package_name, donor_name, donor_email, donor_phone, message, payment_status, created_at
+        FROM donations
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- selectAll: SELECT * FROM donations ORDER BY created_at DESC -->
+    <select id="selectAll" resultMap="DonationResult">
+        SELECT donation_id, user_id, amount, donation_type, category, package_name, donor_name, donor_email, donor_phone, message, payment_status, created_at
+        FROM donations
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- getTotalDonationAmount: SELECT SUM(amount) FROM donations WHERE payment_status = 'completed' -->
+    <select id="getTotalDonationAmount" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(amount), 0)
+        FROM donations
+        WHERE payment_status = 'completed'
+    </select>
+
+    <!-- countTotalDonors: SELECT COUNT(DISTINCT COALESCE(user_id, donor_email)) FROM donations WHERE payment_status = 'completed' -->
+    <select id="countTotalDonors" resultType="int">
+        SELECT COUNT(DISTINCT COALESCE(user_id, donor_email))
+        FROM donations
+        WHERE payment_status = 'completed'
+    </select>
+
+</mapper>

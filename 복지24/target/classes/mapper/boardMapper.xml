@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.greenart.board">
+	<sql id="selectFromBoard">
+		select bno, title, content, writer, viewCnt, commentCnt, regDate, 
+		modiDate from board
+	</sql>
+	<select id="select" parameterType="int" resultType="BoardDto">
+		 <include refid="selectFromBoard"></include>
+		 where bno = #{bno}
+	</select>
+	
+	<select id="selectPage" parameterType="map" resultType="BoardDto">
+		<include refid="selectFromBoard"></include>
+		order by bno desc 
+		limit #{offset}, #{pageSize}
+	</select>
+	
+	<select id="selectAll" resultType="BoardDto">
+		select bno, title, content, writer, viewCnt, commentCnt, regDate, modiDate from board order by bno desc
+	</select>
+	<insert id="insert" parameterType="BoardDto">
+		insert into board(title, content, writer) values(#{title}, #{content}, #{writer})
+	</insert>
+	<update id="update" parameterType="BoardDto">
+		update board set title=#{title}, content=#{content}, modiDate = now() where writer=#{writer} and bno =#{bno} ;
+	</update>
+	<delete id="delete" parameterType="map">
+		delete from board where writer=#{writer} and bno =#{bno} ;
+	</delete>
+	<update id="updateViewCnt" parameterType="int">
+		update board set viewCnt = viewCnt + 1 where bno = #{bno};
+	</update>
+	<delete id="deleteAll" >
+		delete from board
+	</delete>
+	<select id="count" resultType="int">
+		select count(*) from board
+	</select>
+</mapper>

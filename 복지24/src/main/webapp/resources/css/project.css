@@ -1,0 +1,687 @@
+/* project.css - project.jsp 스타일 */
+
+html,
+body {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #e2f0f6;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #fafafa;
+  color: #191918;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* 배경 위에 대각선 패널을 추가하는 부분 */
+.main-background-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: #f7f5f2;
+  clip-path: polygon(0 0, 50% 0, 35% 100%, 0 100%);
+  z-index: -2;
+}
+
+/* 텍스트를 담는 컨테이너 */
+.main-content {
+  height: 100vh;
+  width: 100%;
+  display: flex;
+}
+
+/* 왼쪽 텍스트 영역 */
+.main-left {
+  flex: 0 0 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding-left: 100px;
+}
+
+/* 오른쪽 영역 */
+.main-right {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 94vh;
+  z-index: -1;
+  background-image: url("../image/배경5.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center center;
+  overflow: hidden;
+  transform: translateZ(0);
+  flex: 1;
+}
+
+.main-title {
+  font-size: 48px;
+  font-weight: 400;
+  line-height: 1.2;
+  margin-bottom: 15px;
+  color: #1e1919;
+  text-shadow: none;
+  text-align: left;
+}
+
+.main-subtitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: rgba(82, 74, 62, 0.9);
+  margin-bottom: 30px;
+  text-shadow: none;
+  text-align: left;
+}
+
+.cta-buttons {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.main-cta-btn {
+  background-color: white;
+  color: black;
+  border: none;
+  padding: 20px 20px;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.main-cta-btn::after {
+  content: "→";
+  font-size: 20px;
+  transition: transform 0.3s ease;
+}
+
+.main-cta-btn:hover {
+  background-color: #f0f0f0;
+}
+
+.main-cta-btn:hover::after {
+  transform: translateX(5px);
+}
+
+/* 인기 복지 혜택 섹션 */
+.popular-welfare-section {
+  width: 100%;
+  background: #f7f5f2;
+  padding: 50px 40px 100px 40px;
+  position: relative;
+}
+
+.popular-welfare-header {
+  max-width: 1400px;
+  margin: 0 auto 60px;
+  text-align: left;
+}
+
+.popular-welfare-title {
+  font-size: 42px;
+  font-weight: 600;
+  color: #1e1919;
+  margin-bottom: 12px;
+  letter-spacing: -0.5px;
+  text-align: left;
+}
+
+.popular-welfare-subtitle {
+  font-size: 16px;
+  color: rgba(82, 74, 62, 0.8);
+  font-weight: 400;
+  text-align: left;
+}
+
+.popular-welfare-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.slider-navigation {
+  position: absolute;
+  top: -120px;
+  right: 0;
+  display: flex;
+  gap: 12px;
+  z-index: 2;
+}
+
+.slider-nav-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: white;
+  border: 1px solid #ddd;
+  color: #333;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.slider-nav-btn:hover {
+  background: #f5f5f5;
+  border-color: #333;
+}
+
+.slider-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  background: #f5f5f5;
+}
+
+.welfare-slider-container {
+  overflow: hidden;
+}
+
+.welfare-slider {
+  display: flex;
+  transition: transform 0.4s ease;
+  gap: 24px;
+}
+
+.popular-welfare-item {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  padding-top: 50px;
+  flex: 0 0 calc(25% - 18px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e8e8e8;
+  overflow: hidden;
+}
+
+.popular-welfare-item:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+  border-color: #333;
+}
+
+.welfare-logo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40px;
+  height: 40px;
+  background: #1e1919;
+  border-radius: 0 0 12px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.welfare-views-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #f5f5f5;
+  color: #666;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+}
+
+.welfare-name {
+  font-size: 17px;
+  font-weight: 600;
+  color: #1e1919;
+  margin-bottom: 12px;
+  line-height: 1.4;
+  min-height: 48px;
+  flex-grow: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.welfare-org {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 12px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.welfare-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.welfare-date {
+  font-size: 12px;
+  color: #999;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.slider-indicators {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 48px;
+}
+
+.slider-indicator {
+  width: 32px;
+  height: 4px;
+  background: #d0d0d0;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.slider-indicator.active {
+  background: #1e1919;
+  width: 48px;
+}
+
+.loading-popular {
+  text-align: center;
+  padding: 80px 40px;
+  color: #999;
+  font-size: 16px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e0e0e0;
+  border-top: 3px solid #333;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 기부 컨테이너 */
+#donation-container {
+  position: relative;
+  margin-top: 0;
+  width: 100%;
+  max-width: 1400px;
+  overflow: hidden;
+  min-height: 700px;
+  background-color: #fafafa;
+  color: #191918;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 40px 20px;
+  opacity: 0;
+  transform: translateX(100px);
+  transition: all 0.8s ease-out;
+}
+
+#donation-container.animate-in {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.main-content.animate-in {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.donation-step {
+  display: flex;
+  width: 100%;
+  transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+}
+
+#donation-step1 {
+  gap: 30px;
+}
+
+.donation-left-box {
+  flex: 3;
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+.donation-right-box {
+  flex: 7;
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+.donation-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.donation-subtitle {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 30px;
+  line-height: 1.5;
+}
+
+.donation-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.form-label {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.form-select {
+  width: 100%;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 15px;
+  background: white;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23666' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  background-size: 16px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 15px;
+  outline: none;
+}
+
+.form-input:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.form-input.disabled,
+.form-input[readonly] {
+  background-color: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+}
+
+.donation-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.donation-btn {
+  flex: 1;
+  padding: 16px 20px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  background: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.4s ease;
+}
+
+.donation-btn:hover {
+  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+  color: white;
+  border-color: #4a90e2;
+}
+
+.donation-btn.active {
+  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+  color: white;
+  border-color: #4a90e2;
+}
+
+.donation-categories {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.donation-category {
+  display: flex;
+  align-items: center;
+  padding: 20px 15px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.donation-category:hover {
+  background: #e9ecef;
+  transform: translateY(-2px);
+}
+
+.donation-category.selected {
+  background: #e3f2fd;
+  border-color: #4a90e2;
+}
+
+.category-icon {
+  width: 50px;
+  height: 50px;
+  background: #fff;
+  border-radius: 10px;
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
+}
+
+.category-icon img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
+.category-content {
+  flex: 1;
+  text-align: left;
+}
+
+.category-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.category-desc {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.3;
+}
+
+.donation-methods-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 25px;
+}
+
+.next-btn-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 25px;
+}
+
+.next-btn {
+  background: #4a90e2;
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.next-btn:hover {
+  background: #357abd;
+}
+
+/* 반응형 스타일 */
+@media (max-width: 1200px) {
+  #donation-step1 {
+    flex-direction: column;
+  }
+  .donation-categories {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 1024px) {
+  .content-wrapper {
+    flex-direction: column;
+    gap: 60px;
+    text-align: center;
+  }
+  .left-content {
+    text-align: center;
+  }
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .donation-categories {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .popular-welfare-item {
+    flex: 0 0 calc(50% - 12px);
+  }
+  .welfare-slider {
+    gap: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .popular-welfare-section {
+    padding: 60px 20px;
+  }
+  .popular-welfare-title {
+    font-size: 32px;
+  }
+  .slider-navigation {
+    top: -80px;
+  }
+  .slider-nav-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+  .popular-welfare-item {
+    flex: 0 0 100%;
+  }
+  .nav-menu {
+    display: none;
+  }
+  .navbar {
+    padding: 0 15px;
+  }
+  .main-content {
+    height: 100vh;
+    flex-direction: column;
+  }
+  .main-left {
+    clip-path: polygon(0 0, 100% 0, 100% 70%, 0 50%);
+    padding: 60px 20px;
+    align-items: center;
+    text-align: center;
+  }
+  .main-right {
+    width: 100%;
+    height: 100%;
+  }
+  .main-image {
+    clip-path: polygon(0 50%, 100% 30%, 100% 100%, 0 100%);
+    object-position: center;
+  }
+  .main-title {
+    font-size: 32px;
+    margin-bottom: 20px;
+  }
+  .content-wrapper {
+    gap: 40px;
+  }
+  .search-container {
+    max-width: 100%;
+  }
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+  #donation-container {
+    margin-top: 40px;
+  }
+  .donation-title {
+    font-size: 24px;
+  }
+}
