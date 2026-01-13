@@ -22,10 +22,18 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+/**
+ * 복지 시설 API 서비스
+ *
+ * Redis 캐싱 적용:
+ * - 시설 종류 정보: 1일 캐싱 (거의 변경 안됨)
+ * - 시설 목록: 1시간 캐싱 (조회 조건별)
+ */
 @Service
 public class FacilityApiService {
 
@@ -116,8 +124,13 @@ public class FacilityApiService {
         }
     }
 
+    /**
+     * 시설 종류 조회
+     * Redis 캐싱: 1일 TTL (시설 종류는 거의 변경되지 않음)
+     */
+    @Cacheable(value = "facilityTypes", unless = "#result == null")
     public String getFacilityTypes() {
-        System.out.println("=== getFacilityTypes 실제 API 호출 ===");
+        System.out.println("=== getFacilityTypes 실제 API 호출 (캐시 미스) ===");
 
         try {
             // API URL 구성

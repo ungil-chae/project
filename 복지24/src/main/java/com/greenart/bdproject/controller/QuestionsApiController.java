@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import com.greenart.bdproject.dao.MemberDao;
+import com.greenart.bdproject.mapper.MemberMapper;
 import com.greenart.bdproject.dto.Member;
 import com.greenart.bdproject.service.NotificationService;
 
@@ -44,7 +44,7 @@ public class QuestionsApiController {
     private DataSource dataSource;
 
     @Autowired
-    private MemberDao memberDao;
+    private MemberMapper memberMapper;
 
     @Autowired
     private NotificationService notificationService;
@@ -422,17 +422,17 @@ public class QuestionsApiController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
             }
 
-            if (memberDao == null) {
-                logger.error("MemberDao is null!");
+            if (memberMapper == null) {
+                logger.error("MemberMapper is null!");
                 response.put("success", false);
-                response.put("message", "시스템 오류: MemberDao가 초기화되지 않았습니다.");
+                response.put("message", "시스템 오류: MemberMapper가 초기화되지 않았습니다.");
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
             }
 
-            logger.info("MemberDao.select 호출 - userId: {}", userId);
+            logger.info("MemberMapper.select 호출 - userId: {}", userId);
             Member member = null;
             try {
-                member = memberDao.select(userId);
+                member = memberMapper.select(userId);
             } catch (Exception e) {
                 logger.error("회원 조회 중 오류 발생", e);
                 response.put("success", false);

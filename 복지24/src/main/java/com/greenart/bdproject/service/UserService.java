@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.greenart.bdproject.dao.UserDao;
+import com.greenart.bdproject.mapper.UserMapper;
 import com.greenart.bdproject.dto.UserDto;
 
 @Service
@@ -12,7 +12,7 @@ import com.greenart.bdproject.dto.UserDto;
 public class UserService {
 
     @Autowired
-    private UserDao userDao;
+    private UserMapper userMapper;
 
     /**
      * 로그인 처리 (비밀번호 검증)
@@ -21,7 +21,7 @@ public class UserService {
      * @return 로그인 성공 시 UserDto, 실패 시 null
      */
     public UserDto login(String username, String password) {
-        UserDto user = userDao.selectByUsername(username);
+        UserDto user = userMapper.selectByUsername(username);
 
         if (user == null) {
             return null;
@@ -41,10 +41,10 @@ public class UserService {
      * @return 등록된 사용자 정보
      */
     public UserDto register(UserDto user) {
-        int result = userDao.insert(user);
+        int result = userMapper.insert(user);
 
         if (result > 0) {
-            return userDao.selectByUsername(user.getUsername());
+            return userMapper.selectByUsername(user.getUsername());
         }
 
         return null;
@@ -56,7 +56,7 @@ public class UserService {
      * @return 사용자 정보
      */
     public UserDto getUserById(Long userId) {
-        return userDao.selectById(userId);
+        return userMapper.selectById(userId.intValue());
     }
 
     /**
@@ -65,7 +65,7 @@ public class UserService {
      * @return 사용자 정보
      */
     public UserDto getUserByUsername(String username) {
-        return userDao.selectByUsername(username);
+        return userMapper.selectByUsername(username);
     }
 
     /**
@@ -74,7 +74,7 @@ public class UserService {
      * @return 성공 여부
      */
     public boolean updateUser(UserDto user) {
-        int result = userDao.update(user);
+        int result = userMapper.update(user);
         return result > 0;
     }
 
@@ -84,7 +84,7 @@ public class UserService {
      * @return 관리자 여부
      */
     public boolean isAdmin(Long userId) {
-        UserDto user = userDao.selectById(userId);
+        UserDto user = userMapper.selectById(userId.intValue());
 
         if (user == null) {
             return false;

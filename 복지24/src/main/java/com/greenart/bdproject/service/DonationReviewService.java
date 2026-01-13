@@ -1,5 +1,6 @@
 package com.greenart.bdproject.service;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,8 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.greenart.bdproject.dao.DonationDao;
-import com.greenart.bdproject.dao.DonationReviewDao;
+import com.greenart.bdproject.mapper.DonationMapper;
+import com.greenart.bdproject.mapper.DonationReviewMapper;
 import com.greenart.bdproject.dto.DonationReviewDto;
 
 @Service
@@ -17,10 +18,10 @@ import com.greenart.bdproject.dto.DonationReviewDto;
 public class DonationReviewService {
 
     @Autowired
-    private DonationReviewDao donationReviewDao;
+    private DonationReviewMapper donationReviewMapper;
 
     @Autowired
-    private DonationDao donationDao;
+    private DonationMapper donationMapper;
 
     /**
      * 후원자 리뷰 등록
@@ -28,10 +29,10 @@ public class DonationReviewService {
      * @return 등록된 리뷰 정보
      */
     public DonationReviewDto createReview(DonationReviewDto review) {
-        int result = donationReviewDao.insertReview(review);
+        int result = donationReviewMapper.insertReview(review);
 
         if (result > 0) {
-            return donationReviewDao.selectById(review.getReviewId());
+            return donationReviewMapper.selectById(review.getReviewId());
         }
 
         return null;
@@ -42,7 +43,7 @@ public class DonationReviewService {
      * @return 전체 리뷰 리스트
      */
     public List<DonationReviewDto> getAllReviews() {
-        return donationReviewDao.selectAll();
+        return donationReviewMapper.selectAll();
     }
 
     /**
@@ -51,7 +52,7 @@ public class DonationReviewService {
      * @return 사용자 리뷰 리스트
      */
     public List<DonationReviewDto> getUserReviews(Long userId) {
-        return donationReviewDao.selectByUserId(userId);
+        return donationReviewMapper.selectByUserId(userId);
     }
 
     /**
@@ -62,20 +63,20 @@ public class DonationReviewService {
         Map<String, Object> statistics = new HashMap<>();
 
         // 리뷰 수
-        Integer reviewCount = donationReviewDao.countTotalReviews();
+        Integer reviewCount = donationReviewMapper.countTotalReviews();
         statistics.put("totalReviews", reviewCount != null ? reviewCount : 0);
 
         // 평균 만족도
-        Double avgRating = donationReviewDao.getAverageRating();
+        Double avgRating = donationReviewMapper.getAverageRating();
         statistics.put("averageRating", avgRating != null ? avgRating : 0.0);
 
         // 총 후원자 수
-        Integer donorCount = donationDao.countTotalDonors();
+        Integer donorCount = donationMapper.countTotalDonors();
         statistics.put("totalDonors", donorCount != null ? donorCount : 0);
 
         // 누적 지원금
-        Double totalAmount = donationDao.getTotalDonationAmount();
-        statistics.put("totalAmount", totalAmount != null ? totalAmount : 0.0);
+        BigDecimal totalAmount = donationMapper.getTotalDonationAmount();
+        statistics.put("totalAmount", totalAmount != null ? totalAmount : BigDecimal.ZERO);
 
         return statistics;
     }
@@ -85,7 +86,7 @@ public class DonationReviewService {
      * @return 카테고리 리스트
      */
     public List<String> getDistinctCategories() {
-        List<DonationReviewDto> allReviews = donationReviewDao.selectAll();
+        List<DonationReviewDto> allReviews = donationReviewMapper.selectAll();
         return allReviews.stream()
                 .map(DonationReviewDto::getCategory)
                 .filter(category -> category != null && !category.trim().isEmpty())

@@ -13,8 +13,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.greenart.bdproject.dao.NotificationDao;
-import com.greenart.bdproject.dao.NotificationSettingsDao;
+import com.greenart.bdproject.mapper.NotificationMapper;
+import com.greenart.bdproject.mapper.NotificationSettingsMapper;
 import com.greenart.bdproject.dto.Notification;
 import com.greenart.bdproject.dto.NotificationSettings;
 
@@ -27,13 +27,13 @@ public class NotificationServiceImpl implements NotificationService {
     private static final Logger logger = LoggerFactory.getLogger(NotificationServiceImpl.class);
 
     @Autowired
-    private NotificationDao notificationDao;
+    private NotificationMapper notificationMapper;
 
     @Autowired
     private DataSource dataSource;
 
     @Autowired(required = false)
-    private NotificationSettingsDao notificationSettingsDao;
+    private NotificationSettingsMapper notificationSettingsMapper;
 
     @Override
     public Long createNotification(Notification notification) {
@@ -55,7 +55,7 @@ public class NotificationServiceImpl implements NotificationService {
             }
         }
 
-        return notificationDao.create(notification);
+        return notificationMapper.create(notification);
     }
 
     /**
@@ -95,16 +95,16 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public List<Notification> getNotificationsByUserId(String userId) {
-        List<Notification> allNotifications = notificationDao.findByUserId(userId);
+        List<Notification> allNotifications = notificationMapper.findByUserId(userId);
 
         // 알림 설정에 따라 필터링
         Long memberId = getMemberIdByUserId(userId);
-        if (memberId == null || notificationSettingsDao == null) {
+        if (memberId == null || notificationSettingsMapper == null) {
             return allNotifications;
         }
 
         try {
-            NotificationSettings settings = notificationSettingsDao.selectByMemberId(memberId);
+            NotificationSettings settings = notificationSettingsMapper.selectByMemberId(memberId);
 
             // 설정이 없으면 모든 알림 반환 (기본값: 모두 활성화)
             if (settings == null) {
@@ -157,27 +157,27 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public boolean markNotificationAsRead(Long notificationId) {
-        return notificationDao.markAsRead(notificationId);
+        return notificationMapper.markAsRead(notificationId) > 0;
     }
 
     @Override
     public boolean markAllNotificationsAsRead(String userId) {
-        return notificationDao.markAllAsRead(userId);
+        return notificationMapper.markAllAsRead(userId) > 0;
     }
 
     @Override
     public boolean deleteNotification(Long notificationId) {
-        return notificationDao.delete(notificationId);
+        return notificationMapper.delete(notificationId) > 0;
     }
 
     @Override
     public boolean deleteAllNotifications(String userId) {
-        return notificationDao.deleteAll(userId);
+        return notificationMapper.deleteAll(userId) > 0;
     }
 
     @Override
     public int getUnreadCount(String userId) {
-        return notificationDao.countUnread(userId);
+        return notificationMapper.countUnread(userId);
     }
 
     @Override
@@ -203,7 +203,7 @@ public class NotificationServiceImpl implements NotificationService {
             "/bdproject/project_mypage.jsp?viewQuestion=" + questionId
         );
 
-        Long notificationId = notificationDao.create(notification);
+        Long notificationId = notificationMapper.create(notification);
         logger.info("FAQ 답변 알림 생성 완료 - userId: {}, questionId: {}", userId, questionId);
         logger.info("생성된 notificationId: {}", notificationId);
 
@@ -344,7 +344,7 @@ public class NotificationServiceImpl implements NotificationService {
                     // event_date 설정 (알림이 표시되는 날짜)
                     notification.setEventDate(java.sql.Date.valueOf(notificationDate));
 
-                    Long notifId = notificationDao.create(notification);
+                    Long notifId = notificationMapper.create(notification);
                     if (notifId != null) {
                         count++;
                         logger.info("✅ 정기 기부 알림 생성 성공 - notificationId: {}, donationId: {}", notifId, donationId);
@@ -453,7 +453,7 @@ public class NotificationServiceImpl implements NotificationService {
                     // event_date 설정 (알림이 표시되는 날짜)
                     notification.setEventDate(java.sql.Date.valueOf(notificationDate));
 
-                    Long notifId = notificationDao.create(notification);
+                    Long notifId = notificationMapper.create(notification);
                     if (notifId != null) {
                         count++;
                         logger.info("✅ 봉사 활동 알림 생성 성공 - notificationId: {}, applicationId: {}", notifId, applicationId);
@@ -542,7 +542,7 @@ public class NotificationServiceImpl implements NotificationService {
                     // event_date 설정 (알림이 표시되는 날짜)
                     notification.setEventDate(java.sql.Date.valueOf(notificationDate));
 
-                    notificationDao.create(notification);
+                    notificationMapper.create(notification);
                     count++;
                     logger.info("캘린더 일정 알림 생성 - eventId: {}, notificationDate: {}",
                         eventId, notificationDate);
@@ -806,7 +806,7 @@ public class NotificationServiceImpl implements NotificationService {
             "/bdproject/project_mypage.jsp"
         );
 
-        Long notificationId = notificationDao.create(notification);
+        Long notificationId = notificationMapper.create(notification);
         logger.info("봉사활동 승인 알림 생성 완료 - userId: {}, notificationId: {}", userId, notificationId);
 
         return notificationId;
@@ -819,13 +819,13 @@ public class NotificationServiceImpl implements NotificationService {
      * @return 알림 설정이 활성화되어 있으면 true
      */
     private boolean isNotificationEnabled(Long memberId, String notificationType) {
-        if (notificationSettingsDao == null || memberId == null) {
+        if (notificationSettingsMapper == null || memberId == null) {
             // DAO가 없거나 memberId가 없으면 기본값(true) 반환
             return true;
         }
 
         try {
-            NotificationSettings settings = notificationSettingsDao.selectByMemberId(memberId);
+            NotificationSettings settings = notificationSettingsMapper.selectByMemberId(memberId);
 
             // 설정이 없으면 기본값(true) 반환
             if (settings == null) {

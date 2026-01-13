@@ -1,12 +1,15 @@
 package com.greenart.bdproject.service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.greenart.bdproject.dao.DonationDao;
+import com.greenart.bdproject.mapper.DonationMapper;
 import com.greenart.bdproject.dto.DonationDto;
 
 @Service
@@ -14,18 +17,19 @@ import com.greenart.bdproject.dto.DonationDto;
 public class DonationService {
 
     @Autowired
-    private DonationDao donationDao;
+    private DonationMapper donationMapper;
 
     /**
-     * 기부 등록
+     * 기부 등록 (캐시 무효화)
      * @param donation 기부 정보
      * @return 등록된 기부 정보
      */
+    @CacheEvict(value = "donationStats", allEntries = true)
     public DonationDto createDonation(DonationDto donation) {
-        int result = donationDao.insertDonation(donation);
+        int result = donationMapper.insert(donation);
 
         if (result > 0) {
-            return donationDao.selectById(donation.getDonationId());
+            return donationMapper.selectById(donation.getDonationId().intValue());
         }
 
         return null;
@@ -37,7 +41,7 @@ public class DonationService {
      * @return 기부 정보
      */
     public DonationDto getDonationById(Long donationId) {
-        return donationDao.selectById(donationId);
+        return donationMapper.selectById(donationId.intValue());
     }
 
     /**
@@ -45,8 +49,8 @@ public class DonationService {
      * @param userId 사용자 ID
      * @return 기부 내역 리스트
      */
-    public List<DonationDto> getUserDonations(Long userId) {
-        return donationDao.selectByUserId(userId);
+    public List<DonationDto> getUserDonations(String userId) {
+        return donationMapper.selectByUserId(userId);
     }
 
     /**
@@ -54,23 +58,25 @@ public class DonationService {
      * @return 전체 기부 내역 리스트
      */
     public List<DonationDto> getAllDonations() {
-        return donationDao.selectAll();
+        return donationMapper.selectAll();
     }
 
     /**
-     * 총 기부 금액 조회
+     * 총 기부 금액 조회 (캐시 적용)
      * @return 총 기부 금액
      */
-    public Double getTotalAmount() {
-        Double totalAmount = donationDao.getTotalDonationAmount();
-        return totalAmount != null ? totalAmount : 0.0;
+    @Cacheable(value = "donationStats", key = "'totalAmount'")
+    public BigDecimal getTotalAmount() {
+        BigDecimal totalAmount = donationMapper.getTotalDonationAmount();
+        return totalAmount != null ? totalAmount : BigDecimal.ZERO;
     }
 
     /**
-     * 총 기부자 수 조회
+     * 총 기부자 수 조회 (캐시 적용)
      * @return 총 기부자 수
      */
+    @Cacheable(value = "donationStats", key = "'totalDonorCount'")
     public int getTotalDonorCount() {
-        return donationDao.countTotalDonors();
+        return donationMapper.countTotalDonors();
     }
 }

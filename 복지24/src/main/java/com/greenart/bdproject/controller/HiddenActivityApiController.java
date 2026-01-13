@@ -19,8 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.greenart.bdproject.dao.HiddenActivityDao;
-import com.greenart.bdproject.dao.ProjectMemberDao;
+import com.greenart.bdproject.mapper.HiddenActivityMapper;
+import com.greenart.bdproject.mapper.MemberMapper;
 import com.greenart.bdproject.dto.Member;
 
 /**
@@ -36,10 +36,10 @@ public class HiddenActivityApiController {
     private static final Logger logger = LoggerFactory.getLogger(HiddenActivityApiController.class);
 
     @Autowired
-    private HiddenActivityDao hiddenActivityDao;
+    private HiddenActivityMapper hiddenActivityMapper;
 
     @Autowired
-    private ProjectMemberDao projectMemberDao;
+    private MemberMapper memberMapper;
 
     /**
      * 활동 숨김 처리
@@ -74,7 +74,7 @@ public class HiddenActivityApiController {
             }
 
             // 숨김 처리
-            int result = hiddenActivityDao.hideActivity(memberId, activityType, activityId);
+            int result = hiddenActivityMapper.hideActivity(memberId, activityType, activityId);
 
             if (result > 0) {
                 response.put("success", true);
@@ -119,7 +119,7 @@ public class HiddenActivityApiController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
             }
 
-            int result = hiddenActivityDao.unhideActivity(memberId, activityType, activityId);
+            int result = hiddenActivityMapper.unhideActivity(memberId, activityType, activityId);
 
             if (result > 0) {
                 response.put("success", true);
@@ -162,7 +162,7 @@ public class HiddenActivityApiController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
             }
 
-            List<Long> hiddenIds = hiddenActivityDao.getHiddenActivityIds(memberId, activityType);
+            List<Long> hiddenIds = hiddenActivityMapper.getHiddenActivityIds(memberId, activityType);
 
             response.put("success", true);
             response.put("hiddenIds", hiddenIds);
@@ -195,7 +195,7 @@ public class HiddenActivityApiController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
             }
 
-            int result = hiddenActivityDao.deleteAllHidden(memberId);
+            int result = hiddenActivityMapper.deleteAllHidden(memberId);
 
             response.put("success", true);
             response.put("deletedCount", result);
@@ -225,7 +225,7 @@ public class HiddenActivityApiController {
                 return null;
             }
 
-            Member member = projectMemberDao.select(email);
+            Member member = memberMapper.select(email);
             return member != null ? member.getMemberId() : null;
 
         } catch (Exception e) {

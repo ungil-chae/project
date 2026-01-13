@@ -1,7 +1,7 @@
 package com.greenart.bdproject.controller;
 
-import com.greenart.bdproject.dao.FavoriteWelfareServiceDao;
-import com.greenart.bdproject.dao.ProjectMemberDao;
+import com.greenart.bdproject.mapper.FavoriteWelfareServiceMapper;
+import com.greenart.bdproject.mapper.MemberMapper;
 import com.greenart.bdproject.dto.FavoriteWelfareServiceDto;
 import com.greenart.bdproject.dto.Member;
 import org.slf4j.Logger;
@@ -25,10 +25,10 @@ public class FavoriteWelfareApiController {
     private static final Logger logger = LoggerFactory.getLogger(FavoriteWelfareApiController.class);
 
     @Autowired
-    private FavoriteWelfareServiceDao favoriteDao;
+    private FavoriteWelfareServiceMapper favoriteMapper;
 
     @Autowired
-    private ProjectMemberDao memberDao;
+    private MemberMapper memberMapper;
 
     /**
      * 즐겨찾기 추가
@@ -61,7 +61,7 @@ public class FavoriteWelfareApiController {
             }
 
             // 회원 정보 조회
-            Member member = memberDao.select(userEmail);
+            Member member = memberMapper.select(userEmail);
             if (member == null) {
                 response.put("success", false);
                 response.put("message", "회원 정보를 찾을 수 없습니다.");
@@ -71,7 +71,7 @@ public class FavoriteWelfareApiController {
             Long memberId = member.getMemberId();
 
             // 이미 즐겨찾기에 있는지 확인
-            if (favoriteDao.exists(memberId, serviceId)) {
+            if (favoriteMapper.exists(memberId, serviceId)) {
                 response.put("success", false);
                 response.put("message", "이미 즐겨찾기에 추가된 서비스입니다.");
                 return response;
@@ -89,7 +89,7 @@ public class FavoriteWelfareApiController {
             favorite.setLifecycleCode(lifecycleCode);
             favorite.setMemo(memo);
 
-            int result = favoriteDao.insert(favorite);
+            int result = favoriteMapper.insert(favorite);
 
             if (result > 0) {
                 response.put("success", true);
@@ -133,7 +133,7 @@ public class FavoriteWelfareApiController {
             }
 
             // 회원 정보 조회
-            Member member = memberDao.select(userEmail);
+            Member member = memberMapper.select(userEmail);
             if (member == null) {
                 response.put("success", false);
                 response.put("message", "회원 정보를 찾을 수 없습니다.");
@@ -143,7 +143,7 @@ public class FavoriteWelfareApiController {
             Long memberId = member.getMemberId();
 
             // 즐겨찾기 삭제
-            int result = favoriteDao.delete(memberId, serviceId);
+            int result = favoriteMapper.delete(memberId, serviceId);
 
             if (result > 0) {
                 response.put("success", true);
@@ -184,7 +184,7 @@ public class FavoriteWelfareApiController {
             }
 
             // 회원 정보 조회
-            Member member = memberDao.select(userEmail);
+            Member member = memberMapper.select(userEmail);
             if (member == null) {
                 response.put("success", false);
                 response.put("message", "회원 정보를 찾을 수 없습니다.");
@@ -194,7 +194,7 @@ public class FavoriteWelfareApiController {
             Long memberId = member.getMemberId();
 
             // 즐겨찾기 목록 조회
-            List<FavoriteWelfareServiceDto> favorites = favoriteDao.selectByMemberId(memberId);
+            List<FavoriteWelfareServiceDto> favorites = favoriteMapper.selectByMemberId(memberId);
 
             response.put("success", true);
             response.put("data", favorites);
@@ -235,7 +235,7 @@ public class FavoriteWelfareApiController {
             }
 
             // 회원 정보 조회
-            Member member = memberDao.select(userEmail);
+            Member member = memberMapper.select(userEmail);
             if (member == null) {
                 response.put("success", false);
                 response.put("isFavorite", false);
@@ -246,7 +246,7 @@ public class FavoriteWelfareApiController {
             Long memberId = member.getMemberId();
 
             // 즐겨찾기 여부 확인
-            boolean isFavorite = favoriteDao.exists(memberId, serviceId);
+            boolean isFavorite = favoriteMapper.exists(memberId, serviceId);
 
             response.put("success", true);
             response.put("isFavorite", isFavorite);
@@ -291,7 +291,7 @@ public class FavoriteWelfareApiController {
             }
 
             // 회원 정보 조회
-            Member member = memberDao.select(userEmail);
+            Member member = memberMapper.select(userEmail);
             if (member == null) {
                 response.put("success", false);
                 response.put("message", "회원 정보를 찾을 수 없습니다.");
@@ -301,11 +301,11 @@ public class FavoriteWelfareApiController {
             Long memberId = member.getMemberId();
 
             // 즐겨찾기 여부 확인
-            boolean exists = favoriteDao.exists(memberId, serviceId);
+            boolean exists = favoriteMapper.exists(memberId, serviceId);
 
             if (exists) {
                 // 이미 있으면 삭제
-                int result = favoriteDao.delete(memberId, serviceId);
+                int result = favoriteMapper.delete(memberId, serviceId);
                 if (result > 0) {
                     response.put("success", true);
                     response.put("action", "removed");
@@ -328,7 +328,7 @@ public class FavoriteWelfareApiController {
                 favorite.setSupportType(supportType);
                 favorite.setLifecycleCode(lifecycleCode);
 
-                int result = favoriteDao.insert(favorite);
+                int result = favoriteMapper.insert(favorite);
                 if (result > 0) {
                     response.put("success", true);
                     response.put("action", "added");

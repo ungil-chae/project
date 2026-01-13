@@ -8,10 +8,13 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.greenart.bdproject.dao.FaqDao;
+import com.greenart.bdproject.mapper.FaqMapper;
 import com.greenart.bdproject.dto.FaqDto;
 import com.greenart.bdproject.dto.SearchResultDto;
 
@@ -20,31 +23,34 @@ import com.greenart.bdproject.dto.SearchResultDto;
 public class FaqService {
 
     @Autowired
-    private FaqDao faqDao;
+    private FaqMapper faqMapper;
 
     /**
-     * 전체 FAQ 조회
+     * 전체 FAQ 조회 (캐시 적용)
      * @return 전체 FAQ 리스트
      */
+    @Cacheable(value = "allFaqs")
     public List<FaqDto> getAllFaqs() {
-        return faqDao.selectAll();
+        return faqMapper.selectAll();
     }
 
     /**
-     * 활성화된 FAQ만 조회
+     * 활성화된 FAQ만 조회 (캐시 적용)
      * @return 활성화된 FAQ 리스트
      */
+    @Cacheable(value = "activeFaqs")
     public List<FaqDto> getActiveFaqs() {
-        return faqDao.selectActiveFaqs();
+        return faqMapper.selectActiveFaqs();
     }
 
     /**
-     * 카테고리별 FAQ 조회
+     * 카테고리별 FAQ 조회 (캐시 적용)
      * @param category 카테고리
      * @return 카테고리별 FAQ 리스트
      */
+    @Cacheable(value = "faqsByCategory", key = "#category")
     public List<FaqDto> getFaqsByCategory(String category) {
-        return faqDao.selectByCategory(category);
+        return faqMapper.selectByCategory(category);
     }
 
     /**
@@ -53,14 +59,19 @@ public class FaqService {
      * @return FAQ 정보
      */
     public FaqDto getFaqById(Long faqId) {
-        return faqDao.selectById(faqId);
+        return faqMapper.selectById(faqId);
     }
 
     /**
-     * FAQ 등록
+     * FAQ 등록 (캐시 무효화)
      * @param faq FAQ 정보
      * @return 등록된 FAQ ID
      */
+    @Caching(evict = {
+        @CacheEvict(value = "allFaqs", allEntries = true),
+        @CacheEvict(value = "activeFaqs", allEntries = true),
+        @CacheEvict(value = "faqsByCategory", allEntries = true)
+    })
     public Long createFaq(FaqDto faq) {
         if (faq.getOrderNum() == null) {
             faq.setOrderNum(0);
@@ -68,26 +79,36 @@ public class FaqService {
         if (faq.getIsActive() == null) {
             faq.setIsActive(true);
         }
-        faqDao.insert(faq);
+        faqMapper.insert(faq);
         return faq.getFaqId();
     }
 
     /**
-     * FAQ 수정
+     * FAQ 수정 (캐시 무효화)
      * @param faq FAQ 정보
      * @return 수정 성공 여부
      */
+    @Caching(evict = {
+        @CacheEvict(value = "allFaqs", allEntries = true),
+        @CacheEvict(value = "activeFaqs", allEntries = true),
+        @CacheEvict(value = "faqsByCategory", allEntries = true)
+    })
     public boolean updateFaq(FaqDto faq) {
-        return faqDao.update(faq) > 0;
+        return faqMapper.update(faq) > 0;
     }
 
     /**
-     * FAQ 삭제
+     * FAQ 삭제 (캐시 무효화)
      * @param faqId FAQ ID
      * @return 삭제 성공 여부
      */
+    @Caching(evict = {
+        @CacheEvict(value = "allFaqs", allEntries = true),
+        @CacheEvict(value = "activeFaqs", allEntries = true),
+        @CacheEvict(value = "faqsByCategory", allEntries = true)
+    })
     public boolean deleteFaq(Long faqId) {
-        return faqDao.deleteById(faqId) > 0;
+        return faqMapper.deleteById(faqId) > 0;
     }
 
     /**
@@ -101,7 +122,7 @@ public class FaqService {
         }
 
         String normalizedKeyword = keyword.trim().toLowerCase();
-        List<FaqDto> faqs = faqDao.searchFaqs(normalizedKeyword);
+        List<FaqDto> faqs = faqMapper.searchFaqs(normalizedKeyword);
 
         return faqs.stream()
                 .map(faq -> enrichSearchResult(faq, normalizedKeyword))
@@ -122,7 +143,7 @@ public class FaqService {
         }
 
         String normalizedKeyword = keyword.trim().toLowerCase();
-        List<FaqDto> faqs = faqDao.searchFaqsByCategory(normalizedKeyword, category);
+        List<FaqDto> faqs = faqMapper.searchFaqsByCategory(normalizedKeyword, category);
 
         return faqs.stream()
                 .map(faq -> enrichSearchResult(faq, normalizedKeyword))

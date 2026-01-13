@@ -361,6 +361,11 @@ body {
     color: white;
 }
 
+.badge-secondary {
+    background: #6c757d;
+    color: white;
+}
+
 /* 액션 버튼 */
 .table-actions {
     display: flex;

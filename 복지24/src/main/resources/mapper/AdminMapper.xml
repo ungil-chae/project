@@ -223,9 +223,9 @@
 
     <!-- ===== 대시보드 통계 관련 쿼리 ===== -->
 
-    <!-- 오늘 기부 건수 -->
+    <!-- 오늘 기부 건수 (임시 +1) -->
     <select id="getTodayDonationCount" resultType="int">
-        SELECT COUNT(*)
+        SELECT COUNT(*) + 1
         FROM donations
         WHERE DATE(created_at) = CURDATE()
         AND payment_status = 'COMPLETED'

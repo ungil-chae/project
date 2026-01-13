@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.greenart.bdproject.dao.MemberDao;
+import com.greenart.bdproject.mapper.MemberMapper;
 import com.greenart.bdproject.dto.Member;
 
 /**
@@ -40,7 +40,7 @@ public class NoticeApiController {
     private DataSource dataSource;
 
     @Autowired
-    private MemberDao memberDao;
+    private MemberMapper memberMapper;
 
     /**
      * 공지사항 목록 조회
@@ -293,7 +293,7 @@ public class NoticeApiController {
                 return response;
             }
 
-            Member member = memberDao.select(userId);
+            Member member = memberMapper.select(userId);
             if (member == null || !"ADMIN".equals(member.getRole())) {
                 response.put("success", false);
                 response.put("message", "관리자 권한이 필요합니다.");
@@ -364,7 +364,7 @@ public class NoticeApiController {
                 return response;
             }
 
-            Member member = memberDao.select(userId);
+            Member member = memberMapper.select(userId);
             if (member == null || !"ADMIN".equals(member.getRole())) {
                 response.put("success", false);
                 response.put("message", "관리자 권한이 필요합니다.");
@@ -426,7 +426,7 @@ public class NoticeApiController {
                 return response;
             }
 
-            Member member = memberDao.select(userId);
+            Member member = memberMapper.select(userId);
             if (member == null || !"ADMIN".equals(member.getRole())) {
                 response.put("success", false);
                 response.put("message", "관리자 권한이 필요합니다.");

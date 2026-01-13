@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.greenart.bdproject.dto.Member;
-import com.greenart.bdproject.dao.PasswordHistoryDao;
-import com.greenart.bdproject.dao.ProjectMemberDao;
+import com.greenart.bdproject.mapper.PasswordHistoryMapper;
+import com.greenart.bdproject.mapper.MemberMapper;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -33,10 +33,10 @@ public class MemberApiController {
     private static final Logger logger = LoggerFactory.getLogger(MemberApiController.class);
 
     @Autowired
-    private ProjectMemberDao memberDao;
+    private MemberMapper memberMapper;
 
     @Autowired
-    private PasswordHistoryDao passwordHistoryDao;
+    private PasswordHistoryMapper passwordHistoryMapper;
 
     private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -60,7 +60,7 @@ public class MemberApiController {
                 return response;
             }
 
-            Member member = memberDao.select(userId);
+            Member member = memberMapper.select(userId);
             if (member == null) {
                 response.put("success", false);
                 response.put("message", "회원 정보를 찾을 수 없습니다.");
@@ -125,7 +125,7 @@ public class MemberApiController {
             }
 
             // 현재 사용자 정보 조회
-            Member member = memberDao.select(userId);
+            Member member = memberMapper.select(userId);
             if (member == null) {
                 logger.warn("사용자를 찾을 수 없음: {}", userId);
                 response.put("success", false);
@@ -196,8 +196,8 @@ public class MemberApiController {
             }
 
             // 이전에 사용했던 비밀번호인지 확인 (최근 5개)
-            if (passwordHistoryDao != null) {
-                List<String> recentPasswords = passwordHistoryDao.getRecentPasswordHashes(memberId);
+            if (passwordHistoryMapper != null) {
+                List<String> recentPasswords = passwordHistoryMapper.getRecentPasswordHashes(memberId);
                 for (String oldHash : recentPasswords) {
                     if (passwordEncoder.matches(newPassword, oldHash)) {
                         logger.warn("이전에 사용했던 비밀번호로 변경 시도: {}", userId);
@@ -209,9 +209,9 @@ public class MemberApiController {
             }
 
             // 현재 비밀번호를 이력에 저장 (변경 전)
-            if (passwordHistoryDao != null && currentPasswordHash != null) {
-                passwordHistoryDao.savePasswordHistory(memberId, currentPasswordHash);
-                passwordHistoryDao.deleteOldHistory(memberId); // 최근 5개만 유지
+            if (passwordHistoryMapper != null && currentPasswordHash != null) {
+                passwordHistoryMapper.savePasswordHistory(memberId, currentPasswordHash);
+                passwordHistoryMapper.deleteOldHistory(memberId); // 최근 5개만 유지
                 logger.info("이전 비밀번호 이력 저장 완료: memberId={}", memberId);
             }
 
@@ -219,7 +219,7 @@ public class MemberApiController {
             String encodedNewPassword = passwordEncoder.encode(newPassword);
             member.setPwd(encodedNewPassword);
             logger.info("비밀번호 업데이트 시작: {}", userId);
-            int result = memberDao.update(member);
+            int result = memberMapper.update(member);
             logger.info("비밀번호 업데이트 결과: {}", result);
 
             if (result > 0) {
@@ -280,7 +280,7 @@ public class MemberApiController {
             }
 
             // 현재 사용자 정보 조회
-            Member member = memberDao.select(userId);
+            Member member = memberMapper.select(userId);
             if (member == null) {
                 logger.warn("사용자를 찾을 수 없음: {}", userId);
                 response.put("success", false);
@@ -343,7 +343,7 @@ public class MemberApiController {
             }
 
             // DB 업데이트
-            int result = memberDao.updateProfile(member);
+            int result = memberMapper.updateProfile(member);
             logger.info("프로필 업데이트 결과: {}", result);
 
             if (result > 0) {
@@ -398,7 +398,7 @@ public class MemberApiController {
             logger.info("탈퇴 요청 사용자: {}", userId);
 
             // 회원 정보 조회
-            Member member = memberDao.select(userId);
+            Member member = memberMapper.select(userId);
             if (member == null) {
                 logger.warn("회원 정보를 찾을 수 없음: {}", userId);
                 response.put("success", false);
@@ -418,7 +418,7 @@ public class MemberApiController {
             }
 
             // 회원 삭제 (소프트 삭제)
-            int result = memberDao.delete(userId);
+            int result = memberMapper.delete(userId);
             logger.info("회원 삭제 결과: {}", result);
 
             if (result > 0) {

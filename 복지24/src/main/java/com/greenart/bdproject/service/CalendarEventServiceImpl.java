@@ -1,6 +1,6 @@
 package com.greenart.bdproject.service;
 
-import com.greenart.bdproject.dao.CalendarEventDao;
+import com.greenart.bdproject.mapper.CalendarEventMapper;
 import com.greenart.bdproject.dto.CalendarEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,13 +19,13 @@ public class CalendarEventServiceImpl implements CalendarEventService {
     private static final Logger logger = LoggerFactory.getLogger(CalendarEventServiceImpl.class);
 
     @Autowired
-    private CalendarEventDao calendarEventDao;
+    private CalendarEventMapper calendarEventMapper;
 
     @Override
     public Long createEvent(CalendarEvent event) {
         try {
             logger.info("일정 생성 요청 - title: {}, memberId: {}", event.getTitle(), event.getMemberId());
-            return calendarEventDao.insert(event);
+            return calendarEventMapper.insert(event);
         } catch (Exception e) {
             logger.error("일정 생성 중 오류", e);
             return null;
@@ -36,7 +36,7 @@ public class CalendarEventServiceImpl implements CalendarEventService {
     public boolean updateEvent(CalendarEvent event) {
         try {
             logger.info("일정 수정 요청 - eventId: {}", event.getEventId());
-            return calendarEventDao.update(event) > 0;
+            return calendarEventMapper.update(event) > 0;
         } catch (Exception e) {
             logger.error("일정 수정 중 오류", e);
             return false;
@@ -47,7 +47,7 @@ public class CalendarEventServiceImpl implements CalendarEventService {
     public boolean deleteEvent(Long eventId) {
         try {
             logger.info("일정 삭제 요청 - eventId: {}", eventId);
-            return calendarEventDao.delete(eventId) > 0;
+            return calendarEventMapper.delete(eventId) > 0;
         } catch (Exception e) {
             logger.error("일정 삭제 중 오류", e);
             return false;
@@ -57,7 +57,7 @@ public class CalendarEventServiceImpl implements CalendarEventService {
     @Override
     public CalendarEvent getEventById(Long eventId) {
         try {
-            return calendarEventDao.selectById(eventId);
+            return calendarEventMapper.selectById(eventId);
         } catch (Exception e) {
             logger.error("일정 조회 중 오류", e);
             return null;
@@ -68,7 +68,7 @@ public class CalendarEventServiceImpl implements CalendarEventService {
     public List<CalendarEvent> getEventsByMemberId(Long memberId) {
         try {
             logger.info("회원 일정 조회 요청 - memberId: {}", memberId);
-            return calendarEventDao.selectByMemberId(memberId);
+            return calendarEventMapper.selectByMemberId(memberId);
         } catch (Exception e) {
             logger.error("회원 일정 조회 중 오류", e);
             return List.of();
@@ -78,7 +78,7 @@ public class CalendarEventServiceImpl implements CalendarEventService {
     @Override
     public List<CalendarEvent> getEventsByMemberIdAndDate(Long memberId, Date eventDate) {
         try {
-            return calendarEventDao.selectByMemberIdAndDate(memberId, eventDate);
+            return calendarEventMapper.selectByMemberIdAndDate(memberId, eventDate);
         } catch (Exception e) {
             logger.error("특정 날짜 일정 조회 중 오류", e);
             return List.of();
@@ -90,7 +90,7 @@ public class CalendarEventServiceImpl implements CalendarEventService {
         try {
             logger.info("날짜 범위 일정 조회 - memberId: {}, startDate: {}, endDate: {}",
                     new Object[]{memberId, startDate, endDate});
-            return calendarEventDao.selectByMemberIdAndDateRange(memberId, startDate, endDate);
+            return calendarEventMapper.selectByMemberIdAndDateRange(memberId, startDate, endDate);
         } catch (Exception e) {
             logger.error("날짜 범위 일정 조회 중 오류", e);
             return List.of();
@@ -101,7 +101,7 @@ public class CalendarEventServiceImpl implements CalendarEventService {
     public boolean updateEventStatus(Long eventId, String status) {
         try {
             logger.info("일정 상태 변경 요청 - eventId: {}, status: {}", eventId, status);
-            return calendarEventDao.updateStatus(eventId, status) > 0;
+            return calendarEventMapper.updateStatus(eventId, status) > 0;
         } catch (Exception e) {
             logger.error("일정 상태 변경 중 오류", e);
             return false;
@@ -112,7 +112,7 @@ public class CalendarEventServiceImpl implements CalendarEventService {
     public int deleteAllEventsByMemberId(Long memberId) {
         try {
             logger.info("회원의 모든 일정 삭제 요청 - memberId: {}", memberId);
-            return calendarEventDao.deleteAllByMemberId(memberId);
+            return calendarEventMapper.deleteAllByMemberId(memberId);
         } catch (Exception e) {
             logger.error("회원의 모든 일정 삭제 중 오류", e);
             return 0;

@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.greenart.bdproject.dao.ProjectMemberDao;
+import com.greenart.bdproject.mapper.MemberMapper;
 import com.greenart.bdproject.dto.Member;
 
 /**
@@ -45,7 +45,7 @@ public class ProfileImageApiController {
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
 
     @Autowired
-    private ProjectMemberDao memberDao;
+    private MemberMapper memberMapper;
 
     @Autowired
     private ServletContext servletContext;
@@ -126,7 +126,7 @@ public class ProfileImageApiController {
             String imageUrl = WEB_PATH + newFilename;
 
             // DB 업데이트 (Member 테이블의 profile_image_url 컬럼)
-            Member member = memberDao.select(userEmail);
+            Member member = memberMapper.select(userEmail);
             if (member == null) {
                 response.put("success", false);
                 response.put("message", "사용자 정보를 찾을 수 없습니다.");
@@ -141,7 +141,7 @@ public class ProfileImageApiController {
 
             // 새 이미지 URL 저장
             member.setProfileImageUrl(imageUrl);
-            int result = memberDao.updateProfileImage(userEmail, imageUrl);
+            int result = memberMapper.updateProfileImage(userEmail, imageUrl);
 
             if (result > 0) {
                 response.put("success", true);
@@ -185,7 +185,7 @@ public class ProfileImageApiController {
                 return response;
             }
 
-            Member member = memberDao.select(userEmail);
+            Member member = memberMapper.select(userEmail);
             if (member != null && member.getProfileImageUrl() != null) {
                 response.put("success", true);
                 response.put("imageUrl", member.getProfileImageUrl());

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.greenart.bdproject.dao.ProjectMemberDao">
+<mapper namespace="com.greenart.bdproject.mapper.MemberMapper">
 	<!-- 회원 등록 (신규 스키마: email이 로그인 ID) -->
 	<insert id="insert" parameterType="Member">
 		INSERT INTO member (email, pwd, name, phone, role, status, birth, gender)
@@ -160,4 +160,65 @@
 		    detail_address = #{detailAddress}
 		WHERE email = #{email}
 	</update>
+
+	<!-- 이메일 존재 여부 확인 (활성 계정) -->
+	<select id="existsByEmail" parameterType="String" resultType="boolean">
+		SELECT COUNT(*) > 0 FROM member WHERE email = #{email} AND deleted_at IS NULL
+	</select>
+
+	<!-- 삭제된 계정 조회 -->
+	<select id="selectDeleted" parameterType="String" resultType="Member">
+		SELECT member_id AS memberId, email, pwd, name, phone, role, status, birth, gender,
+		       created_at AS createdAt, updated_at AS updatedAt, deleted_at AS deletedAt
+		FROM member
+		WHERE email = #{email} AND deleted_at IS NOT NULL
+	</select>
+
+	<!-- 계정 재활성화 -->
+	<update id="reactivateAccount" parameterType="Member">
+		UPDATE member
+		SET pwd = #{pwd},
+		    name = #{name},
+		    phone = #{phone},
+		    role = COALESCE(#{role}, 'USER'),
+		    status = 'ACTIVE',
+		    deleted_at = NULL,
+		    login_fail_count = 0,
+		    account_locked_until = NULL,
+		    updated_at = NOW()
+		WHERE email = #{email}
+	</update>
+
+	<!-- 로그인 실패 횟수 초기화 -->
+	<update id="resetLoginFailCount" parameterType="String">
+		UPDATE member
+		SET login_fail_count = 0,
+		    account_locked_until = NULL,
+		    last_login_at = NOW()
+		WHERE email = #{email}
+	</update>
+
+	<!-- 로그인 실패 횟수 증가 -->
+	<update id="incrementLoginFailCount" parameterType="String">
+		UPDATE member
+		SET login_fail_count = COALESCE(login_fail_count, 0) + 1,
+		    last_login_fail_at = NOW()
+		WHERE email = #{email}
+	</update>
+
+	<!-- 계정 잠금 (분 단위) -->
+	<update id="lockAccount" parameterType="map">
+		UPDATE member
+		SET account_locked_until = DATE_ADD(NOW(), INTERVAL #{minutes} MINUTE)
+		WHERE email = #{email}
+	</update>
+
+	<!-- 아이디와 보안 질문 답변으로 회원 찾기 -->
+	<select id="findByIdAndSecurityAnswer" parameterType="map" resultType="Member">
+		SELECT member_id AS memberId, email, pwd, name, phone, role, status, birth, gender,
+		       security_question AS securityQuestion, security_answer AS securityAnswer,
+		       created_at AS createdAt, updated_at AS updatedAt
+		FROM member
+		WHERE email = #{email} AND security_answer = #{securityAnswer} AND deleted_at IS NULL
+	</select>
 </mapper>

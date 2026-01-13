@@ -83,7 +83,6 @@
                 <div class="menu-item" onclick="showSection('refund-requests')">
                     <i class="fas fa-undo-alt"></i>
                     <span>환불 요청 관리</span>
-                    <span id="refundBadge" class="badge" style="display: none; margin-left: auto; background: #e74c3c; color: white; padding: 2px 6px; border-radius: 10px; font-size: 11px;"></span>
                 </div>
                 <div class="menu-item" onclick="showSection('volunteers')">
                     <i class="fas fa-hands-helping"></i>
@@ -722,10 +721,6 @@
                     <div class="detail-row">
                         <span class="detail-label">기부 일시:</span>
                         <span class="detail-value" id="detailCreatedAt">-</span>
-                    </div>
-                    <div class="detail-row full-width">
-                        <span class="detail-label">후원 메시지:</span>
-                        <p class="detail-message" id="detailMessage">-</p>
                     </div>
                 </div>
             </div>

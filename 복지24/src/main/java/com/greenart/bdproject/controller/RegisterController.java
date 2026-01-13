@@ -7,14 +7,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import com.greenart.bdproject.dao.ProjectMemberDao;
+import com.greenart.bdproject.mapper.MemberMapper;
 import com.greenart.bdproject.dto.Member;
 
 @Controller
 public class RegisterController {
-	
+
 	@Autowired
-	ProjectMemberDao dao;
+	MemberMapper memberMapper;
 	
 	@GetMapping("/register/add")
 	public String register() {
@@ -24,7 +24,7 @@ public class RegisterController {
 	@GetMapping("/register/checkId")
 	@ResponseBody
 	public String checkId(@RequestParam("email") String email) {
-		int count = dao.countByEmail(email);
+		int count = memberMapper.countByEmail(email);
 		if (count > 0) {
 			return "duplicate";
 		} else {
@@ -34,13 +34,13 @@ public class RegisterController {
 	
 	@PostMapping("/register/save")
 	public String save(Member member, RedirectAttributes reatt) {
-		int res = dao.insert(member);
+		int res = memberMapper.insert(member);
 		
 		if (res == 1) {
 			reatt.addFlashAttribute("register", "suc");
 			return "redirect:/login/login";
 		} else {
-			reatt.addFlashAttribute("msg", "È¸¿ø°¡ÀÔ¿¡ ½ÇÆÐÇß½À´Ï´Ù.");
+			reatt.addFlashAttribute("msg", "È¸ï¿½ï¿½ï¿½ï¿½ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ß½ï¿½ï¿½Ï´ï¿½.");
 			return "redirect:/register/add";
 		}
 	}

@@ -18,8 +18,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.greenart.bdproject.dao.PasswordHistoryDao;
-import com.greenart.bdproject.dao.ProjectMemberDao;
+import com.greenart.bdproject.mapper.PasswordHistoryMapper;
+import com.greenart.bdproject.mapper.MemberMapper;
 import com.greenart.bdproject.dto.Member;
 import com.greenart.bdproject.service.EmailService;
 
@@ -38,7 +38,7 @@ public class PasswordResetController {
     private static final Logger logger = LoggerFactory.getLogger(PasswordResetController.class);
 
     @Autowired
-    private ProjectMemberDao memberDao;
+    private MemberMapper memberMapper;
 
     @Autowired
     private EmailService emailService;
@@ -50,7 +50,7 @@ public class PasswordResetController {
     private BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
-    private PasswordHistoryDao passwordHistoryDao;
+    private PasswordHistoryMapper passwordHistoryMapper;
 
     /**
      * 비밀번호 재설정 인증 코드 발송
@@ -67,7 +67,7 @@ public class PasswordResetController {
             logger.info("email: {}, name: {}", email, name);
 
             // 이메일 존재 확인
-            Member member = memberDao.select(email);
+            Member member = memberMapper.select(email);
             if (member == null) {
                 logger.warn("존재하지 않는 이메일: {}", email);
                 response.put("success", false);
@@ -207,7 +207,7 @@ public class PasswordResetController {
             }
 
             // 회원 정보 조회
-            Member member = memberDao.select(email);
+            Member member = memberMapper.select(email);
             if (member == null) {
                 response.put("success", false);
                 response.put("message", "회원 정보를 찾을 수 없습니다.");
@@ -227,8 +227,8 @@ public class PasswordResetController {
             }
 
             // 이전에 사용했던 비밀번호인지 확인 (최근 5개)
-            if (passwordEncoder != null && passwordHistoryDao != null) {
-                List<String> recentPasswords = passwordHistoryDao.getRecentPasswordHashes(memberId);
+            if (passwordEncoder != null && passwordHistoryMapper != null) {
+                List<String> recentPasswords = passwordHistoryMapper.getRecentPasswordHashes(memberId);
                 for (String oldHash : recentPasswords) {
                     if (passwordEncoder.matches(newPassword, oldHash)) {
                         logger.warn("이전에 사용했던 비밀번호로 변경 시도: {}", email);
@@ -240,9 +240,9 @@ public class PasswordResetController {
             }
 
             // 현재 비밀번호를 이력에 저장 (변경 전)
-            if (passwordHistoryDao != null && member.getPwd() != null) {
-                passwordHistoryDao.savePasswordHistory(memberId, member.getPwd());
-                passwordHistoryDao.deleteOldHistory(memberId); // 최근 5개만 유지
+            if (passwordHistoryMapper != null && member.getPwd() != null) {
+                passwordHistoryMapper.savePasswordHistory(memberId, member.getPwd());
+                passwordHistoryMapper.deleteOldHistory(memberId); // 최근 5개만 유지
                 logger.info("이전 비밀번호 이력 저장 완료: memberId={}", memberId);
             }
 
@@ -255,14 +255,14 @@ public class PasswordResetController {
 
             // 비밀번호 업데이트
             member.setPwd(encodedPassword);
-            int result = memberDao.update(member);
+            int result = memberMapper.update(member);
 
             if (result > 0) {
                 // 인증 코드 사용 처리
                 markVerificationCodeAsUsed(email, code);
 
                 // 로그인 실패 횟수 초기화
-                memberDao.resetLoginFailCount(email);
+                memberMapper.resetLoginFailCount(email);
 
                 response.put("success", true);
                 response.put("message", "비밀번호가 성공적으로 변경되었습니다. 새 비밀번호로 로그인해주세요.");

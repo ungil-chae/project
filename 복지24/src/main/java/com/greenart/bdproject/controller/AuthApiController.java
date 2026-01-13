@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.greenart.bdproject.dto.Member;
-import com.greenart.bdproject.dao.ProjectMemberDao;
+import com.greenart.bdproject.mapper.MemberMapper;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 /**
@@ -38,7 +38,7 @@ public class AuthApiController {
     private static final Logger logger = LoggerFactory.getLogger(AuthApiController.class);
 
     @Autowired
-    private ProjectMemberDao memberDao;
+    private MemberMapper memberMapper;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
@@ -69,7 +69,7 @@ public class AuthApiController {
             logger.info("rememberMe 파라미터: {}", rememberMe);
 
             // 사용자 조회 (email로 검색)
-            Member member = memberDao.select(email);
+            Member member = memberMapper.select(email);
             logger.info("조회된 member: {}", member != null ? member.getEmail() : "null");
 
             if (member == null) {
@@ -98,7 +98,7 @@ public class AuthApiController {
                     return response;
                 } else {
                     // 잠금 해제 시간 지남 - 실패 횟수 초기화
-                    memberDao.resetLoginFailCount(email);
+                    memberMapper.resetLoginFailCount(email);
                     member.setLoginFailCount(0);
                     member.setAccountLockedUntil(null);
                 }
@@ -110,14 +110,14 @@ public class AuthApiController {
 
             if (!passwordMatch) {
                 // 로그인 실패 처리
-                memberDao.incrementLoginFailCount(email);
+                memberMapper.incrementLoginFailCount(email);
                 int failCount = (member.getLoginFailCount() != null ? member.getLoginFailCount() : 0) + 1;
 
                 logger.warn("비밀번호 불일치: {} (실패 횟수: {})", email, failCount);
 
                 if (failCount >= 5) {
                     // 5회 실패 시 5분 잠금
-                    memberDao.lockAccount(email, 5);
+                    memberMapper.lockAccount(email, 5);
                     logger.warn("계정 잠금: {} (5회 실패)", email);
                     response.put("success", false);
                     response.put("message", "로그인이 5회 실패하여 계정이 5분간 잠겼습니다. 잠시 후 다시 시도하거나 비밀번호 찾기를 이용해주세요.");
@@ -168,7 +168,7 @@ public class AuthApiController {
             logger.info("회원 상태 확인 완료: {} (status: {})", email, memberStatus);
 
             // 로그인 성공 - 실패 횟수 초기화
-            memberDao.resetLoginFailCount(email);
+            memberMapper.resetLoginFailCount(email);
 
             // 세션에 사용자 정보 저장 (LoginController와 일관성 유지)
             session.setAttribute("id", member.getEmail());  // LoginController와 동일
@@ -304,7 +304,7 @@ public class AuthApiController {
             logger.info("최종 member.email: {}", member.getEmail());
 
             // 활성 계정 중복 검사
-            if (memberDao.existsByEmail(member.getEmail())) {
+            if (memberMapper.existsByEmail(member.getEmail())) {
                 logger.warn("중복 회원가입 시도 (활성 계정): {}", member.getEmail());
                 response.put("success", false);
                 response.put("message", "이미 등록된 이메일입니다. 다른 이메일을 사용해주세요.");
@@ -312,18 +312,18 @@ public class AuthApiController {
             }
 
             // 삭제된 계정이 있는지 확인
-            Member deletedMember = memberDao.selectDeleted(member.getEmail());
+            Member deletedMember = memberMapper.selectDeleted(member.getEmail());
             int result = 0;
 
             if (deletedMember != null) {
                 // 탈퇴한 계정이 있으면 재활성화
                 logger.info("탈퇴한 계정 재활성화: {}", member.getEmail());
-                result = memberDao.reactivateAccount(member);
+                result = memberMapper.reactivateAccount(member);
                 logger.info("계정 재활성화 결과: {}", result);
             } else {
                 // 새로운 회원가입
                 logger.info("DB insert 시작...");
-                result = memberDao.insert(member);
+                result = memberMapper.insert(member);
                 logger.info("DB insert 결과: {}", result);
             }
 
@@ -375,7 +375,7 @@ public class AuthApiController {
             if (userId != null) {
                 try {
                     // 회원 정보 조회하여 memberId 획득
-                    Member member = memberDao.select(userId);
+                    Member member = memberMapper.select(userId);
                     if (member != null) {
                         // DB에서 자동 로그인 토큰 삭제
                         deleteAutoLoginToken(member.getMemberId());
@@ -475,7 +475,7 @@ public class AuthApiController {
             logger.info("회원 정보 조회 시작: {}", userId);
             Member member = null;
             try {
-                member = memberDao.select(userId);
+                member = memberMapper.select(userId);
                 logger.info("회원 조회 결과: {}", member != null);
             } catch (Exception e) {
                 logger.error("회원 조회 중 예외", e);
@@ -537,7 +537,7 @@ public class AuthApiController {
             }
 
             // 회원 정보 조회
-            Member member = memberDao.select(userId);
+            Member member = memberMapper.select(userId);
             if (member == null) {
                 response.put("success", false);
                 response.put("message", "회원 정보를 찾을 수 없습니다.");
@@ -591,7 +591,7 @@ public class AuthApiController {
             }
 
             // 회원 정보 조회
-            Member member = memberDao.select(userId);
+            Member member = memberMapper.select(userId);
             if (member == null) {
                 response.put("success", false);
                 response.put("message", "회원 정보를 찾을 수 없습니다.");

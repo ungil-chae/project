@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.greenart.bdproject.dao.MemberDao;
+import com.greenart.bdproject.mapper.MemberMapper;
 import com.greenart.bdproject.dto.Member;
 
 @Controller
@@ -23,7 +23,7 @@ public class AuthController {
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     @Autowired
-    private MemberDao memberDao;
+    private MemberMapper memberMapper;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
@@ -40,7 +40,7 @@ public class AuthController {
             logger.info("이름: {}", name);
             logger.info("이메일: {}", email);
 
-            Member member = memberDao.findByNameAndEmail(name, email);
+            Member member = memberMapper.findByNameAndEmail(name, email);
 
             if (member != null) {
                 response.put("success", true);
@@ -73,7 +73,7 @@ public class AuthController {
             logger.info("이름: {}", name);
             logger.info("전화번호: {}", phone);
 
-            Member member = memberDao.findByNameAndPhone(name, phone);
+            Member member = memberMapper.findByNameAndPhone(name, phone);
 
             if (member != null) {
                 // 이메일 일부 마스킹 처리 (보안)
@@ -143,7 +143,7 @@ public class AuthController {
             }
 
             // 아이디와 보안 질문 답변 확인
-            Member member = memberDao.findByIdAndSecurityAnswer(username, securityAnswer);
+            Member member = memberMapper.findByIdAndSecurityAnswer(username, securityAnswer);
 
             if (member == null) {
                 response.put("success", false);
@@ -156,7 +156,7 @@ public class AuthController {
             String encryptedPassword = passwordEncoder.encode(newPassword);
             member.setPwd(encryptedPassword);
 
-            int result = memberDao.update(member);
+            int result = memberMapper.update(member);
 
             if (result > 0) {
                 response.put("success", true);
@@ -186,7 +186,7 @@ public class AuthController {
             System.out.println("========== 보안 질문 조회 ==========");
             System.out.println("아이디: " + username);
 
-            Member member = memberDao.select(username);
+            Member member = memberMapper.select(username);
 
             if (member == null) {
                 System.out.println("회원을 찾을 수 없음");

@@ -12,6 +12,9 @@
 	<!-- Enables the Spring MVC @Controller programming model -->
 	<annotation-driven />
 
+	<!-- JSP 직접 접근 허용 -->
+	<default-servlet-handler/>
+
 	<!-- Handles HTTP GET requests for /resources/** by efficiently serving up static resources in the ${webappRoot}/resources directory -->
 	<resources mapping="/resources/**" location="/resources/" />
 
@@ -27,7 +30,7 @@
 	<!-- 자동 로그인 Interceptor -->
 	
 	<beans:bean id="autoLoginInterceptor" class="com.greenart.bdproject.interceptor.AutoLoginInterceptor">
-		<beans:property name="memberDao" ref="projectMemberDaoImpl" />
+		<beans:property name="memberMapper" ref="memberMapper" />
 		<beans:property name="dataSource" ref="dataSource" />
 	</beans:bean>
 

@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.greenart.bdproject.dao.MemberDao;
+import com.greenart.bdproject.mapper.MemberMapper;
 import com.greenart.bdproject.dto.Member;
 import com.greenart.bdproject.service.EmailService;
 
@@ -31,7 +31,7 @@ public class EmailVerificationController {
     private static final Logger logger = LoggerFactory.getLogger(EmailVerificationController.class);
 
     @Autowired
-    private MemberDao memberDao;
+    private MemberMapper memberMapper;
 
     @Autowired
     private EmailService emailService;
@@ -49,7 +49,7 @@ public class EmailVerificationController {
         try {
             response.put("success", true);
             response.put("message", "Email API is working");
-            response.put("memberDaoAvailable", memberDao != null);
+            response.put("memberMapperAvailable", memberMapper != null);
             response.put("emailServiceAvailable", emailService != null);
             response.put("dataSourceAvailable", dataSource != null);
 
@@ -81,7 +81,7 @@ public class EmailVerificationController {
             logger.info("email: {}", email);
 
             // 이메일 중복 확인
-            Member existingMember = memberDao.select(email);
+            Member existingMember = memberMapper.select(email);
             if (existingMember != null) {
                 logger.warn("이미 등록된 이메일: {}", email);
 

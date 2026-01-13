@@ -1,6 +1,6 @@
 package com.greenart.bdproject.controller;
 
-import com.greenart.bdproject.dao.ProjectMemberDao;
+import com.greenart.bdproject.mapper.MemberMapper;
 import com.greenart.bdproject.dto.CalendarEvent;
 import com.greenart.bdproject.dto.Member;
 import com.greenart.bdproject.service.CalendarEventService;
@@ -29,7 +29,7 @@ public class CalendarEventApiController {
     private CalendarEventService calendarEventService;
 
     @Autowired
-    private ProjectMemberDao memberDao;
+    private MemberMapper memberMapper;
 
     /**
      * 일정 생성
@@ -48,7 +48,7 @@ public class CalendarEventApiController {
             }
 
             // 회원 정보 조회하여 member_id 가져오기
-            Member member = memberDao.select(userId);
+            Member member = memberMapper.select(userId);
             if (member == null) {
                 response.put("success", false);
                 response.put("message", "회원 정보를 찾을 수 없습니다.");
@@ -173,7 +173,7 @@ public class CalendarEventApiController {
                 return response;
             }
 
-            Member member = memberDao.select(userId);
+            Member member = memberMapper.select(userId);
             if (member == null) {
                 response.put("success", false);
                 response.put("message", "회원 정보를 찾을 수 없습니다.");
@@ -211,7 +211,7 @@ public class CalendarEventApiController {
                 return response;
             }
 
-            Member member = memberDao.select(userId);
+            Member member = memberMapper.select(userId);
             if (member == null) {
                 response.put("success", false);
                 response.put("message", "회원 정보를 찾을 수 없습니다.");
@@ -253,7 +253,7 @@ public class CalendarEventApiController {
                 return response;
             }
 
-            Member member = memberDao.select(userId);
+            Member member = memberMapper.select(userId);
             if (member == null) {
                 response.put("success", false);
                 response.put("message", "회원 정보를 찾을 수 없습니다.");
@@ -333,7 +333,7 @@ public class CalendarEventApiController {
                 return response;
             }
 
-            Member member = memberDao.select(userId);
+            Member member = memberMapper.select(userId);
             if (member == null) {
                 response.put("success", false);
                 response.put("message", "회원 정보를 찾을 수 없습니다.");

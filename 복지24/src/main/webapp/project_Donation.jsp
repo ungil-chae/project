@@ -936,7 +936,7 @@
         amount: '<%= donationAmount != null ? donationAmount : "" %>',
         category: '<%= donationCategory != null ? donationCategory : "" %>',
         type: '<%= donationType != null ? donationType : "" %>',
-        skipFirstStep: <%= skipFirstStep %>
+        skipFirstStep: '<%= skipFirstStep %>' === 'true'
       };
 
       // 페이지 로드 시 초기화

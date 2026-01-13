@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import com.greenart.bdproject.dao.MemberDao;
+import com.greenart.bdproject.mapper.MemberMapper;
 
 /**
  * 선행 온도 API 컨트롤러
@@ -24,7 +24,7 @@ public class KindnessTemperatureApiController {
     private static final Logger logger = LoggerFactory.getLogger(KindnessTemperatureApiController.class);
 
     @Autowired
-    private MemberDao memberDao;
+    private MemberMapper memberMapper;
 
     /**
      * 현재 사용자의 선행 온도 조회
@@ -43,7 +43,7 @@ public class KindnessTemperatureApiController {
                 return response;
             }
 
-            BigDecimal temperature = memberDao.getKindnessTemperature(userId);
+            BigDecimal temperature = memberMapper.getKindnessTemperature(userId);
 
             if (temperature == null) {
                 temperature = new BigDecimal("36.50");
@@ -84,11 +84,11 @@ public class KindnessTemperatureApiController {
             }
 
             // 온도 증가
-            int result = memberDao.increaseKindnessTemperature(userId, amount);
+            int result = memberMapper.increaseKindnessTemperature(userId, amount);
 
             if (result > 0) {
                 // 업데이트된 온도 조회
-                BigDecimal newTemperature = memberDao.getKindnessTemperature(userId);
+                BigDecimal newTemperature = memberMapper.getKindnessTemperature(userId);
 
                 response.put("success", true);
                 response.put("temperature", newTemperature);
@@ -138,7 +138,7 @@ public class KindnessTemperatureApiController {
                 return response;
             }
 
-            int result = memberDao.updateKindnessTemperature(userId, temperature);
+            int result = memberMapper.updateKindnessTemperature(userId, temperature);
 
             if (result > 0) {
                 response.put("success", true);

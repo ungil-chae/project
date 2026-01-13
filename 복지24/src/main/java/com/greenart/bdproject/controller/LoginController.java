@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.greenart.bdproject.dao.MemberDao;
+import com.greenart.bdproject.mapper.MemberMapper;
 import com.greenart.bdproject.dto.Member;
 
 
@@ -20,7 +20,7 @@ import com.greenart.bdproject.dto.Member;
 @RequestMapping("/login")
 public class LoginController {
 	@Autowired
-	MemberDao dao;
+	MemberMapper memberMapper;
 	
 	@GetMapping("")
 	public String loginForm() {
@@ -49,7 +49,7 @@ public class LoginController {
 		// 사용자 정보 가져오기
 		Member member = null;
 		try {
-			member = dao.select(id);
+			member = memberMapper.select(id);
 			System.out.println("=== 로그인 디버깅 ===");
 			System.out.println("member: " + member);
 			if (member != null) {
@@ -90,7 +90,7 @@ public class LoginController {
 	private boolean isValid(String id, String pwd) {
 		Member m = null;
 		try {
-			m = dao.select(id);
+			m = memberMapper.select(id);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

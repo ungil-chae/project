@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import com.greenart.bdproject.dao.ProjectMemberDao;
+import com.greenart.bdproject.mapper.MemberMapper;
 import com.greenart.bdproject.dto.Member;
 import com.greenart.bdproject.service.NotificationService;
 
@@ -25,7 +25,7 @@ public class NotificationScheduler {
     private NotificationService notificationService;
 
     @Autowired
-    private ProjectMemberDao memberDao;
+    private MemberMapper memberMapper;
 
     /**
      * 매일 오전 9시에 실행
@@ -40,7 +40,7 @@ public class NotificationScheduler {
 
         try {
             // 모든 활성 회원 조회
-            List<Member> members = memberDao.selectList();
+            List<Member> members = memberMapper.selectAll();
             logger.info("대상 회원 수: {}", members != null ? members.size() : 0);
 
             if (members == null || members.isEmpty()) {
@@ -95,7 +95,7 @@ public class NotificationScheduler {
         logger.info("========================================");
 
         try {
-            List<Member> members = memberDao.selectList();
+            List<Member> members = memberMapper.selectAll();
 
             if (members == null || members.isEmpty()) {
                 logger.warn("활성 회원이 없습니다.");

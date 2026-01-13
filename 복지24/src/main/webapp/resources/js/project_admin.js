@@ -578,14 +578,23 @@ function loadDonations() {
                 window.donationsData = donations;
 
                 tbody.innerHTML = donations.map((donation, index) => {
-                    const statusText = (donation.paymentStatus === 'COMPLETED' || donation.paymentStatus === 'completed') ? '완료' : '대기';
+                    // 결제 상태 한글 변환 및 배지 스타일
+                    const paymentStatus = (donation.paymentStatus || '').toUpperCase();
+                    const statusMap = {
+                        'COMPLETED': { text: '완료', badge: 'badge-success' },
+                        'PENDING': { text: '대기', badge: 'badge-warning' },
+                        'REFUNDED': { text: '환불', badge: 'badge-danger' },
+                        'FAILED': { text: '실패', badge: 'badge-danger' },
+                        'CANCELLED': { text: '취소', badge: 'badge-secondary' }
+                    };
+                    const statusInfo = statusMap[paymentStatus] || { text: '대기', badge: 'badge-warning' };
                     return '<tr>' +
                         '<td>' + (donation.donationId || '-') + '</td>' +
                         '<td>' + (donation.donorName || '-') + '</td>' +
                         '<td>₩' + formatNumber(donation.amount || 0) + '</td>' +
                         '<td><span class="badge badge-user">' + (donation.donationType === 'REGULAR' || donation.donationType === 'regular' ? '정기' : '일시') + '</span></td>' +
                         '<td>' + (donation.category || '-') + '</td>' +
-                        '<td><span class="badge badge-success">' + statusText + '</span></td>' +
+                        '<td><span class="badge ' + statusInfo.badge + '">' + statusInfo.text + '</span></td>' +
                         '<td>' + (donation.createdAt || '-') + '</td>' +
                         '<td class="table-actions">' +
                             '<button class="btn-sm btn-view" onclick="viewDonation(' + index + ')" title="상세 보기">' +
@@ -618,15 +627,8 @@ function loadRefundRequests() {
             if (result.success) {
                 const refunds = result.data;
 
-                // 배지 업데이트
-                const badge = document.getElementById('refundBadge');
+                // 환불 요청 수 업데이트
                 const count = document.getElementById('refundCount');
-                if (refunds.length > 0) {
-                    badge.textContent = refunds.length;
-                    badge.style.display = 'inline';
-                } else {
-                    badge.style.display = 'none';
-                }
                 count.textContent = refunds.length;
 
                 if (refunds.length === 0) {
@@ -756,7 +758,7 @@ function loadVolunteers() {
                         <td>${volunteer.applicationId || '-'}</td>
                         <td>${volunteer.applicantName || '-'}</td>
                         <td>${volunteer.activityName || '-'}</td>
-                        <td><span class="badge badge-user">${volunteer.selectedCategory || '-'}</span></td>
+                        <td><span class="badge badge-user">${formatVolunteerCategory(volunteer.selectedCategory)}</span></td>
                         <td>${volunteer.volunteerDate || '-'}</td>
                         <td><span class="badge ${
                             volunteer.status === 'completed' ? 'badge-success' :
@@ -1573,13 +1575,32 @@ function viewDonation(index) {
     document.getElementById('detailDonorEmail').textContent = donation.donorEmail || '-';
     document.getElementById('detailDonorPhone').textContent = donation.donorPhone || '-';
     document.getElementById('detailAmount').textContent = '₩' + formatNumber(donation.amount || 0);
-    document.getElementById('detailDonationType').textContent = donation.donationType === 'regular' ? '정기 후원' : '일시 후원';
+    document.getElementById('detailDonationType').textContent = (donation.donationType === 'REGULAR' || donation.donationType === 'regular') ? '정기 후원' : '일시 후원';
     document.getElementById('detailCategory').textContent = donation.category || '-';
     document.getElementById('detailPackageName').textContent = donation.packageName || '-';
-    document.getElementById('detailPaymentMethod').textContent = paymentMethodMap[donation.paymentMethod] || donation.paymentMethod || '-';
-    document.getElementById('detailPaymentStatus').textContent = donation.paymentStatus === 'completed' ? '완료' : '대기';
+
+    // 결제 수단 한글 변환
+    const methodMap = {
+        'CREDIT_CARD': '신용카드',
+        'BANK_TRANSFER': '계좌이체',
+        'KAKAO_PAY': '카카오페이',
+        'NAVER_PAY': '네이버페이',
+        'TOSS_PAY': '토스페이'
+    };
+    document.getElementById('detailPaymentMethod').textContent = methodMap[donation.paymentMethod] || donation.paymentMethod || '-';
+
+    // 결제 상태 (대소문자 모두 처리)
+    const status = (donation.paymentStatus || '').toUpperCase();
+    const statusMap = {
+        'COMPLETED': '완료',
+        'PENDING': '대기',
+        'FAILED': '실패',
+        'REFUNDED': '환불',
+        'CANCELLED': '취소'
+    };
+    document.getElementById('detailPaymentStatus').textContent = statusMap[status] || donation.paymentStatus || '-';
+
     document.getElementById('detailCreatedAt').textContent = donation.createdAt || '-';
-    document.getElementById('detailMessage').textContent = donation.message || '메시지 없음';
 
     // 모달 열기
     const modal = document.getElementById('donationModal');
@@ -1645,7 +1666,7 @@ function renderVolunteerTable(volunteers) {
         return '<tr>' +
             '<td>' + (index + 1) + '</td>' +
             '<td><strong>' + (vol.applicantName || '-') + '</strong></td>' +
-            '<td>' + (vol.selectedCategory || '-') + '</td>' +
+            '<td>' + formatVolunteerCategory(vol.selectedCategory) + '</td>' +
             '<td>' + schedule + '</td>' +
             '<td>' + createdAt + '</td>' +
             '<td><span class="badge ' + statusClass + '">' + statusText + '</span></td>' +
@@ -1690,6 +1711,22 @@ function formatVolunteerExperience(exp) {
     return expMap[exp] || exp || '-';
 }
 
+// 봉사 카테고리 한글 변환
+function formatVolunteerCategory(category) {
+    const categoryMap = {
+        'ELDERLY': '노인돌봄',
+        'CHILD': '아동교육',
+        'ENVIRONMENT': '환경보호',
+        'DISABLED': '장애인지원',
+        'COMMUNITY': '지역사회',
+        'EDUCATION': '교육멘토링',
+        'MEDICAL': '의료봉사',
+        'DISASTER': '재난구호',
+        'CULTURE': '문화행사'
+    };
+    return categoryMap[category] || category || '-';
+}
+
 // 필터링
 function filterVolunteers() {
     const searchTerm = document.getElementById('volunteerSearch').value.toLowerCase().trim();
@@ -1723,7 +1760,7 @@ function openFacilityMatchModal(applicationId) {
     document.getElementById('matchApplicantPhone').textContent = volunteer.applicantPhone || '-';
     document.getElementById('matchApplicantEmail').textContent = volunteer.applicantEmail || '-';
     document.getElementById('matchApplicantAddress').textContent = volunteer.applicantAddress || '-';
-    document.getElementById('matchCategory').textContent = volunteer.selectedCategory || '-';
+    document.getElementById('matchCategory').textContent = formatVolunteerCategory(volunteer.selectedCategory);
     document.getElementById('matchSchedule').textContent = (volunteer.volunteerDate || '') + (volunteer.volunteerEndDate ? ' ~ ' + volunteer.volunteerEndDate : '') + ' ' + (volunteer.volunteerTime || '');
     document.getElementById('matchExperience').textContent = formatVolunteerExperience(volunteer.volunteerExperience) || '-';
     document.getElementById('matchMotivation').textContent = volunteer.motivation || '작성된 지원동기가 없습니다.';
@@ -1908,7 +1945,7 @@ function viewVolunteerDetail(applicationId) {
     message += '신청자: ' + volunteer.applicantName + '\n';
     message += '연락처: ' + volunteer.applicantPhone + '\n';
     message += '이메일: ' + (volunteer.applicantEmail || '-') + '\n';
-    message += '분야: ' + volunteer.selectedCategory + '\n';
+    message += '분야: ' + formatVolunteerCategory(volunteer.selectedCategory) + '\n';
     message += '일정: ' + volunteer.volunteerDate + ' ' + (volunteer.volunteerTime || '') + '\n';
     message += '상태: ' + getVolunteerStatusText(volunteer.status) + '\n';
 

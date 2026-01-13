@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import com.greenart.bdproject.dao.ProjectMemberDao;
+import com.greenart.bdproject.mapper.MemberMapper;
 import com.greenart.bdproject.dto.Member;
 
 /**
@@ -28,12 +28,12 @@ public class AutoLoginInterceptor implements HandlerInterceptor {
 
     private static final Logger logger = LoggerFactory.getLogger(AutoLoginInterceptor.class);
 
-    private ProjectMemberDao memberDao;
+    private MemberMapper memberMapper;
     private DataSource dataSource;
 
     // Setter 메서드 추가 (XML에서 property로 주입)
-    public void setMemberDao(ProjectMemberDao memberDao) {
-        this.memberDao = memberDao;
+    public void setMemberMapper(MemberMapper memberMapper) {
+        this.memberMapper = memberMapper;
     }
 
     public void setDataSource(DataSource dataSource) {
@@ -45,9 +45,9 @@ public class AutoLoginInterceptor implements HandlerInterceptor {
             throws Exception {
 
         try {
-            // dataSource나 memberDao가 null이면 자동 로그인 건너뛰기
-            if (dataSource == null || memberDao == null) {
-                logger.warn("자동 로그인 인터셉터: dataSource 또는 memberDao가 null입니다. 자동 로그인을 건너뜁니다.");
+            // dataSource나 memberMapper가 null이면 자동 로그인 건너뛰기
+            if (dataSource == null || memberMapper == null) {
+                logger.warn("자동 로그인 인터셉터: dataSource 또는 memberMapper가 null입니다. 자동 로그인을 건너뜁니다.");
                 return true;
             }
 

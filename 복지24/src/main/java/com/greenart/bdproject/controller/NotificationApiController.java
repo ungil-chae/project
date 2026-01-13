@@ -14,9 +14,9 @@ import org.springframework.web.bind.annotation.*;
 import com.greenart.bdproject.dto.Notification;
 import com.greenart.bdproject.dto.NotificationSettings;
 import com.greenart.bdproject.service.NotificationService;
-import com.greenart.bdproject.dao.NotificationDao;
-import com.greenart.bdproject.dao.NotificationSettingsDao;
-import com.greenart.bdproject.dao.ProjectMemberDao;
+import com.greenart.bdproject.mapper.NotificationMapper;
+import com.greenart.bdproject.mapper.NotificationSettingsMapper;
+import com.greenart.bdproject.mapper.MemberMapper;
 
 /**
  * 알림 API 컨트롤러
@@ -32,13 +32,13 @@ public class NotificationApiController {
     private NotificationService notificationService;
 
     @Autowired(required = false)
-    private NotificationSettingsDao notificationSettingsDao;
+    private NotificationSettingsMapper notificationSettingsMapper;
 
     @Autowired
-    private ProjectMemberDao memberDao;
+    private MemberMapper memberMapper;
 
     @Autowired
-    private NotificationDao notificationDao;
+    private NotificationMapper notificationMapper;
 
     /**
      * 사용자의 알림 목록 조회
@@ -383,8 +383,8 @@ public class NotificationApiController {
             }
 
             // 중복 체크: 같은 사용자, 같은 타입, 같은 이벤트 날짜, 같은 제목의 알림이 이미 존재하는지 확인
-            if (eventDate != null && notificationDao != null) {
-                boolean exists = notificationDao.existsByUserAndEventDate(userId, type, eventDate, title);
+            if (eventDate != null && notificationMapper != null) {
+                boolean exists = notificationMapper.existsByUserAndEventDate(userId, type, eventDate, title);
                 if (exists) {
                     logger.info("중복 알림 방지 - userId: {}, type: {}, eventDate: {}, title: {}",
                                new Object[]{userId, type, eventDate, title});
@@ -443,7 +443,7 @@ public class NotificationApiController {
             }
 
             // member_id 조회
-            com.greenart.bdproject.dto.Member member = memberDao.select(userId);
+            com.greenart.bdproject.dto.Member member = memberMapper.select(userId);
             if (member == null) {
                 response.put("success", false);
                 response.put("message", "회원 정보를 찾을 수 없습니다.");
@@ -454,8 +454,8 @@ public class NotificationApiController {
 
             // 알림 설정 조회
             NotificationSettings settings = null;
-            if (notificationSettingsDao != null) {
-                settings = notificationSettingsDao.selectByMemberId(memberId);
+            if (notificationSettingsMapper != null) {
+                settings = notificationSettingsMapper.selectByMemberId(memberId);
             }
 
             // 설정이 없으면 기본값 생성
@@ -464,8 +464,8 @@ public class NotificationApiController {
                 settings.setMemberId(memberId);
 
                 // DB에 저장
-                if (notificationSettingsDao != null) {
-                    notificationSettingsDao.insert(settings);
+                if (notificationSettingsMapper != null) {
+                    notificationSettingsMapper.insert(settings);
                 }
             }
 
@@ -502,7 +502,7 @@ public class NotificationApiController {
             }
 
             // member_id 조회
-            com.greenart.bdproject.dto.Member member = memberDao.select(userId);
+            com.greenart.bdproject.dto.Member member = memberMapper.select(userId);
             if (member == null) {
                 response.put("success", false);
                 response.put("message", "회원 정보를 찾을 수 없습니다.");
@@ -514,13 +514,13 @@ public class NotificationApiController {
 
             // 기존 설정 조회 (변경 전 설정)
             NotificationSettings oldSettings = null;
-            if (notificationSettingsDao != null) {
-                oldSettings = notificationSettingsDao.selectByMemberId(memberId);
+            if (notificationSettingsMapper != null) {
+                oldSettings = notificationSettingsMapper.selectByMemberId(memberId);
             }
 
             // UPSERT (없으면 INSERT, 있으면 UPDATE)
-            if (notificationSettingsDao != null) {
-                int result = notificationSettingsDao.upsert(settings);
+            if (notificationSettingsMapper != null) {
+                int result = notificationSettingsMapper.upsert(settings);
 
                 if (result > 0) {
                     // 알림 설정이 OFF로 변경된 타입의 기존 알림 삭제
@@ -554,7 +554,7 @@ public class NotificationApiController {
      * @param newSettings 변경 후 설정
      */
     private void deleteNotificationsForDisabledTypes(String userId, NotificationSettings oldSettings, NotificationSettings newSettings) {
-        if (notificationDao == null) {
+        if (notificationMapper == null) {
             return;
         }
 
@@ -603,7 +603,7 @@ public class NotificationApiController {
 
         // 삭제할 타입이 있으면 삭제 실행
         if (!typesToDelete.isEmpty()) {
-            int deletedCount = notificationDao.deleteByUserIdAndTypes(userId, typesToDelete);
+            int deletedCount = notificationMapper.deleteByUserIdAndTypes(userId, typesToDelete);
             logger.info("알림 설정 변경으로 {} 개의 기존 알림 삭제됨", deletedCount);
         }
     }

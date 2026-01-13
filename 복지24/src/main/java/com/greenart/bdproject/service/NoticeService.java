@@ -3,11 +3,14 @@ package com.greenart.bdproject.service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.greenart.bdproject.dao.MemberDao;
-import com.greenart.bdproject.dao.NoticeDao;
+import com.greenart.bdproject.mapper.MemberMapper;
+import com.greenart.bdproject.mapper.NoticeMapper;
 import com.greenart.bdproject.dto.Member;
 import com.greenart.bdproject.dto.NoticeDto;
 
@@ -16,10 +19,10 @@ import com.greenart.bdproject.dto.NoticeDto;
 public class NoticeService {
 
     @Autowired
-    private NoticeDao noticeDao;
+    private NoticeMapper noticeMapper;
 
     @Autowired
-    private MemberDao memberDao;
+    private MemberMapper memberMapper;
 
     /**
      * 공지사항 등록 (관리자만 가능)
@@ -28,18 +31,22 @@ public class NoticeService {
      * @return 등록된 공지사항 정보
      * @throws Exception 관리자 권한이 없을 경우
      */
+    @Caching(evict = {
+        @CacheEvict(value = "allNotices", allEntries = true),
+        @CacheEvict(value = "pinnedNotices", allEntries = true)
+    })
     public NoticeDto createNotice(NoticeDto notice, String userId) throws Exception {
         // 관리자 권한 체크
-        Member member = memberDao.select(userId);
+        Member member = memberMapper.select(userId);
         if (member == null || !"ADMIN".equals(member.getRole())) {
             throw new Exception("공지사항 작성 권한이 없습니다. 관리자만 작성할 수 있습니다.");
         }
 
         notice.setAdminId(userId);
-        int result = noticeDao.insert(notice);
+        int result = noticeMapper.insert(notice);
 
         if (result > 0) {
-            return noticeDao.selectById(notice.getNoticeId());
+            return noticeMapper.selectById(notice.getNoticeId().intValue());
         }
 
         return null;
@@ -52,25 +59,27 @@ public class NoticeService {
      */
     public NoticeDto getNoticeById(Long noticeId) {
         // 조회수 증가
-        noticeDao.incrementViews(noticeId);
+        noticeMapper.incrementViews(noticeId.intValue());
 
-        return noticeDao.selectById(noticeId);
+        return noticeMapper.selectById(noticeId.intValue());
     }
 
     /**
-     * 전체 공지사항 조회
+     * 전체 공지사항 조회 (캐시 적용)
      * @return 전체 공지사항 리스트
      */
+    @Cacheable(value = "allNotices")
     public List<NoticeDto> getAllNotices() {
-        return noticeDao.selectAll();
+        return noticeMapper.selectAll();
     }
 
     /**
-     * 상단 고정 공지사항 조회
+     * 상단 고정 공지사항 조회 (캐시 적용)
      * @return 상단 고정 공지사항 리스트
      */
+    @Cacheable(value = "pinnedNotices")
     public List<NoticeDto> getPinnedNotices() {
-        return noticeDao.selectPinned();
+        return noticeMapper.selectPinned();
     }
 
     /**
@@ -80,14 +89,18 @@ public class NoticeService {
      * @return 성공 여부
      * @throws Exception 관리자 권한이 없을 경우
      */
+    @Caching(evict = {
+        @CacheEvict(value = "allNotices", allEntries = true),
+        @CacheEvict(value = "pinnedNotices", allEntries = true)
+    })
     public boolean updateNotice(NoticeDto notice, String userId) throws Exception {
         // 관리자 권한 체크
-        Member member = memberDao.select(userId);
+        Member member = memberMapper.select(userId);
         if (member == null || !"ADMIN".equals(member.getRole())) {
             throw new Exception("공지사항 수정 권한이 없습니다. 관리자만 수정할 수 있습니다.");
         }
 
-        int result = noticeDao.update(notice);
+        int result = noticeMapper.update(notice);
         return result > 0;
     }
 
@@ -98,14 +111,18 @@ public class NoticeService {
      * @return 성공 여부
      * @throws Exception 관리자 권한이 없을 경우
      */
+    @Caching(evict = {
+        @CacheEvict(value = "allNotices", allEntries = true),
+        @CacheEvict(value = "pinnedNotices", allEntries = true)
+    })
     public boolean deleteNotice(Long noticeId, String userId) throws Exception {
         // 관리자 권한 체크
-        Member member = memberDao.select(userId);
+        Member member = memberMapper.select(userId);
         if (member == null || !"ADMIN".equals(member.getRole())) {
             throw new Exception("공지사항 삭제 권한이 없습니다. 관리자만 삭제할 수 있습니다.");
         }
 
-        int result = noticeDao.deleteById(noticeId);
+        int result = noticeMapper.deleteById(noticeId.intValue());
         return result > 0;
     }
 }

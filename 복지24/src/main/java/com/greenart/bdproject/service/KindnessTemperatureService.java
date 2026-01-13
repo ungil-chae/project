@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.greenart.bdproject.dao.MemberDao;
+import com.greenart.bdproject.mapper.MemberMapper;
 
 /**
  * 선행온도 관리 서비스
@@ -21,7 +21,7 @@ public class KindnessTemperatureService {
     private static final Logger logger = LoggerFactory.getLogger(KindnessTemperatureService.class);
 
     @Autowired(required = false)
-    private MemberDao memberDao;
+    private MemberMapper memberMapper;
 
     // 온도 증가 규칙 (단위: 도)
     private static final BigDecimal VOLUNTEER_APPLICATION = new BigDecimal("0.3");  // 봉사 신청
@@ -39,12 +39,12 @@ public class KindnessTemperatureService {
      * 현재 선행온도 조회
      */
     public BigDecimal getCurrentTemperature(String userId) {
-        if (memberDao == null) {
-            logger.warn("MemberDao가 null입니다. 기본 온도 반환");
+        if (memberMapper == null) {
+            logger.warn("MemberMapper가 null입니다. 기본 온도 반환");
             return new BigDecimal("36.50");
         }
         try {
-            BigDecimal temperature = memberDao.getKindnessTemperature(userId);
+            BigDecimal temperature = memberMapper.getKindnessTemperature(userId);
             return temperature != null ? temperature : new BigDecimal("36.50");
         } catch (Exception e) {
             logger.error("온도 조회 실패: userId={}", userId, e);
@@ -99,12 +99,12 @@ public class KindnessTemperatureService {
      * 온도 증가 공통 메서드
      */
     private void increaseTemperature(String userId, BigDecimal amount, String reason) {
-        if (memberDao == null) {
-            logger.warn("MemberDao가 null입니다. 온도 증가 건너뜀 - userId: {}, 사유: {}", userId, reason);
+        if (memberMapper == null) {
+            logger.warn("MemberMapper가 null입니다. 온도 증가 건너뜀 - userId: {}, 사유: {}", userId, reason);
             return;
         }
         try {
-            int result = memberDao.increaseKindnessTemperature(userId, amount);
+            int result = memberMapper.increaseKindnessTemperature(userId, amount);
             if (result > 0) {
                 BigDecimal newTemp = getCurrentTemperature(userId);
                 logger.info("선행온도 증가 성공 - userId: {}, 사유: {}", userId, reason);
@@ -121,12 +121,12 @@ public class KindnessTemperatureService {
      * 온도 직접 설정 (관리자용)
      */
     public void setTemperature(String userId, BigDecimal temperature) {
-        if (memberDao == null) {
-            logger.warn("MemberDao가 null입니다. 온도 설정 건너뜀");
+        if (memberMapper == null) {
+            logger.warn("MemberMapper가 null입니다. 온도 설정 건너뜀");
             return;
         }
         try {
-            memberDao.updateKindnessTemperature(userId, temperature);
+            memberMapper.updateKindnessTemperature(userId, temperature);
             logger.info("선행온도 설정 - userId: {}, 온도: {}도", userId, temperature);
         } catch (Exception e) {
             logger.error("선행온도 설정 실패 - userId: {}", userId, e);
@@ -144,12 +144,12 @@ public class KindnessTemperatureService {
      * 온도 감소 공통 메서드 (최소 0.00 보장)
      */
     private void decreaseTemperature(String userId, BigDecimal amount, String reason) {
-        if (memberDao == null) {
-            logger.warn("MemberDao가 null입니다. 온도 감소 건너뜀 - userId: {}, 사유: {}", userId, reason);
+        if (memberMapper == null) {
+            logger.warn("MemberMapper가 null입니다. 온도 감소 건너뜀 - userId: {}, 사유: {}", userId, reason);
             return;
         }
         try {
-            int result = memberDao.decreaseKindnessTemperature(userId, amount);
+            int result = memberMapper.decreaseKindnessTemperature(userId, amount);
             if (result > 0) {
                 BigDecimal newTemp = getCurrentTemperature(userId);
                 logger.info("선행온도 감소 성공 - userId: {}, 사유: {}", userId, reason);

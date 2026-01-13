@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.greenart.bdproject.mapper.CalendarEventMapper">
+
+    <resultMap id="CalendarEventResult" type="com.greenart.bdproject.dto.CalendarEvent">
+        <id property="eventId" column="event_id"/>
+        <result property="memberId" column="member_id"/>
+        <result property="title" column="title"/>
+        <result property="description" column="description"/>
+        <result property="eventDate" column="event_date"/>
+        <result property="eventTime" column="event_time"/>
+        <result property="eventType" column="event_type"/>
+        <result property="reminderEnabled" column="reminder_enabled"/>
+        <result property="remindBeforeDays" column="remind_before_days"/>
+        <result property="status" column="status"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- 일정 생성 -->
+    <insert id="insert" parameterType="com.greenart.bdproject.dto.CalendarEvent" useGeneratedKeys="true" keyProperty="eventId">
+        INSERT INTO calendar_events (member_id, title, description, event_date, event_time,
+                                     event_type, reminder_enabled, remind_before_days, status)
+        VALUES (#{memberId}, #{title}, #{description}, #{eventDate}, #{eventTime},
+                #{eventType}, #{reminderEnabled}, #{remindBeforeDays}, #{status})
+    </insert>
+
+    <!-- 일정 수정 -->
+    <update id="update" parameterType="com.greenart.bdproject.dto.CalendarEvent">
+        UPDATE calendar_events
+        SET title = #{title},
+            description = #{description},
+            event_date = #{eventDate},
+            event_time = #{eventTime},
+            event_type = #{eventType},
+            reminder_enabled = #{reminderEnabled},
+            remind_before_days = #{remindBeforeDays},
+            status = #{status},
+            updated_at = NOW()
+        WHERE event_id = #{eventId}
+    </update>
+
+    <!-- 일정 삭제 -->
+    <delete id="delete" parameterType="long">
+        DELETE FROM calendar_events WHERE event_id = #{eventId}
+    </delete>
+
+    <!-- ID로 일정 조회 -->
+    <select id="selectById" parameterType="long" resultMap="CalendarEventResult">
+        SELECT * FROM calendar_events WHERE event_id = #{eventId}
+    </select>
+
+    <!-- 회원별 일정 조회 -->
+    <select id="selectByMemberId" parameterType="long" resultMap="CalendarEventResult">
+        SELECT * FROM calendar_events
+        WHERE member_id = #{memberId}
+        ORDER BY event_date ASC
+    </select>
+
+    <!-- 회원별 특정 날짜 일정 조회 -->
+    <select id="selectByMemberIdAndDate" parameterType="map" resultMap="CalendarEventResult">
+        SELECT * FROM calendar_events
+        WHERE member_id = #{memberId} AND event_date = #{eventDate}
+    </select>
+
+    <!-- 회원별 날짜 범위 일정 조회 -->
+    <select id="selectByMemberIdAndDateRange" parameterType="map" resultMap="CalendarEventResult">
+        SELECT * FROM calendar_events
+        WHERE member_id = #{memberId}
+          AND event_date BETWEEN #{startDate} AND #{endDate}
+        ORDER BY event_date ASC
+    </select>
+
+    <!-- 일정 상태 변경 -->
+    <update id="updateStatus" parameterType="map">
+        UPDATE calendar_events
+        SET status = #{status}, updated_at = NOW()
+        WHERE event_id = #{eventId}
+    </update>
+
+    <!-- 회원의 모든 일정 삭제 -->
+    <delete id="deleteAllByMemberId" parameterType="long">
+        DELETE FROM calendar_events WHERE member_id = #{memberId}
+    </delete>
+
+</mapper>

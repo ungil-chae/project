@@ -6,37 +6,39 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import com.greenart.bdproject.dao.AdminDao;
-import com.greenart.bdproject.dao.MemberStatusHistoryDao;
+import com.greenart.bdproject.mapper.AdminMapper;
+import com.greenart.bdproject.mapper.MemberStatusHistoryMapper;
 import com.greenart.bdproject.dto.MemberStatusHistoryDto;
 
 @Service
 public class AdminService {
 
     @Autowired
-    private AdminDao adminDao;
+    private AdminMapper adminMapper;
 
     @Autowired
-    private MemberStatusHistoryDao memberStatusHistoryDao;
+    private MemberStatusHistoryMapper memberStatusHistoryMapper;
 
     /**
-     * 관리자 대시보드 통계 데이터 조회
+     * 관리자 대시보드 통계 데이터 조회 (캐시 적용)
      */
+    @Cacheable(value = "adminStats")
     public Map<String, Object> getAdminStats() {
         Map<String, Object> stats = new HashMap<>();
 
         // 전체 회원 수
-        int totalMembers = adminDao.getTotalMembers();
+        int totalMembers = adminMapper.getTotalMembers();
         stats.put("totalMembers", totalMembers);
 
         // 총 기부금 (완료된 기부만)
-        Long totalDonations = adminDao.getTotalDonations();
+        Long totalDonations = adminMapper.getTotalDonations();
         stats.put("totalDonations", totalDonations != null ? totalDonations : 0L);
 
         // 봉사 신청 수
-        int totalVolunteers = adminDao.getTotalVolunteers();
+        int totalVolunteers = adminMapper.getTotalVolunteers();
         stats.put("totalVolunteers", totalVolunteers);
 
         return stats;
@@ -46,42 +48,42 @@ public class AdminService {
      * 전체 회원 목록 조회
      */
     public List<Map<String, Object>> getAllMembers() {
-        return adminDao.getAllMembers();
+        return adminMapper.getAllMembers();
     }
 
     /**
      * 전체 공지사항 목록 조회
      */
     public List<Map<String, Object>> getAllNotices() {
-        return adminDao.getAllNotices();
+        return adminMapper.getAllNotices();
     }
 
     /**
      * 전체 FAQ 목록 조회
      */
     public List<Map<String, Object>> getAllFaqs() {
-        return adminDao.getAllFaqs();
+        return adminMapper.getAllFaqs();
     }
 
     /**
      * 전체 기부 내역 조회
      */
     public List<Map<String, Object>> getAllDonations() {
-        return adminDao.getAllDonations();
+        return adminMapper.getAllDonations();
     }
 
     /**
      * 전체 봉사 신청 내역 조회
      */
     public List<Map<String, Object>> getAllVolunteers() {
-        return adminDao.getAllVolunteers();
+        return adminMapper.getAllVolunteers();
     }
 
     /**
      * 회원 정보 수정
      */
     public boolean updateMember(String userId, String name, String email, String phone) {
-        return adminDao.updateMember(userId, name, email, phone);
+        return adminMapper.updateMember(userId, name, email, phone) > 0;
     }
 
     /**
@@ -89,7 +91,7 @@ public class AdminService {
      */
     public boolean deleteMember(String userId) {
         // 변경 전 회원 상태 조회
-        Map<String, Object> memberInfo = adminDao.getMemberStatusByUserId(userId);
+        Map<String, Object> memberInfo = adminMapper.getMemberStatusByUserId(userId);
         if (memberInfo == null) {
             return false;
         }
@@ -98,7 +100,7 @@ public class AdminService {
         Long memberId = ((Number) memberInfo.get("member_id")).longValue();
 
         // 상태 변경 실행 (DORMANT로 변경)
-        boolean success = adminDao.deleteMember(userId);
+        boolean success = adminMapper.deleteMember(userId) > 0;
 
         // 성공 시 이력 저장
         if (success) {
@@ -120,7 +122,7 @@ public class AdminService {
      */
     public boolean suspendMember(String userId) {
         // 변경 전 회원 상태 조회
-        Map<String, Object> memberInfo = adminDao.getMemberStatusByUserId(userId);
+        Map<String, Object> memberInfo = adminMapper.getMemberStatusByUserId(userId);
         if (memberInfo == null) {
             return false;
         }
@@ -129,7 +131,7 @@ public class AdminService {
         Long memberId = ((Number) memberInfo.get("member_id")).longValue();
 
         // 상태 변경 실행
-        boolean success = adminDao.suspendMember(userId);
+        boolean success = adminMapper.suspendMember(userId) > 0;
 
         // 성공 시 이력 저장
         if (success) {
@@ -151,7 +153,7 @@ public class AdminService {
      */
     public boolean activateMember(String userId) {
         // 변경 전 회원 상태 조회
-        Map<String, Object> memberInfo = adminDao.getMemberStatusByUserId(userId);
+        Map<String, Object> memberInfo = adminMapper.getMemberStatusByUserId(userId);
         if (memberInfo == null) {
             return false;
         }
@@ -160,7 +162,7 @@ public class AdminService {
         Long memberId = ((Number) memberInfo.get("member_id")).longValue();
 
         // 상태 변경 실행
-        boolean success = adminDao.activateMember(userId);
+        boolean success = adminMapper.activateMember(userId) > 0;
 
         // 성공 시 이력 저장
         if (success) {
@@ -181,7 +183,7 @@ public class AdminService {
      * 회원 상태 변경 이력 조회
      */
     public List<Map<String, Object>> getMemberStatusHistory() {
-        List<MemberStatusHistoryDto> historyList = memberStatusHistoryDao.selectAllHistory();
+        List<MemberStatusHistoryDto> historyList = memberStatusHistoryMapper.selectAllHistory();
         List<Map<String, Object>> result = new ArrayList<>();
 
         for (MemberStatusHistoryDto history : historyList) {
@@ -209,7 +211,7 @@ public class AdminService {
      */
     public boolean saveMemberStatusHistory(MemberStatusHistoryDto history) {
         try {
-            int result = memberStatusHistoryDao.insertHistory(history);
+            int result = memberStatusHistoryMapper.insertHistory(history);
             return result > 0;
         } catch (Exception e) {
             e.printStackTrace();
@@ -222,7 +224,7 @@ public class AdminService {
      */
     public boolean updateMemberStatus(String userId, String status) {
         // 변경 전 회원 상태 조회
-        Map<String, Object> memberInfo = adminDao.getMemberStatusByUserId(userId);
+        Map<String, Object> memberInfo = adminMapper.getMemberStatusByUserId(userId);
         if (memberInfo == null) {
             return false;
         }
@@ -231,7 +233,7 @@ public class AdminService {
         Long memberId = ((Number) memberInfo.get("member_id")).longValue();
 
         // 상태 변경 실행
-        boolean success = adminDao.updateMemberStatus(userId, status);
+        boolean success = adminMapper.updateMemberStatus(userId, status) > 0;
 
         // 성공 시 이력 저장
         if (success) {
@@ -253,7 +255,7 @@ public class AdminService {
      */
     public boolean updateMemberRole(String userId, String role) {
         // 변경 전 회원 정보 조회
-        Map<String, Object> memberInfo = adminDao.getMemberStatusByUserId(userId);
+        Map<String, Object> memberInfo = adminMapper.getMemberStatusByUserId(userId);
         if (memberInfo == null) {
             return false;
         }
@@ -262,7 +264,7 @@ public class AdminService {
         Long memberId = ((Number) memberInfo.get("member_id")).longValue();
 
         // 등급 변경 실행
-        boolean success = adminDao.updateMemberRole(userId, role);
+        boolean success = adminMapper.updateMemberRole(userId, role) > 0;
 
         // 성공 시 이력 저장
         if (success) {
@@ -291,7 +293,7 @@ public class AdminService {
             String facilityLng,
             String adminNote) {
 
-        return adminDao.approveVolunteerApplication(
+        return adminMapper.approveVolunteerApplication(
             applicationId,
             adminUserId,
             facilityName,
@@ -299,28 +301,28 @@ public class AdminService {
             facilityLat,
             facilityLng,
             adminNote
-        );
+        ) > 0;
     }
 
     /**
      * 봉사활동 거절
      */
     public boolean rejectVolunteerApplication(Long applicationId, String reason) {
-        return adminDao.rejectVolunteerApplication(applicationId, reason);
+        return adminMapper.rejectVolunteerApplication(applicationId, reason) > 0;
     }
 
     /**
      * 봉사 신청 정보 조회
      */
     public Map<String, Object> getVolunteerApplicationById(Long applicationId) {
-        return adminDao.getVolunteerApplicationById(applicationId);
+        return adminMapper.getVolunteerApplicationById(applicationId);
     }
 
     /**
      * 시간 경과된 봉사활동 자동 완료 처리
      */
     public int completeExpiredVolunteerApplications() {
-        return adminDao.completeExpiredVolunteerApplications();
+        return adminMapper.completeExpiredVolunteerApplications();
     }
 
     /**
@@ -331,20 +333,20 @@ public class AdminService {
 
         try {
             // 오늘 기부 건수
-            stats.put("todayDonations", adminDao.getTodayDonationCount());
+            stats.put("todayDonations", adminMapper.getTodayDonationCount());
 
             // 진행 중인 봉사활동 수
-            stats.put("activeVolunteers", adminDao.getActiveVolunteerCount());
+            stats.put("activeVolunteers", adminMapper.getActiveVolunteerCount());
 
             // 봉사 완료율
-            stats.put("volunteerCompletionRate", adminDao.getVolunteerCompletionRate());
+            stats.put("volunteerCompletionRate", adminMapper.getVolunteerCompletionRate());
 
             // 총 기부금액
-            Long totalDonations = adminDao.getTotalDonations();
+            Long totalDonations = adminMapper.getTotalDonations();
             stats.put("totalDonations", totalDonations != null ? totalDonations : 0L);
 
             // 활동 중인 총 회원 수
-            stats.put("totalMembers", adminDao.getActiveMembers());
+            stats.put("totalMembers", adminMapper.getActiveMembers());
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -367,27 +369,190 @@ public class AdminService {
 
         try {
             // 1. 최근 6개월 기부금 현황
-            chartData.put("donationTrend", adminDao.getMonthlyDonationTrend());
+            chartData.put("donationTrend", transformDonationTrend(adminMapper.getMonthlyDonationTrend()));
 
             // 2. 회원 증가 추이
-            chartData.put("memberGrowth", adminDao.getMemberGrowthTrend());
+            chartData.put("memberGrowth", transformMemberGrowth(adminMapper.getMemberGrowthTrend()));
 
             // 3. 봉사활동 카테고리별 신청률
-            chartData.put("volunteerCategory", adminDao.getVolunteerCategoryStats());
+            chartData.put("volunteerCategory", transformCategoryStats(adminMapper.getVolunteerCategoryStats()));
 
             // 4. 월별 후기 작성 현황
-            chartData.put("monthlyReview", adminDao.getMonthlyReviewStats());
+            chartData.put("monthlyReview", buildMonthlyReviewStats());
 
             // 5. 복지서비스 이용 비율
-            chartData.put("welfareService", adminDao.getWelfareServiceStats());
+            chartData.put("welfareService", transformServiceStats(adminMapper.getWelfareServiceStats()));
 
             // 6. 기부 카테고리별 분포
-            chartData.put("donationCategory", adminDao.getDonationCategoryStats());
+            chartData.put("donationCategory", transformDonationCategoryStats(adminMapper.getDonationCategoryStats()));
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         return chartData;
+    }
+
+    // ===== 차트 데이터 변환 메서드 (AdminDaoImpl에서 이동) =====
+
+    /**
+     * 월별 기부금 추이 데이터 변환
+     */
+    private Map<String, Object> transformDonationTrend(List<Map<String, Object>> rawData) {
+        Map<String, Object> result = new HashMap<>();
+        List<String> labels = new ArrayList<>();
+        List<Long> data = new ArrayList<>();
+
+        if (rawData != null) {
+            for (Map<String, Object> row : rawData) {
+                labels.add((String) row.get("month"));
+                Object amount = row.get("amount");
+                data.add(amount != null ? ((Number) amount).longValue() : 0L);
+            }
+        }
+
+        result.put("labels", labels);
+        result.put("data", data);
+        return result;
+    }
+
+    /**
+     * 회원 증가 추이 데이터 변환
+     */
+    private Map<String, Object> transformMemberGrowth(List<Map<String, Object>> rawData) {
+        Map<String, Object> result = new HashMap<>();
+        List<String> labels = new ArrayList<>();
+        List<Integer> newMembers = new ArrayList<>();
+
+        if (rawData != null) {
+            for (Map<String, Object> row : rawData) {
+                labels.add((String) row.get("month"));
+                Object newCount = row.get("new_members");
+                newMembers.add(newCount != null ? ((Number) newCount).intValue() : 0);
+            }
+        }
+
+        result.put("labels", labels);
+        result.put("newMembers", newMembers);
+        return result;
+    }
+
+    /**
+     * 카테고리별 통계 데이터 변환
+     */
+    private Map<String, Object> transformCategoryStats(List<Map<String, Object>> rawData) {
+        Map<String, Object> result = new HashMap<>();
+        List<String> labels = new ArrayList<>();
+        List<Double> data = new ArrayList<>();
+
+        if (rawData != null) {
+            for (Map<String, Object> row : rawData) {
+                labels.add((String) row.get("category"));
+                Object rate = row.get("rate");
+                data.add(rate != null ? ((Number) rate).doubleValue() : 0.0);
+            }
+        }
+
+        result.put("labels", labels);
+        result.put("data", data);
+        return result;
+    }
+
+    /**
+     * 월별 후기 통계 생성 (봉사 후기 + 기부 후기 통합)
+     */
+    private Map<String, Object> buildMonthlyReviewStats() {
+        Map<String, Object> result = new HashMap<>();
+
+        // 최근 6개월 레이블 생성
+        List<String> labels = new ArrayList<>();
+        java.time.LocalDate now = java.time.LocalDate.now();
+        for (int i = 5; i >= 0; i--) {
+            java.time.LocalDate date = now.minusMonths(i);
+            labels.add(date.getMonthValue() + "월");
+        }
+
+        // 봉사 후기 월별 통계
+        List<Map<String, Object>> volunteerData = adminMapper.getMonthlyVolunteerReviewStats();
+        List<Integer> volunteerCounts = new ArrayList<>();
+        for (int i = 5; i >= 0; i--) {
+            java.time.LocalDate date = now.minusMonths(i);
+            String monthKey = String.format("%d-%02d", date.getYear(), date.getMonthValue());
+            int count = 0;
+            if (volunteerData != null) {
+                for (Map<String, Object> row : volunteerData) {
+                    if (monthKey.equals(row.get("month"))) {
+                        count = ((Number) row.get("count")).intValue();
+                        break;
+                    }
+                }
+            }
+            volunteerCounts.add(count);
+        }
+
+        // 기부 후기 월별 통계
+        List<Map<String, Object>> donationData = adminMapper.getMonthlyDonationReviewStats();
+        List<Integer> donationCounts = new ArrayList<>();
+        for (int i = 5; i >= 0; i--) {
+            java.time.LocalDate date = now.minusMonths(i);
+            String monthKey = String.format("%d-%02d", date.getYear(), date.getMonthValue());
+            int count = 0;
+            if (donationData != null) {
+                for (Map<String, Object> row : donationData) {
+                    if (monthKey.equals(row.get("month"))) {
+                        count = ((Number) row.get("count")).intValue();
+                        break;
+                    }
+                }
+            }
+            donationCounts.add(count);
+        }
+
+        result.put("labels", labels);
+        result.put("volunteerData", volunteerCounts);
+        result.put("donationData", donationCounts);
+        return result;
+    }
+
+    /**
+     * 복지서비스 통계 데이터 변환
+     */
+    private Map<String, Object> transformServiceStats(List<Map<String, Object>> rawData) {
+        Map<String, Object> result = new HashMap<>();
+        List<String> labels = new ArrayList<>();
+        List<Integer> data = new ArrayList<>();
+
+        if (rawData != null) {
+            for (Map<String, Object> row : rawData) {
+                labels.add((String) row.get("service_type"));
+                Object count = row.get("count");
+                data.add(count != null ? ((Number) count).intValue() : 0);
+            }
+        }
+
+        result.put("labels", labels);
+        result.put("data", data);
+        return result;
+    }
+
+    /**
+     * 기부 카테고리별 통계 데이터 변환
+     */
+    private Map<String, Object> transformDonationCategoryStats(List<Map<String, Object>> rawData) {
+        Map<String, Object> result = new HashMap<>();
+        List<String> labels = new ArrayList<>();
+        List<Long> data = new ArrayList<>();
+
+        if (rawData != null) {
+            for (Map<String, Object> row : rawData) {
+                labels.add((String) row.get("category"));
+                Object amount = row.get("amount");
+                data.add(amount != null ? ((Number) amount).longValue() : 0L);
+            }
+        }
+
+        result.put("labels", labels);
+        result.put("data", data);
+        return result;
     }
 }
