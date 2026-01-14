@@ -38,6 +38,8 @@ CREATE TABLE `users` (
   `hobbies` text,
   `deleted_at` datetime DEFAULT NULL,
   `name` varchar(255) NOT NULL DEFAULT '',
+  `login_fail_count` int NOT NULL DEFAULT 0,
+  `account_locked_until` datetime DEFAULT NULL,
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `nickname` (`nickname`),

@@ -1,6 +1,8 @@
 package service;
 
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.Duration;
 
 import dao.UserDao;
 import dto.LoginRequest;
@@ -18,6 +20,10 @@ public class UserService {
 	private UserDao userDao;
 	private PasswordEncoder passwordEncoder;
 
+	// 로그인 실패 제한 설정
+	private static final int MAX_LOGIN_ATTEMPTS = 5;
+	private static final int LOCK_DURATION_MINUTES = 5;
+
 	// 생성자를 통한 의존성 주입
 	public UserService(UserDao userDao, PasswordEncoder passwordEncoder) {
 		this.userDao = userDao;
@@ -26,20 +32,47 @@ public class UserService {
 
 	/**
 	 * 사용자 로그인 처리
-	 * 
+	 *
 	 * @param loginRequest 로그인 요청 DTO (username, password)
 	 * @return 로그인 성공 시 User 모델 객체
-	 * @throws SQLException       DB 오류 발생 시
+	 * @throws SQLException       DB 오류 발생 시
 	 * @throws UserLoginException 로그인 실패 (자격 증명 불일치, 계정 비활성 등) 시
 	 */
 	public User login(LoginRequest loginRequest) throws SQLException, UserLoginException {
-		// 1. 사용자 존재 여부 및 비밀번호 검증
+		// 1. 사용자 조회
 		User user = userDao.findByUsername(loginRequest.getUsername());
-		if (user == null || !passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+
+		// 2. 사용자가 존재하지 않는 경우
+		if (user == null) {
 			throw new UserLoginException("INVALID_CREDENTIALS", "아이디 또는 비밀번호가 일치하지 않습니다.");
 		}
 
-		// 2. 사용자 계정 상태 확인
+		// 3. 계정 잠금 상태 확인
+		if (user.getAccountLockedUntil() != null && user.getAccountLockedUntil().isAfter(LocalDateTime.now())) {
+			long remainingMinutes = Duration.between(LocalDateTime.now(), user.getAccountLockedUntil()).toMinutes() + 1;
+			throw new UserLoginException("ACCOUNT_LOCKED",
+				"로그인 시도 횟수 초과로 계정이 잠겼습니다. " + remainingMinutes + "분 후 다시 시도해주세요.");
+		}
+
+		// 4. 비밀번호 검증
+		if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+			// 로그인 실패 횟수 증가
+			userDao.incrementLoginFailCount(user.getUserId());
+			int newFailCount = user.getLoginFailCount() + 1;
+
+			// 5회 실패 시 계정 잠금
+			if (newFailCount >= MAX_LOGIN_ATTEMPTS) {
+				LocalDateTime lockedUntil = LocalDateTime.now().plusMinutes(LOCK_DURATION_MINUTES);
+				userDao.lockAccount(user.getUserId(), lockedUntil);
+				throw new UserLoginException("ACCOUNT_LOCKED",
+					"로그인 시도 횟수 초과로 계정이 잠겼습니다. " + LOCK_DURATION_MINUTES + "분 후 다시 시도해주세요.");
+			}
+
+			throw new UserLoginException("INVALID_CREDENTIALS",
+				"아이디 또는 비밀번호가 일치하지 않습니다. (실패 " + newFailCount + "/" + MAX_LOGIN_ATTEMPTS + ")");
+		}
+
+		// 5. 사용자 계정 상태 확인
 		if (!"active".equals(user.getStatus())) {
 			String errorMessage = "비활성화되거나 탈퇴한 계정입니다. 관리자에게 문의하세요.";
 			if ("withdrawn".equals(user.getStatus())) {
@@ -50,7 +83,8 @@ public class UserService {
 			throw new UserLoginException("ACCOUNT_INACTIVE", errorMessage);
 		}
 
-		// 3. 마지막 로그인 시간 업데이트
+		// 6. 로그인 성공 - 실패 횟수 초기화 및 마지막 로그인 시간 업데이트
+		userDao.resetLoginFailCount(user.getUserId());
 		userDao.updateLastLoginDate(user.getUserId());
 
 		return user;
@@ -58,10 +92,10 @@ public class UserService {
 
 	/**
 	 * 새로운 사용자 회원가입 처리
-	 * 
+	 *
 	 * @param registrationRequest 회원가입 요청 DTO
 	 * @return 회원가입 성공 시 생성된 User 모델 객체 (user_id 포함)
-	 * @throws SQLException              DB 오류 발생 시
+	 * @throws SQLException              DB 오류 발생 시
 	 * @throws UserRegistrationException 유효성 검증 실패 (중복, 형식 불일치 등) 시
 	 */
 	public User registerUser(UserRegistrationRequest registrationRequest)
@@ -132,7 +166,7 @@ public class UserService {
 		newUser.setEmail(registrationRequest.getEmail());
 		newUser.setGender(registrationRequest.getGender());
 		newUser.setMbti(registrationRequest.getMbti());
-		
+
 		// ⭐⭐⭐ 이 두 줄이 가장 중요합니다. ⭐⭐⭐
 		// 클라이언트에서 전송된 'name'과 'hobbies' 값을 User 모델에 설정
 		// 클라이언트 측 유효성 검사와 DB 스키마 (NOT NULL DEFAULT '') 덕분에
@@ -149,10 +183,10 @@ public class UserService {
 
 	/**
 	 * 사용자 프로필 정보 조회
-	 * 
+	 *
 	 * @param userId 조회할 사용자 ID
 	 * @return User 모델 객체
-	 * @throws SQLException         DB 오류 발생 시
+	 * @throws SQLException         DB 오류 발생 시
 	 * @throws UserProfileException 사용자 정보를 찾을 수 없거나 비활성 계정일 경우
 	 */
 	public User getUserProfile(int userId) throws SQLException, UserProfileException {
@@ -168,11 +202,11 @@ public class UserService {
 
 	/**
 	 * 사용자 비밀번호 확인 (마이페이지에서 특정 작업 전 비밀번호 재확인용)
-	 * 
-	 * @param userId          현재 로그인된 사용자 ID
+	 *
+	 * @param userId          현재 로그인된 사용자 ID
 	 * @param enteredPassword 사용자가 입력한 평문 비밀번호
 	 * @return 비밀번호가 일치하면 true
-	 * @throws SQLException         DB 오류 발생 시
+	 * @throws SQLException         DB 오류 발생 시
 	 * @throws UserProfileException 비밀번호 불일치 시
 	 */
 	public boolean verifyPassword(int userId, String enteredPassword) throws SQLException, UserProfileException {
@@ -190,11 +224,11 @@ public class UserService {
 
 	/**
 	 * 사용자 프로필 정보 업데이트 (닉네임, 이메일, 성별, MBTI, 이름, 취미)
-	 * 
-	 * @param userId        업데이트할 사용자 ID
+	 *
+	 * @param userId        업데이트할 사용자 ID
 	 * @param updateRequest 업데이트 요청 DTO
 	 * @return 성공 시 true
-	 * @throws SQLException         DB 오류 발생 시
+	 * @throws SQLException         DB 오류 발생 시
 	 * @throws UserProfileException 유효성 검증 실패 (중복 등) 시
 	 */
 	public boolean updateUserProfile(int userId, UserProfileUpdateRequest updateRequest)
@@ -215,7 +249,7 @@ public class UserService {
 		if (!updateRequest.getEmail().matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$")) {
 			throw new UserProfileException("INVALID_EMAIL", "유효하지 않은 이메일 형식입니다.");
 		}
-		
+
 		// 3. MBTI 유효성 검증 (필수로 변경되었으므로 null 체크 없이 바로 유효성 검증)
 		String mbti = updateRequest.getMbti();
 		String[] validMbti = { "ISTJ", "ISFJ", "INFJ", "INTJ", "ISTP", "ISFP", "INFP", "INTP", "ESTP", "ESFP",
@@ -257,12 +291,12 @@ public class UserService {
 
 	/**
 	 * 사용자 비밀번호 변경
-	 * 
-	 * @param userId          비밀번호를 변경할 사용자 ID
+	 *
+	 * @param userId          비밀번호를 변경할 사용자 ID
 	 * @param currentPassword 사용자가 입력한 현재 비밀번호 (평문)
-	 * @param newPassword     사용자가 입력한 새 비밀번호 (평문)
+	 * @param newPassword     사용자가 입력한 새 비밀번호 (평문)
 	 * @return 성공 시 true
-	 * @throws SQLException         DB 오류 발생 시
+	 * @throws SQLException         DB 오류 발생 시
 	 * @throws UserProfileException 비밀번호 불일치 또는 정책 위반 시
 	 */
 	// UserService.java
@@ -292,10 +326,10 @@ public class UserService {
 
 	/**
 	 * 회원 탈퇴 (사용자 상태를 'withdrawn'으로 변경)
-	 * 
+	 *
 	 * @param userId 탈퇴할 사용자 ID
 	 * @return 성공 시 true
-	 * @throws SQLException         DB 오류 발생 시
+	 * @throws SQLException         DB 오류 발생 시
 	 * @throws UserProfileException 탈퇴 처리 실패 시
 	 */
 	public boolean withdrawUser(int userId) throws SQLException, UserProfileException {

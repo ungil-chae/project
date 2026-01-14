@@ -72,8 +72,8 @@ public class UserDao {
      * @throws SQLException 데이터베이스 작업 중 오류 발생 시
      */
     public User findByUsername(String username) throws SQLException {
-        // 'name', 'hobbies', 'status', 'deleted_at', 'profile_image' 컬럼 추가하여 조회
-        String sql = "SELECT user_id, username, password, nickname, email, gender, mbti, name, hobbies, reg_date, last_login_date, status, deleted_at, profile_image FROM Users WHERE username = ?";
+        // 'name', 'hobbies', 'status', 'deleted_at', 'profile_image', 'login_fail_count', 'account_locked_until' 컬럼 추가하여 조회
+        String sql = "SELECT user_id, username, password, nickname, email, gender, mbti, name, hobbies, reg_date, last_login_date, status, deleted_at, profile_image, login_fail_count, account_locked_until FROM Users WHERE username = ?";
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
@@ -101,6 +101,8 @@ public class UserDao {
                 user.setStatus(rs.getString("status"));
                 user.setDeletedAt(rs.getTimestamp("deleted_at") != null ? rs.getTimestamp("deleted_at").toLocalDateTime() : null); // ✨ deleted_at 필드 매핑
                 user.setProfileImage(rs.getString("profile_image")); // 프로필 이미지 매핑
+                user.setLoginFailCount(rs.getInt("login_fail_count")); // 로그인 실패 횟수 매핑
+                user.setAccountLockedUntil(rs.getTimestamp("account_locked_until") != null ? rs.getTimestamp("account_locked_until").toLocalDateTime() : null); // 계정 잠금 시간 매핑
             }
             return user;
         } finally {
@@ -407,6 +409,80 @@ public class UserDao {
             conn = DBUtil.getConnection();
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, profileImagePath);
+            pstmt.setInt(2, userId);
+            int affectedRows = pstmt.executeUpdate();
+            return affectedRows > 0;
+        } finally {
+            DBUtil.close(pstmt);
+            DBUtil.close(conn);
+        }
+    }
+
+    /**
+     * 로그인 실패 횟수를 1 증가시킵니다.
+     *
+     * @param userId 사용자 ID
+     * @return 성공 시 true, 실패 시 false
+     * @throws SQLException 데이터베이스 오류 발생 시
+     */
+    public boolean incrementLoginFailCount(int userId) throws SQLException {
+        String sql = "UPDATE Users SET login_fail_count = login_fail_count + 1 WHERE user_id = ?";
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+
+        try {
+            conn = DBUtil.getConnection();
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, userId);
+            int affectedRows = pstmt.executeUpdate();
+            return affectedRows > 0;
+        } finally {
+            DBUtil.close(pstmt);
+            DBUtil.close(conn);
+        }
+    }
+
+    /**
+     * 로그인 실패 횟수를 0으로 초기화합니다.
+     *
+     * @param userId 사용자 ID
+     * @return 성공 시 true, 실패 시 false
+     * @throws SQLException 데이터베이스 오류 발생 시
+     */
+    public boolean resetLoginFailCount(int userId) throws SQLException {
+        String sql = "UPDATE Users SET login_fail_count = 0, account_locked_until = NULL WHERE user_id = ?";
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+
+        try {
+            conn = DBUtil.getConnection();
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, userId);
+            int affectedRows = pstmt.executeUpdate();
+            return affectedRows > 0;
+        } finally {
+            DBUtil.close(pstmt);
+            DBUtil.close(conn);
+        }
+    }
+
+    /**
+     * 계정을 잠금 처리합니다. (5분간)
+     *
+     * @param userId 사용자 ID
+     * @param lockedUntil 잠금 해제 시간
+     * @return 성공 시 true, 실패 시 false
+     * @throws SQLException 데이터베이스 오류 발생 시
+     */
+    public boolean lockAccount(int userId, LocalDateTime lockedUntil) throws SQLException {
+        String sql = "UPDATE Users SET account_locked_until = ? WHERE user_id = ?";
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+
+        try {
+            conn = DBUtil.getConnection();
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setTimestamp(1, java.sql.Timestamp.valueOf(lockedUntil));
             pstmt.setInt(2, userId);
             int affectedRows = pstmt.executeUpdate();
             return affectedRows > 0;

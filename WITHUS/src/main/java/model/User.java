@@ -18,6 +18,8 @@ public class User {
     private String status;
     private LocalDateTime deletedAt;
     private String profileImage; // 프로필 이미지 경로
+    private int loginFailCount; // 로그인 실패 횟수
+    private LocalDateTime accountLockedUntil; // 계정 잠금 해제 시간
 
     // 기본 생성자
     public User() {}
@@ -86,6 +88,14 @@ public class User {
     // 프로필 이미지 Getter 및 Setter
     public String getProfileImage() { return profileImage; }
     public void setProfileImage(String profileImage) { this.profileImage = profileImage; }
+
+    // 로그인 실패 횟수 Getter 및 Setter
+    public int getLoginFailCount() { return loginFailCount; }
+    public void setLoginFailCount(int loginFailCount) { this.loginFailCount = loginFailCount; }
+
+    // 계정 잠금 시간 Getter 및 Setter
+    public LocalDateTime getAccountLockedUntil() { return accountLockedUntil; }
+    public void setAccountLockedUntil(LocalDateTime accountLockedUntil) { this.accountLockedUntil = accountLockedUntil; }
 
     @Override
     public String toString() {
