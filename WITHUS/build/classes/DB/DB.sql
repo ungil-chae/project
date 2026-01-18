@@ -43,7 +43,9 @@ CREATE TABLE `users` (
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `nickname` (`nickname`),
-  UNIQUE KEY `email` (`email`)
+  UNIQUE KEY `email` (`email`),
+  KEY `idx_users_mbti` (`mbti`),
+  KEY `idx_users_mbti_userid` (`mbti`, `user_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -82,7 +84,8 @@ CREATE TABLE `books` (
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`book_id`),
-  UNIQUE KEY `isbn` (`isbn`)
+  UNIQUE KEY `isbn` (`isbn`),
+  KEY `idx_books_category` (`category`)
 ) ENGINE=InnoDB AUTO_INCREMENT=300 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -393,3 +396,19 @@ CREATE TABLE `wishlists` (
 LOCK TABLES `wishlists` WRITE;
 
 UNLOCK TABLES;
+ USE book_recommendation_db;
+
+  ALTER TABLE users
+  ADD COLUMN login_fail_count INT NOT NULL DEFAULT 0,
+  ADD COLUMN account_locked_until DATETIME NULL;
+
+--
+-- MBTI 기반 추천 성능 최적화를 위한 인덱스
+--
+CREATE INDEX idx_users_mbti ON users(mbti);
+
+-- 복합 인덱스: mbti 필터링 + user_id JOIN 최적화 (커버링 인덱스)
+CREATE INDEX idx_users_mbti_userid ON users(mbti, user_id);
+
+-- 카테고리별 도서 검색 최적화
+CREATE INDEX idx_books_category ON books(category);
