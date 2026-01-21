@@ -4,6 +4,7 @@ var centerMarker;
 var geocoder; // SDK 로드 후 초기화
 var markers = [],
   infowindows = [];
+var clusterer = null; // 마커 클러스터러
 var userGpsPosition,
   radiusCircle,
   currentRadius = 1;
@@ -127,6 +128,25 @@ function initMap() {
 
   // Geocoder 초기화 (SDK 로드 후)
   geocoder = new kakao.maps.services.Geocoder();
+
+  // 마커 클러스터러 초기화
+  clusterer = new kakao.maps.MarkerClusterer({
+    map: map,
+    averageCenter: true,  // 클러스터 중심을 마커 평균 위치로
+    minLevel: 4,          // 클러스터링 시작 줌 레벨
+    gridSize: 60,         // 클러스터 그리드 크기
+    styles: [{
+      width: '50px',
+      height: '50px',
+      background: 'rgba(74, 144, 226, 0.8)',
+      borderRadius: '25px',
+      color: '#fff',
+      textAlign: 'center',
+      fontWeight: 'bold',
+      lineHeight: '50px',
+      fontSize: '14px'
+    }]
+  });
 
   centerMarker = new kakao.maps.Marker({
     position: map.getCenter(),
@@ -286,20 +306,22 @@ function searchFacilities(facilityCode, searchTerm = "", customPosition = null) 
         if (status === kakao.maps.services.Status.OK) {
           console.log(`${pageNum}페이지 검색 성공: ${data.length}개 시설 (누적: ${allResults.length + data.length}개)`);
 
-          // 반복 호출 (최대 100개)
+          // 반복 호출 (최대 300개)
           allResults = allResults.concat(data);
 
-          // 100개 미만이며 다음 페이지가 있으면 가져오기
-          if (allResults.length < 100 && pagination.hasNextPage) {
+          // 최대 개수 미만, 다음 페이지가 있으면 가져오기
+          const MAX_RESULTS = 300;
+          if (allResults.length < MAX_RESULTS && pagination.hasNextPage) {
             setTimeout(() => {
               pagination.nextPage();
               fetchAllPages(pageNum + 1); // 다음 페이지 호출
-            }, 50);
+            }
+            , 50);
           } else {
             // 수집 완료
-            if (allResults.length >= 100) {
-              allResults = allResults.slice(0, 100); // 정확히 100개만
-              console.log(`최대 100개 제한 도달 (${pageNum}페이지)`);
+            if (allResults.length >= MAX_RESULTS) {
+              allResults = allResults.slice(0, MAX_RESULTS); // 정확히 MAX_RESULTS개만
+              console.log(`최대 ${MAX_RESULTS}개 제한 도달 (${pageNum}페이지)`);
             } else {
               console.log(`총 ${allResults.length}개 시설 데이터 수집 완료 (${pageNum}페이지)`);
             }
@@ -398,7 +420,8 @@ function updateResultListAndMarkers(facilities) {
   facilities.forEach((facility) => {
     // 카카오 API distance 기준으로 이미 필터링됨 (이중 검증 제거)
     const coords = new kakao.maps.LatLng(facility.lat, facility.lng);
-    const marker = new kakao.maps.Marker({ map, position: coords });
+    // 클러스터러 사용 시 map 옵션 제거 (클러스터러가 관리)
+    const marker = new kakao.maps.Marker({ position: coords });
 
     const displayAddr = facility.kakaoAddr || facility.fcltAddr || "주소 정보 없음";
     const displayPhone = facility.kakaoPhone || facility.fcltTelNo || "전화번호 없음";
@@ -451,9 +474,16 @@ function updateResultListAndMarkers(facilities) {
 
     resultList.appendChild(listItem);
   });
+
+  // 마커들을 클러스터러에 추가
+  clusterer.addMarkers(markers);
 }
 
 function clearMap() {
+  // 클러스터러에서 마커 제거
+  if (clusterer) {
+    clusterer.clear();
+  }
   markers.forEach((m) => m.setMap(null));
   infowindows.forEach((i) => i.close());
   markers = [];

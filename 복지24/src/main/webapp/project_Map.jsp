@@ -64,7 +64,7 @@ pageEncoding="UTF-8" isELIgnored="false"%>
     </script>
     <script
       type="text/javascript"
-      src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=<%= kakaoApiKey %>&libraries=services"
+      src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=<%= kakaoApiKey %>&libraries=services,clusterer"
     ></script>
     <script src="resources/js/project_Map.js"></script>
   </body>

@@ -102,7 +102,7 @@
 
 	<update id="increaseKindnessTemperature" parameterType="map">
 		UPDATE member
-		SET kindness_temperature = kindness_temperature + #{amount}
+		SET kindness_temperature = LEAST(kindness_temperature + #{amount}, 100.00)
 		WHERE email = #{userId}
 	</update>
 

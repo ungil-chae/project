@@ -808,17 +808,17 @@ INSERT INTO donations (member_id, category_id, amount, donation_type, donor_name
 (NULL, 9, 400000.00, 'ONETIME', '토스 사회공헌팀', 'toss@company.com', '01060000007', '범죄피해자 지원 연말성금.', 'TOSS_PAY', 'COMPLETED', '2025-12-02 11:30:00'),
 (NULL, 1, 700000.00, 'ONETIME', '배달의민족 봉사단', 'baemin@company.com', '01060000008', '연말 위기가정 긴급지원.', 'BANK_TRANSFER', 'COMPLETED', '2025-12-02 13:00:00');
 
--- 9-8. 기부 후기 샘플 데이터 (총 9개 리뷰)
+-- 9-8. 기부 후기 샘플 데이터 (총 9개 리뷰) - 기부자가 남긴 후원 소감
 INSERT INTO donation_reviews (member_id, donation_id, reviewer_name, rating, title, content, is_anonymous, created_at) VALUES
-(NULL, 1, '김민수', 5, '정말 감사합니다', '어려운 시기에 도움을 받을 수 있어서 정말 감사했습니다. 복지24를 통해 신청한 지원금 덕분에 가족이 다시 희망을 찾을 수 있었습니다.', FALSE, '2025-07-15 11:00:00'),
-(NULL, 2, '익명', 5, '의료비 지원 감사합니다', '가족의 수술비 때문에 고민이 많았는데, 복지24에서 의료비 지원 프로그램을 찾을 수 있었습니다. 정말 감사드립니다.', TRUE, '2025-07-20 12:30:00'),
-(NULL, 3, '박철수', 5, '다시 일어설 수 있었습니다', '화재로 모든 것을 잃었을 때, 복지24를 통해 긴급 지원을 받을 수 있었습니다. 진심으로 감사드립니다.', FALSE, '2025-08-05 15:20:00'),
-(2, 4, '테스트유저', 5, '한부모 가정에 큰 도움', '한부모 가정을 위한 다양한 지원 프로그램이 있어서 좋았습니다. 아이 양육비에 큰 도움이 되고 있어요.', FALSE, '2025-08-18 10:15:00'),
-(NULL, 5, '정현우', 5, '재난 복구 지원 감사합니다', '태풍 피해로 집이 침수되었을 때 긴급 지원금을 받았습니다. 복지24의 빠른 대응 덕분에 빠르게 일상으로 돌아갈 수 있었습니다.', FALSE, '2025-09-08 17:00:00'),
-(NULL, 6, '이영희', 5, '따뜻한 나눔에 감사드립니다', '노숙인 분들을 위한 겨울나기 프로그램이 정말 좋았습니다. 작은 기부가 큰 변화를 만든다는 것을 느꼈습니다.', FALSE, '2025-09-25 10:30:00'),
-(NULL, 7, '익명', 4, '새출발의 기회를 주셔서 감사합니다', '가정폭력 피해로 힘들었는데 복지24를 통해 안전한 곳으로 옮길 수 있었습니다. 새로운 시작을 할 수 있게 도와주셔서 감사합니다.', TRUE, '2025-10-12 15:00:00'),
-(NULL, 8, '강서연', 5, '심리 상담 지원 정말 좋았습니다', '심리 상담 지원 프로그램 덕분에 힘든 시기를 잘 극복할 수 있었습니다. 전문 상담사님들의 도움이 정말 컸어요.', FALSE, '2025-11-05 12:00:00'),
-(NULL, 9, '익명', 5, '범죄 피해 치료비 지원 감사합니다', '범죄 피해로 인한 트라우마 치료비 지원을 받았습니다. 경제적 부담이 줄어들어 치료에 집중할 수 있었고, 심리적으로도 많이 회복되었습니다.', TRUE, '2025-11-28 17:00:00');
+(NULL, 1, '김민수', 5, '첫 기부를 시작하며', '첫 월급을 받고 처음으로 기부를 시작했습니다. 제가 받은 행운을 어려운 분들과 나누고 싶었어요. 매달 자동이체로 편하게 기부할 수 있어서 좋습니다. 앞으로도 꾸준히 이어가겠습니다!', FALSE, '2025-07-15 11:00:00'),
+(NULL, 2, '익명', 5, '의료비 분야에 기부합니다', '가족이 큰 병을 앓았던 적이 있어서 의료비의 부담을 잘 알고 있습니다. 저처럼 힘든 시간을 보내는 분들에게 조금이나마 도움이 되길 바라며 기부합니다.', TRUE, '2025-07-20 12:30:00'),
+(NULL, 3, '박철수', 5, '화재 피해 가정을 응원하며', '뉴스에서 화재 피해 소식을 접하고 바로 기부했습니다. 갑작스러운 사고로 모든 것을 잃은 분들께 작은 위로가 되었으면 합니다. 복지24 덕분에 간편하게 도움을 전할 수 있었어요.', FALSE, '2025-08-05 15:20:00'),
+(2, 4, '테스트유저', 5, '한부모 가정 응원합니다', '저도 한부모 가정에서 자랐습니다. 어머니의 고생을 보며 자란 만큼, 같은 상황의 가정에 도움이 되고 싶어 기부를 시작했어요. 작은 정성이 큰 힘이 되길 바랍니다.', FALSE, '2025-08-18 10:15:00'),
+(NULL, 5, '정현우', 5, '자연재해 피해 복구 응원', '집중호우로 피해를 입은 지역 주민분들을 돕고 싶어 기부했습니다. 자연재해는 누구에게나 일어날 수 있는 일이라, 서로 돕는 것이 중요하다고 생각해요. 빠른 복구를 응원합니다!', FALSE, '2025-09-08 17:00:00'),
+(NULL, 6, '이영희', 5, '노숙인 분들께 따뜻함을', '출퇴근길에 거리에서 지내시는 분들을 자주 뵙습니다. 추운 겨울, 따뜻한 밥 한 끼라도 드실 수 있으면 좋겠다는 마음으로 매달 기부하고 있어요. 모두가 따뜻한 겨울 보내시길!', FALSE, '2025-09-25 10:30:00'),
+(NULL, 7, '익명', 4, '새 출발을 응원합니다', '가정폭력 피해자 쉼터 운영에 보탬이 되고 싶어 기부합니다. 힘든 상황에서 벗어나려는 분들이 안전하게 새 출발을 하실 수 있도록 응원하는 마음을 담았습니다.', TRUE, '2025-10-12 15:00:00'),
+(NULL, 8, '강서연', 5, '정신건강 지원에 기부합니다', '정신건강의 중요성을 알기에 관련 분야에 기부하게 되었습니다. 힘든 시간을 겪고 있는 분들이 전문적인 도움을 받을 수 있으면 좋겠어요. 함께 이겨내시길 응원합니다.', FALSE, '2025-11-05 12:00:00'),
+(NULL, 9, '익명', 5, '범죄 피해자분들 힘내세요', '범죄 피해자분들의 회복을 돕고 싶어 기부했습니다. 신체적, 정신적 고통을 겪고 계신 분들이 일상으로 돌아갈 수 있도록 작은 힘이 되고 싶습니다. 힘내세요!', TRUE, '2025-11-28 17:00:00');
 
 -- ========================================================================
 -- 9-10. 대시보드용 추가 샘플 데이터
@@ -1942,3 +1942,114 @@ CREATE TABLE IF NOT EXISTS hidden_recent_activities (
 
 -- 완료 메시지
 SELECT '추가 테이블 생성 완료' AS message;
+ USE springmvc;
+
+  UPDATE member
+  SET deleted_at = NOW()
+  WHERE status = 'DORMANT' AND deleted_at IS NULL;
+
+USE springmvc;
+ UPDATE member SET kindness_temperature = 44.5 WHERE email = 'cwil123789@gmail.com';
+
+
+  DELETE FROM donations WHERE member_id = (SELECT member_id FROM member WHERE email = 'cwil123789@gmail.com');        
+  DELETE FROM vol_apply WHERE member_id = (SELECT member_id FROM member WHERE email = 'cwil123789@gmail.com');        
+  DELETE FROM favorite_welfare_services WHERE member_id = (SELECT member_id FROM member WHERE email = 'cwil123789@gmail.com');
+  
+  
+  USE springmvc;
+ UPDATE member SET birth = NULL WHERE email = 'cwil123789@gmail.com';
+ 
+ 
+   ALTER TABLE member MODIFY COLUMN birth DATE NULL;
+ UPDATE member SET volunteer_ban_until = NULL WHERE email = 'cwil123789@gmail.com';
+SET SQL_SAFE_UPDATES = 0;
+
+  DELETE FROM donation_reviews;
+
+  INSERT INTO donation_reviews (member_id, donation_id, reviewer_name, rating, title, content, is_anonymous, created_at) VALUES
+  (NULL, 1, '김민수', 5, '첫 기부를 시작하며', '첫 월급을 받고 처음으로 기부를 시작했습니다. 제가 받은 행운을 어려운 분들 
+과 나누고 싶었어요. 매달 자동이체로 편하게 기부할 수 있어서 좋습니다. 앞으로도 꾸준히 이어가겠습니다!', FALSE, '2025-07-15 11:00:00'),
+  (NULL, 2, '익명', 5, '의료비 분야에 기부합니다', '가족이 큰 병을 앓았던 적이 있어서 의료비의 부담을 잘 알고 있습니다. 저
+처럼 힘든 시간을 보내는 분들에게 조금이나마 도움이 되길 바라며 기부합니다.', TRUE, '2025-07-20 12:30:00'),
+  (NULL, 3, '박철수', 5, '화재 피해 가정을 응원하며', '뉴스에서 화재 피해 소식을 접하고 바로 기부했습니다. 갑작스러운 사고
+로 모든 것을 잃은 분들께 작은 위로가 되었으면 합니다. 복지24 덕분에 간편하게 도움을 전할 수 있었어요.', FALSE, '2025-08-05 15:20:00'),
+  (2, 4, '테스트유저', 5, '한부모 가정 응원합니다', '저도 한부모 가정에서 자랐습니다. 어머니의 고생을 보며 자란 만큼, 같은
+ 상황의 가정에 도움이 되고 싶어 기부를 시작했어요. 작은 정성이 큰 힘이 되길 바랍니다.', FALSE, '2025-08-18 10:15:00'),    
+  (NULL, 5, '정현우', 5, '자연재해 피해 복구 응원', '집중호우로 피해를 입은 지역 주민분들을 돕고 싶어 기부했습니다. 자연재
+해는 누구에게나 일어날 수 있는 일이라, 서로 돕는 것이 중요하다고 생각해요. 빠른 복구를 응원합니다!', FALSE, '2025-09-08 17:00:00'),
+  (NULL, 6, '이영희', 5, '노숙인 분들께 따뜻함을', '출퇴근길에 거리에서 지내시는 분들을 자주 뵙습니다. 추운 겨울, 따뜻한  
+밥 한 끼라도 드실 수 있으면 좋겠다는 마음으로 매달 기부하고 있어요. 모두가 따뜻한 겨울 보내시길!', FALSE, '2025-09-25 10:30:00'),
+  (NULL, 7, '익명', 4, '새 출발을 응원합니다', '가정폭력 피해자 쉼터 운영에 보탬이 되고 싶어 기부합니다. 힘든 상황에서 벗 
+어나려는 분들이 안전하게 새 출발을 하실 수 있도록 응원하는 마음을 담았습니다.', TRUE, '2025-10-12 15:00:00'),
+  (NULL, 8, '강서연', 5, '정신건강 지원에 기부합니다', '정신건강의 중요성을 알기에 관련 분야에 기부하게 되었습니다. 힘든  
+시간을 겪고 있는 분들이 전문적인 도움을 받을 수 있으면 좋겠어요. 함께 이겨내시길 응원합니다.', FALSE, '2025-11-05 12:00:00'),
+  (NULL, 9, '익명', 5, '범죄 피해자분들 힘내세요', '범죄 피해자분들의 회복을 돕고 싶어 기부했습니다. 신체적, 정신적 고통을
+ 겪고 계신 분들이 일상으로 돌아갈 수 있도록 작은 힘이 되고 싶습니다. 힘내세요!', TRUE, '2025-11-28 17:00:00');
+
+  SET SQL_SAFE_UPDATES = 1;
+  
+  
+ SET SQL_SAFE_UPDATES = 0;
+
+  DELETE FROM member_status_history WHERE history_id IN (3, 4);
+
+  SET SQL_SAFE_UPDATES = 1;
+  
+  
+  SELECT * FROM member_status_history
+  WHERE member_id = (SELECT member_id FROM member WHERE email = 'cwil123789@gmail.com')
+  ORDER BY created_at DESC;
+  DELETE FROM member_status_history WHERE history_id = 5;
+  
+ SHOW TABLES LIKE '%inquiry%';
+  SHOW TABLES LIKE '%qna%';
+  SHOW TABLES LIKE '%ask%';
+  SHOW TABLES LIKE '%contact%';
+    SHOW TABLES;
+    
+    
+      -- 구조 확인
+  DESCRIBE user_qna;
+
+  -- 답변이 있는 질문 조회
+  SELECT * FROM user_qna WHERE answer IS NOT NULL ORDER BY created_at DESC;
+  
+    UPDATE user_qna
+  SET answer = NULL, ans_by = NULL, ans_at = NULL, status = 'PENDING'
+  WHERE qna_id = 20;
+  
+    SET SQL_SAFE_UPDATES = 0;
+
+  UPDATE user_qna
+  SET answer = NULL, ans_by = NULL, ans_at = NULL, status = 'PENDING';
+
+  SET SQL_SAFE_UPDATES = 1;
+  
+  SELECT donation_id, payment_status, refunded_at
+  FROM donations
+  WHERE member_id = (SELECT member_id FROM member WHERE email = 'cwil123789@gmail.com');
+  
+  SELECT donation_id, payment_status, refunded_at FROM donations WHERE donation_id = 51;
+
+USE springmvc;
+
+ALTER TABLE member
+ADD INDEX idx_login_lookup (email, deleted_at, status);
+
+ALTER TABLE email_verifications
+ADD INDEX idx_verification_lookup (email, verification_type, is_verified, expires_at);
+
+ALTER TABLE donation_reviews
+ADD INDEX idx_visible_active (is_visible, deleted_at, created_at DESC);
+
+ALTER TABLE vol_review
+ADD INDEX idx_visible_active (visible_yn, deleted_at, created_at DESC);
+
+ALTER TABLE welfare_diagnosis_log
+ADD INDEX idx_created_at (created_at);
+
+ALTER TABLE user_qna
+ADD INDEX idx_pending_queue (status, created_at ASC);
+
+ALTER TABLE favorite_welfare_services DROP INDEX idx_member_id;
