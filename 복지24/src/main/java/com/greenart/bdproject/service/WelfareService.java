@@ -483,7 +483,7 @@ public class WelfareService {
             LocalDate birth = LocalDate.parse(birthdate);
             return Period.between(birth, LocalDate.now()).getYears();
         } catch (Exception e) {
-            logger.error("Error calculatiSg age from birthdate: " + birthdate, e);
+            logger.error("Error calculating age from birthdate: {}", birthdate, e);
             return 30;  // 기본값
         }
     }
@@ -506,6 +506,7 @@ public class WelfareService {
         codeToName.put("006", "노년");
         codeToName.put("007", "임신");  // 임신·출산
         
+        if (userLifeCode == null) return false;
         String lifeStageName = codeToName.get(userLifeCode);
         return lifeStageName != null && serviceLifeArray.contains(lifeStageName);
     }

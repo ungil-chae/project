@@ -1,6 +1,5 @@
 package com.greenart.bdproject.util;
 
-import org.springframework.web.util.UriComponentsBuilder;
 public class PageHandler {
 	private int page; // 현재 페이지
 	private int pageSize= 5; // 한 페이지 크기
@@ -121,7 +120,7 @@ public class PageHandler {
 
 	@Override
 	public String toString() {
-		return "PageHandler2 [totalCnt=" + totalCnt + ", naviSize=" + naviSize + ", totalPage="
+		return "PageHandler [totalCnt=" + totalCnt + ", naviSize=" + naviSize + ", totalPage="
 				+ totalPage + ", beginPage=" + beginPage + ", endPage=" + endPage + ", showPrev=" + showPrev
 				+ ", showNext=" + showNext + "]";
 	}
