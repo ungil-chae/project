@@ -2053,3 +2053,138 @@ ALTER TABLE user_qna
 ADD INDEX idx_pending_queue (status, created_at ASC);
 
 ALTER TABLE favorite_welfare_services DROP INDEX idx_member_id;
+
+-- ================================================
+-- 체크리스트 기능 테이블 (2026-01-23 추가)
+-- ================================================
+
+-- 공통 서류 템플릿
+CREATE TABLE common_documents (
+    common_doc_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '공통 서류 ID',
+    document_name VARCHAR(200) NOT NULL COMMENT '서류명',
+    document_category VARCHAR(50) NOT NULL COMMENT '카테고리 (신분증명, 소득증명, 가족관계 등)',
+    description TEXT NULL COMMENT '서류 설명',
+    how_to_get TEXT NULL COMMENT '발급 방법',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일',
+
+    INDEX idx_category (document_category)
+) ENGINE=InnoDB COMMENT='공통 서류 템플릿';
+
+-- 복지 서비스별 필요 서류 테이블
+CREATE TABLE welfare_required_documents (
+    document_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '서류 ID',
+    service_id VARCHAR(50) NOT NULL COMMENT '복지 서비스 ID (API의 servId)',
+    document_name VARCHAR(200) NOT NULL COMMENT '서류명',
+    document_description TEXT NULL COMMENT '서류 설명',
+    is_required BOOLEAN NOT NULL DEFAULT TRUE COMMENT '필수 여부',
+    how_to_get TEXT NULL COMMENT '발급 방법',
+    document_order INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '정렬 순서',
+    common_doc_id INT UNSIGNED NULL COMMENT '공통 서류 참조 (있으면 공통 서류 정보 활용)',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일',
+
+    INDEX idx_service_id (service_id),
+    INDEX idx_common_doc (common_doc_id),
+    FOREIGN KEY (common_doc_id) REFERENCES common_documents(common_doc_id) ON DELETE SET NULL
+) ENGINE=InnoDB COMMENT='복지 서비스별 필요 서류';
+
+-- 사용자별 체크리스트 진행상황 테이블
+CREATE TABLE user_document_checklist (
+    checklist_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '체크리스트 ID',
+    member_id BIGINT UNSIGNED NOT NULL COMMENT '회원 ID',
+    service_id VARCHAR(50) NOT NULL COMMENT '복지 서비스 ID',
+    document_id BIGINT UNSIGNED NOT NULL COMMENT '서류 ID',
+    is_checked BOOLEAN NOT NULL DEFAULT FALSE COMMENT '체크 여부',
+    checked_at TIMESTAMP NULL COMMENT '체크한 시간',
+    memo VARCHAR(500) NULL COMMENT '사용자 메모',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일',
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일',
+
+    INDEX idx_member_id (member_id),
+    INDEX idx_service_id (service_id),
+    INDEX idx_member_service (member_id, service_id),
+    UNIQUE KEY uk_member_service_document (member_id, service_id, document_id),
+    FOREIGN KEY (member_id) REFERENCES member(member_id) ON DELETE CASCADE,
+    FOREIGN KEY (document_id) REFERENCES welfare_required_documents(document_id) ON DELETE CASCADE
+) ENGINE=InnoDB COMMENT='사용자별 체크리스트 진행상황';
+
+-- ================================================
+-- 공통 서류 초기 데이터
+-- ================================================
+
+INSERT INTO common_documents (document_name, document_category, description, how_to_get) VALUES
+-- 신분증명
+('주민등록증', '신분증명', '본인 확인용 신분증', '만 17세 이상 주민센터에서 발급'),
+('운전면허증', '신분증명', '본인 확인용 신분증', '운전면허시험장 또는 경찰서에서 발급'),
+('여권', '신분증명', '본인 확인용 신분증', '구청/시청 여권과에서 발급'),
+('주민등록등본', '신분증명', '세대 구성원 및 주소 확인', '주민센터 방문 또는 정부24(www.gov.kr) 온라인 발급'),
+('주민등록초본', '신분증명', '개인 주소 이력 확인', '주민센터 방문 또는 정부24(www.gov.kr) 온라인 발급'),
+
+-- 가족관계
+('가족관계증명서', '가족관계', '가족 구성원 확인', '대법원 전자가족관계등록시스템(efamily.scourt.go.kr) 또는 주민센터'),
+('혼인관계증명서', '가족관계', '혼인 여부 확인', '대법원 전자가족관계등록시스템 또는 주민센터'),
+('기본증명서', '가족관계', '출생, 사망, 국적 등 기본 신분사항', '대법원 전자가족관계등록시스템 또는 주민센터'),
+
+-- 소득증명
+('소득금액증명원', '소득증명', '연간 소득 금액 증명', '홈택스(www.hometax.go.kr) 또는 세무서 발급'),
+('근로소득원천징수영수증', '소득증명', '근로소득 상세 내역', '회사 인사팀 또는 홈택스'),
+('건강보험자격득실확인서', '소득증명', '건강보험 가입 이력 (소득 추정용)', '건강보험공단(www.nhis.or.kr) 또는 주민센터'),
+('건강보험료 납부확인서', '소득증명', '건강보험료 납부 내역 (소득 추정용)', '건강보험공단(www.nhis.or.kr) 또는 주민센터'),
+('국민연금 가입증명서', '소득증명', '국민연금 가입 및 납부 이력', '국민연금공단(www.nps.or.kr)'),
+
+-- 재산증명
+('재산세 과세증명서', '재산증명', '부동산 보유 현황', '위택스(www.wetax.go.kr) 또는 구청/시청 세무과'),
+('자동차등록원부', '재산증명', '차량 소유 현황', '자동차민원 대국민포털(www.ecar.go.kr)'),
+('부동산등기부등본', '재산증명', '부동산 소유권 및 권리관계', '인터넷등기소(www.iros.go.kr) 또는 등기소'),
+
+-- 금융정보
+('통장 사본', '금융정보', '급여/지원금 수령 계좌 확인', '해당 은행에서 발급 또는 인터넷뱅킹'),
+('잔액증명서', '금융정보', '예금 잔액 증명', '해당 은행 방문 발급'),
+
+-- 특수서류
+('장애인등록증', '특수서류', '장애 등급 확인', '주민센터에서 장애등록 후 발급'),
+('국가유공자증', '특수서류', '국가유공자 자격 확인', '보훈청'),
+('한부모가족증명서', '특수서류', '한부모가족 자격 확인', '주민센터 또는 복지로(www.bokjiro.go.kr)'),
+('기초생활수급자 증명서', '특수서류', '기초생활수급자 자격 확인', '주민센터'),
+('차상위계층 확인서', '특수서류', '차상위계층 자격 확인', '주민센터');
+
+-- ================================================
+-- 인기 복지 서비스 필요 서류 (샘플 데이터)
+-- ================================================
+
+-- 기초연금 (servId 예시: WLF00000001)
+INSERT INTO welfare_required_documents (service_id, document_name, document_description, is_required, how_to_get, document_order) VALUES
+('WLF00000001', '신분증', '본인 확인용 (주민등록증, 운전면허증 등)', TRUE, NULL, 1),
+('WLF00000001', '통장 사본', '연금 수령용 본인 명의 통장', TRUE, '해당 은행에서 발급', 2),
+('WLF00000001', '소득재산신고서', '소득 및 재산 현황 신고', TRUE, '주민센터 비치 또는 복지로 다운로드', 3),
+('WLF00000001', '금융정보등 제공동의서', '금융정보 조회 동의', TRUE, '주민센터 비치', 4),
+('WLF00000001', '임대차계약서', '임차인인 경우 제출', FALSE, NULL, 5);
+
+-- 아동수당 (servId 예시: WLF00000002)
+INSERT INTO welfare_required_documents (service_id, document_name, document_description, is_required, how_to_get, document_order) VALUES
+('WLF00000002', '신분증', '신청인(보호자) 신분증', TRUE, NULL, 1),
+('WLF00000002', '통장 사본', '수당 수령용 통장', TRUE, '해당 은행에서 발급', 2),
+('WLF00000002', '가족관계증명서', '아동과의 관계 확인 (필요시)', FALSE, '정부24 또는 주민센터', 3);
+
+-- 장애인연금 (servId 예시: WLF00000003)
+INSERT INTO welfare_required_documents (service_id, document_name, document_description, is_required, how_to_get, document_order) VALUES
+('WLF00000003', '신분증', '본인 확인용', TRUE, NULL, 1),
+('WLF00000003', '장애인등록증', '중증장애인 등록 확인', TRUE, '주민센터', 2),
+('WLF00000003', '통장 사본', '연금 수령용 본인 명의 통장', TRUE, '해당 은행', 3),
+('WLF00000003', '소득재산신고서', '소득 및 재산 현황 신고', TRUE, '주민센터 비치', 4),
+('WLF00000003', '금융정보등 제공동의서', '금융정보 조회 동의', TRUE, '주민센터 비치', 5);
+
+-- 국민기초생활보장 생계급여 (servId 예시: WLF00000004)
+INSERT INTO welfare_required_documents (service_id, document_name, document_description, is_required, how_to_get, document_order) VALUES
+('WLF00000004', '신분증', '가구원 전원 신분증', TRUE, NULL, 1),
+('WLF00000004', '사회보장급여 신청서', '급여 신청 서류', TRUE, '주민센터 비치', 2),
+('WLF00000004', '소득재산신고서', '소득 및 재산 현황 신고', TRUE, '주민센터 비치', 3),
+('WLF00000004', '금융정보등 제공동의서', '금융정보 조회 동의', TRUE, '주민센터 비치', 4),
+('WLF00000004', '통장 사본', '급여 수령용 통장', TRUE, '해당 은행', 5),
+('WLF00000004', '임대차계약서', '주거 상황 확인용', FALSE, NULL, 6),
+('WLF00000004', '건강보험료 납부확인서', '소득 확인용', FALSE, '건강보험공단', 7);
+
+-- 양육수당 (servId 예시: WLF00000005)
+INSERT INTO welfare_required_documents (service_id, document_name, document_description, is_required, how_to_get, document_order) VALUES
+('WLF00000005', '신분증', '신청인(보호자) 신분증', TRUE, NULL, 1),
+('WLF00000005', '통장 사본', '수당 수령용 통장', TRUE, '해당 은행', 2),
+('WLF00000005', '가족관계증명서', '아동과의 관계 확인', TRUE, '정부24 또는 주민센터', 3);

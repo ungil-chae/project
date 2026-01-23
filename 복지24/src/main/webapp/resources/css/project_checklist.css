@@ -1,0 +1,637 @@
+/* ================================================
+   복지24 체크리스트 페이지 스타일
+   ================================================ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+    background: #f5f7fa;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Header */
+.header {
+    background: white;
+    padding: 15px 0;
+    border-bottom: 1px solid #e0e0e0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 24px;
+    font-weight: 700;
+    color: #0061ff;
+    text-decoration: none;
+}
+
+.logo-icon {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #0061ff 0%, #0052d4 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.nav-menu {
+    display: flex;
+    gap: 25px;
+}
+
+.nav-menu a {
+    color: #555;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.nav-menu a:hover {
+    color: #0061ff;
+}
+
+/* Container */
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 30px 20px;
+}
+
+/* Page Header */
+.page-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.page-title i {
+    color: #0061ff;
+}
+
+.page-subtitle {
+    font-size: 15px;
+    color: #6c757d;
+}
+
+/* Service Info Card */
+.service-info-card {
+    background: linear-gradient(135deg, #0061ff 0%, #0052d4 100%);
+    border-radius: 16px;
+    padding: 25px 30px;
+    color: white;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 20px rgba(0, 97, 255, 0.3);
+}
+
+.service-header {
+    margin-bottom: 20px;
+}
+
+.service-name {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.service-org {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.progress-section {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 15px 20px;
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.progress-label {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.progress-text {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.progress-bar {
+    height: 10px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: white;
+    border-radius: 5px;
+    transition: width 0.5s ease;
+}
+
+.progress-percent {
+    text-align: right;
+    font-size: 24px;
+    font-weight: 700;
+    margin-top: 10px;
+}
+
+/* Checklist Container */
+.checklist-container {
+    background: white;
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+    margin-bottom: 30px;
+}
+
+/* Loading & Empty States */
+.loading-state,
+.empty-state {
+    text-align: center;
+    padding: 50px 20px;
+    color: #888;
+}
+
+.loading-state i,
+.empty-state i {
+    font-size: 48px;
+    margin-bottom: 15px;
+    color: #ccc;
+}
+
+.loading-state i {
+    color: #0061ff;
+}
+
+.empty-state h3 {
+    font-size: 18px;
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.empty-state p {
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+/* Checklist Items */
+.checklist-items {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.checklist-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 18px 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.checklist-item:hover {
+    background: #f0f4ff;
+    transform: translateX(5px);
+}
+
+.checklist-item.checked {
+    background: #e8f5e9;
+}
+
+.checklist-item.checked .doc-name {
+    text-decoration: line-through;
+    color: #888;
+}
+
+/* Checkbox */
+.checkbox-wrapper {
+    flex-shrink: 0;
+}
+
+.custom-checkbox {
+    width: 26px;
+    height: 26px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    background: white;
+}
+
+.checklist-item.checked .custom-checkbox {
+    background: #4caf50;
+    border-color: #4caf50;
+}
+
+.custom-checkbox i {
+    color: white;
+    font-size: 14px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.checklist-item.checked .custom-checkbox i {
+    opacity: 1;
+}
+
+/* Document Info */
+.doc-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.doc-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 5px;
+}
+
+.doc-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+}
+
+.doc-badge {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.doc-badge.required {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.doc-badge.optional {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+.doc-description {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.doc-how-to-get {
+    font-size: 12px;
+    color: #0061ff;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.doc-how-to-get i {
+    font-size: 11px;
+}
+
+/* Memo Section */
+.memo-section {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed #ddd;
+}
+
+.memo-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 13px;
+    resize: none;
+    transition: border-color 0.2s;
+}
+
+.memo-input:focus {
+    outline: none;
+    border-color: #0061ff;
+}
+
+.memo-input::placeholder {
+    color: #aaa;
+}
+
+/* Document Actions */
+.doc-actions {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.action-btn {
+    padding: 6px 10px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.action-btn.memo-btn {
+    background: #f0f0f0;
+    color: #666;
+}
+
+.action-btn.memo-btn:hover {
+    background: #e0e0e0;
+}
+
+/* Section Title */
+.section-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-title i {
+    color: #0061ff;
+}
+
+/* My Checklists Section */
+.my-checklists-section {
+    margin-bottom: 30px;
+}
+
+.my-checklists-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 15px;
+}
+
+.my-checklist-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+}
+
+.my-checklist-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-color: #0061ff;
+}
+
+.my-checklist-card.complete {
+    border-color: #4caf50;
+}
+
+.my-checklist-card .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.my-checklist-card .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+    line-height: 1.4;
+}
+
+.my-checklist-card .card-badge {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.my-checklist-card .card-badge.in-progress {
+    background: #fff3e0;
+    color: #e65100;
+}
+
+.my-checklist-card .card-badge.complete {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.my-checklist-card .mini-progress {
+    height: 6px;
+    background: #f0f0f0;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.my-checklist-card .mini-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #0061ff, #00c6ff);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.my-checklist-card.complete .mini-progress-fill {
+    background: linear-gradient(90deg, #4caf50, #81c784);
+}
+
+.my-checklist-card .progress-info {
+    font-size: 13px;
+    color: #666;
+}
+
+/* Common Documents Section */
+.common-docs-section {
+    margin-bottom: 30px;
+}
+
+.common-docs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.common-doc-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    transition: all 0.2s;
+}
+
+.common-doc-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.common-doc-card .doc-category {
+    font-size: 11px;
+    color: #0061ff;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.common-doc-card .doc-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.common-doc-card .doc-desc {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
+.common-doc-card .doc-how {
+    font-size: 12px;
+    color: #888;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.common-doc-card .doc-how i {
+    margin-top: 2px;
+    color: #0061ff;
+}
+
+/* Footer */
+.footer {
+    background: #2c3e50;
+    color: white;
+    padding: 30px 20px;
+    text-align: center;
+    margin-top: 50px;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.footer p {
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+/* Toast Notification */
+.toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #333;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    z-index: 9999;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+.toast.success {
+    background: #4caf50;
+}
+
+.toast.error {
+    background: #f44336;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .page-title {
+        font-size: 24px;
+    }
+
+    .service-info-card {
+        padding: 20px;
+    }
+
+    .service-name {
+        font-size: 18px;
+    }
+
+    .checklist-item {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .doc-actions {
+        flex-direction: row;
+        width: 100%;
+    }
+
+    .my-checklists-container,
+    .common-docs-grid {
+        grid-template-columns: 1fr;
+    }
+}

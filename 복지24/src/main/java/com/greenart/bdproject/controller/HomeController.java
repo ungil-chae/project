@@ -51,6 +51,11 @@ public class HomeController {
         return "project_admin";
     }
 
+    @GetMapping("/checklist")
+    public String checklist() {
+        return "checklist";
+    }
+
     @GetMapping("/test")
     @ResponseBody
     public String test() {

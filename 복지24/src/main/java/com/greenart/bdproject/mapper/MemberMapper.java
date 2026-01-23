@@ -84,4 +84,7 @@ public interface MemberMapper {
 
     // 아이디와 보안 질문 답변으로 회원 찾기
     Member findByIdAndSecurityAnswer(@Param("email") String email, @Param("securityAnswer") String securityAnswer);
+
+    // 이메일로 member_id 조회
+    Long findMemberIdByEmail(String email);
 }

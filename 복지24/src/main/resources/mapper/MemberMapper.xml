@@ -221,4 +221,9 @@
 		FROM member
 		WHERE email = #{email} AND security_answer = #{securityAnswer} AND deleted_at IS NULL
 	</select>
+
+	<!-- 이메일로 member_id 조회 -->
+	<select id="findMemberIdByEmail" parameterType="String" resultType="Long">
+		SELECT member_id FROM member WHERE email = #{email} AND deleted_at IS NULL
+	</select>
 </mapper>
