@@ -100,19 +100,67 @@ public class ChecklistApiController {
     /**
      * 특정 복지 서비스의 필요 서류 목록 조회
      * GET /api/checklist/{serviceId}
+     * serviceId는 내부 ID 또는 API servId 모두 가능
      */
     @GetMapping("/{serviceId}")
     public Map<String, Object> getRequiredDocuments(@PathVariable String serviceId) {
         Map<String, Object> response = new HashMap<>();
         try {
-            List<RequiredDocumentDto> documents = checklistService.getRequiredDocuments(serviceId);
+            // 내부 ID로 변환 (API servId인 경우 매핑)
+            String resolvedId = checklistService.resolveServiceId(serviceId);
+            List<RequiredDocumentDto> documents = checklistService.getRequiredDocuments(resolvedId);
             response.put("success", true);
             response.put("data", documents);
             response.put("hasDocuments", !documents.isEmpty());
+            response.put("resolvedServiceId", resolvedId);
         } catch (Exception e) {
             logger.error("필요 서류 조회 실패: serviceId={}", serviceId, e);
             response.put("success", false);
             response.put("message", "필요 서류 조회 중 오류가 발생했습니다.");
+        }
+        return response;
+    }
+
+    /**
+     * 필요 서류가 등록된 서비스 목록 조회
+     * GET /api/checklist/services/available
+     */
+    @GetMapping("/services/available")
+    public Map<String, Object> getServicesWithDocuments() {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            List<Map<String, Object>> services = checklistService.getServicesWithDocuments();
+            response.put("success", true);
+            response.put("data", services);
+            response.put("count", services.size());
+        } catch (Exception e) {
+            logger.error("서비스 목록 조회 실패", e);
+            response.put("success", false);
+            response.put("message", "서비스 목록 조회 중 오류가 발생했습니다.");
+        }
+        return response;
+    }
+
+    /**
+     * API 서비스에 대한 필요 서류 조회 (서비스명으로 매칭)
+     * GET /api/checklist/search?apiServiceId=xxx&serviceName=xxx
+     */
+    @GetMapping("/search")
+    public Map<String, Object> searchRequiredDocuments(
+            @RequestParam(value = "apiServiceId", required = false) String apiServiceId,
+            @RequestParam(value = "serviceName", required = false) String serviceName) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            List<RequiredDocumentDto> documents = checklistService.getRequiredDocumentsForApiService(apiServiceId, serviceName);
+            response.put("success", true);
+            response.put("data", documents);
+            response.put("hasDocuments", !documents.isEmpty());
+            response.put("searchedApiId", apiServiceId);
+            response.put("searchedName", serviceName);
+        } catch (Exception e) {
+            logger.error("필요 서류 검색 실패: apiServiceId={}, serviceName={}", apiServiceId, serviceName, e);
+            response.put("success", false);
+            response.put("message", "필요 서류 검색 중 오류가 발생했습니다.");
         }
         return response;
     }

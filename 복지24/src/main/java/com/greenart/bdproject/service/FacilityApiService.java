@@ -22,6 +22,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -37,7 +38,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Service
 public class FacilityApiService {
 
-    private final String SERVICE_KEY = "5Zmolv/d2cH1icO3c3x0NrGtNFn7unsoJ00Fllf8S6PKT6/zNvozPbIq1x8dyp1TasaRabGQSklygHZuVM79Bg==";
+    @Value("${api.government.key}")
+    private String SERVICE_KEY;
 
     public List<Map<String, Object>> matchWelfare(Map<String, String> params) {
         System.out.println("matchWelfare 서비스가 호출되었습니다.");

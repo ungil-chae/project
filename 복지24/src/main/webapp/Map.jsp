@@ -1,6 +1,9 @@
 <%-- [수정] isELIgnored="true" 속성을 추가하여 ${} 문법 충돌을 방지합니다. --%>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 pageEncoding="UTF-8" isELIgnored="false"%>
+<%
+    String kakaoApiKey = application.getInitParameter("kakaoApiKey");
+%>
 <!DOCTYPE html>
 <html lang="ko">
   <head>
@@ -445,7 +448,7 @@ pageEncoding="UTF-8" isELIgnored="false"%>
 
     <script
       type="text/javascript"
-      src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=550cff912f02cdcf57aa419c87d2c222&libraries=services"
+      src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=<%= kakaoApiKey %>&libraries=services"
     ></script>
     <script>
       // 전역 변수

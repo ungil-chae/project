@@ -58,6 +58,8 @@
 		<welcome-file>index.html</welcome-file>
 	</welcome-file-list>
 	
+	 <!-- 주의: 프로덕션 환경에서는 이 값을 환경변수로 대체하세요.
+	      예: System.getenv("KAKAO_API_KEY") 또는 서버 설정 사용 -->
 	 <context-param>
 	    <param-name>kakaoApiKey</param-name>
 	    <param-value>550cff912f02cdcf57aa419c87d2c222</param-value>

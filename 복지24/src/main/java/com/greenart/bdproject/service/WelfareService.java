@@ -12,6 +12,7 @@ import java.time.Period;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
@@ -30,7 +31,9 @@ public class WelfareService {
     // API URLs
     private static final String CENTRAL_API_URL = "https://apis.data.go.kr/B554287/NationalWelfareInformationsV001";
     private static final String LOCAL_API_URL = "https://apis.data.go.kr/B554287/LocalGovernmentWelfareInformations";
-    private static final String API_KEY = "5Zmolv/d2cH1icO3c3x0NrGtNFn7unsoJ00Fllf8S6PKT6/zNvozPbIq1x8dyp1TasaRabGQSklygHZuVM79Bg==";
+
+    @Value("${api.government.key}")
+    private String API_KEY;
 
     private final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     private final DocumentBuilder db;

@@ -167,4 +167,62 @@ public class ChecklistService {
         // 새로 초기화
         return checklistMapper.initializeUserChecklist(memberId, serviceId);
     }
+
+    // ========== 서비스 ID 매핑 관련 ==========
+
+    /**
+     * API servId를 내부 serviceId로 변환
+     * 매핑이 없으면 원본 ID 반환
+     */
+    public String resolveServiceId(String serviceId) {
+        // 먼저 내부 ID로 필요 서류가 있는지 확인
+        if (hasRequiredDocuments(serviceId)) {
+            return serviceId;
+        }
+
+        // API ID로 매핑된 내부 ID 검색
+        String internalId = checklistMapper.findInternalServiceIdByApiId(serviceId);
+        if (internalId != null && hasRequiredDocuments(internalId)) {
+            return internalId;
+        }
+
+        // 매핑이 없으면 원본 ID 반환
+        return serviceId;
+    }
+
+    /**
+     * 서비스명으로 내부 serviceId 조회
+     */
+    public String findServiceIdByName(String serviceName) {
+        return checklistMapper.findInternalServiceIdByName(serviceName);
+    }
+
+    /**
+     * 필요 서류가 등록된 서비스 목록 조회
+     */
+    public List<Map<String, Object>> getServicesWithDocuments() {
+        return checklistMapper.selectServicesWithDocuments();
+    }
+
+    /**
+     * API에서 가져온 서비스에 대해 체크리스트 데이터 조회
+     * API servId 또는 서비스명으로 매칭
+     */
+    public List<RequiredDocumentDto> getRequiredDocumentsForApiService(String apiServiceId, String serviceName) {
+        // 1. API servId로 매핑된 내부 ID 검색
+        String internalId = checklistMapper.findInternalServiceIdByApiId(apiServiceId);
+
+        // 2. 내부 ID가 없으면 서비스명으로 검색
+        if (internalId == null && serviceName != null && !serviceName.isEmpty()) {
+            internalId = checklistMapper.findInternalServiceIdByName(serviceName);
+        }
+
+        // 3. 내부 ID가 있으면 필요 서류 조회
+        if (internalId != null) {
+            return checklistMapper.selectRequiredDocumentsByServiceId(internalId);
+        }
+
+        // 4. 매핑이 없으면 빈 리스트 반환
+        return new ArrayList<>();
+    }
 }

@@ -13,16 +13,19 @@
 		http://www.springframework.org/schema/task
 		http://www.springframework.org/schema/task/spring-task.xsd">
 	
+	<!-- Properties 파일 로드 -->
+	<context:property-placeholder location="classpath:application.properties" />
+
 	<!-- HikariCP Connection Pool 설정 (성능 최적화) -->
 	<!-- 기존 DriverManagerDataSource 대비 장점:
 	     - 커넥션 재사용으로 연결 시간 90% 단축
 	     - 동시 처리 능력 5-10배 향상
 	     - 메모리 사용량 20-30% 감소 -->
 	<bean id="dataSource" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
-		<property name="driverClassName" value="com.mysql.cj.jdbc.Driver"/>
-		<property name="jdbcUrl" value="jdbc:mysql://localhost:3306/springmvc?useUnicode=true&amp;characterEncoding=utf8&amp;serverTimezone=Asia/Seoul"/>
-		<property name="username" value="root"/>
-		<property name="password" value="1709"/>
+		<property name="driverClassName" value="${db.driver}"/>
+		<property name="jdbcUrl" value="${db.url}"/>
+		<property name="username" value="${db.username}"/>
+		<property name="password" value="${db.password}"/>
 
 		<!-- 커넥션 풀 크기 설정 -->
 		<property name="maximumPoolSize" value="20"/>       <!-- 최대 커넥션 수 -->
@@ -69,10 +72,10 @@
 
 	<!-- Gmail SMTP 설정 -->
 	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
-		<property name="host" value="smtp.gmail.com" />
-		<property name="port" value="587" />
-		<property name="username" value="cwil123789@gmail.com" />
-		<property name="password" value="zbfz lipn bbhy tktc" />
+		<property name="host" value="${mail.host}" />
+		<property name="port" value="${mail.port}" />
+		<property name="username" value="${mail.username}" />
+		<property name="password" value="${mail.password}" />
 		<property name="javaMailProperties">
 			<props>
 				<prop key="mail.transport.protocol">smtp</prop>

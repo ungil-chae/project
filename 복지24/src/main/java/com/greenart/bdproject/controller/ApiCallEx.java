@@ -6,6 +6,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -15,10 +16,15 @@ import java.io.IOException;
 
 @Controller
 public class ApiCallEx {
+
+	@Value("${api.government.key}")
+	private String apiKey;
+
 	@ResponseBody
 	@GetMapping(value = "/test-api", produces = "application/xml; charset=UTF-8")
-    public static String main(String[] args) throws IOException {
-        StringBuilder urlBuilder = new StringBuilder("https://apis.data.go.kr/B554287/NationalWelfareInformationsV001/NationalWelfarelistV001?serviceKey=5Zmolv%2Fd2cH1icO3c3x0NrGtNFn7unsoJ00Fllf8S6PKT6%2FzNvozPbIq1x8dyp1TasaRabGQSklygHZuVM79Bg%3D%3D&callTp=L&pageNo=1&numOfRows=10&srchKeyCode=003&orderBy=popular"); /*URL*/
+    public String main(String[] args) throws IOException {
+        String encodedKey = URLEncoder.encode(apiKey, "UTF-8");
+        StringBuilder urlBuilder = new StringBuilder("https://apis.data.go.kr/B554287/NationalWelfareInformationsV001/NationalWelfarelistV001?serviceKey=" + encodedKey + "&callTp=L&pageNo=1&numOfRows=10&srchKeyCode=003&orderBy=popular"); /*URL*/
         URL url = new URL(urlBuilder.toString());
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");

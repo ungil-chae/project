@@ -206,4 +206,43 @@
         WHERE service_id = #{serviceId}
     </insert>
 
+    <!-- ========== 서비스 ID 매핑 관련 ========== -->
+
+    <select id="findInternalServiceIdByApiId" parameterType="string" resultType="string">
+        SELECT internal_service_id
+        FROM welfare_service_mapping
+        WHERE api_service_id = #{apiServiceId}
+        LIMIT 1
+    </select>
+
+    <select id="findApiServiceIdByInternalId" parameterType="string" resultType="string">
+        SELECT api_service_id
+        FROM welfare_service_mapping
+        WHERE internal_service_id = #{internalServiceId}
+        LIMIT 1
+    </select>
+
+    <select id="findInternalServiceIdByName" parameterType="string" resultType="string">
+        SELECT internal_service_id
+        FROM welfare_service_mapping
+        WHERE service_name LIKE CONCAT('%', #{serviceName}, '%')
+        ORDER BY
+            CASE WHEN service_name = #{serviceName} THEN 0 ELSE 1 END,
+            LENGTH(service_name)
+        LIMIT 1
+    </select>
+
+    <select id="selectServicesWithDocuments" resultType="map">
+        SELECT
+            m.internal_service_id AS serviceId,
+            m.api_service_id AS apiServiceId,
+            m.service_name AS serviceName,
+            m.api_source AS apiSource,
+            COUNT(d.document_id) AS documentCount
+        FROM welfare_service_mapping m
+        JOIN welfare_required_documents d ON m.internal_service_id = d.service_id
+        GROUP BY m.internal_service_id, m.api_service_id, m.service_name, m.api_source
+        ORDER BY m.service_name
+    </select>
+
 </mapper>

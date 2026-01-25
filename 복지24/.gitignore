@@ -1,0 +1,30 @@
+# 빌드 결과물
+/target/
+*.class
+*.jar
+*.war
+
+# IDE 설정
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+
+# 로그 파일
+*.log
+
+# OS 생성 파일
+.DS_Store
+Thumbs.db
+
+# ==================================
+# 중요: 자격증명 파일 (절대 커밋 금지)
+# ==================================
+application.properties
+application-*.properties
+*.properties.local
+
+# 백업 파일
+*.bak
+*.backup

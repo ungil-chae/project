@@ -2188,3 +2188,129 @@ INSERT INTO welfare_required_documents (service_id, document_name, document_desc
 ('WLF00000005', '신분증', '신청인(보호자) 신분증', TRUE, NULL, 1),
 ('WLF00000005', '통장 사본', '수당 수령용 통장', TRUE, '해당 은행', 2),
 ('WLF00000005', '가족관계증명서', '아동과의 관계 확인', TRUE, '정부24 또는 주민센터', 3);
+
+-- ================================================
+-- 추가 인기 복지 서비스 (Phase 4 - 2026-01-25)
+-- ================================================
+
+-- 주거급여 (servId 예시: WLF00000006)
+INSERT INTO welfare_required_documents (service_id, document_name, document_description, is_required, how_to_get, document_order) VALUES
+('WLF00000006', '신분증', '신청인 및 가구원 신분증', TRUE, NULL, 1),
+('WLF00000006', '사회보장급여 신청서', '주거급여 신청 서류', TRUE, '주민센터 비치', 2),
+('WLF00000006', '소득재산신고서', '소득 및 재산 현황 신고', TRUE, '주민센터 비치', 3),
+('WLF00000006', '금융정보등 제공동의서', '금융정보 조회 동의', TRUE, '주민센터 비치', 4),
+('WLF00000006', '임대차계약서', '임차인인 경우 필수', TRUE, NULL, 5),
+('WLF00000006', '통장 사본', '급여 수령용 통장', TRUE, '해당 은행', 6),
+('WLF00000006', '사용대차 확인서', '무상거주인 경우 제출', FALSE, '주민센터 비치', 7);
+
+-- 의료급여 (servId 예시: WLF00000007)
+INSERT INTO welfare_required_documents (service_id, document_name, document_description, is_required, how_to_get, document_order) VALUES
+('WLF00000007', '신분증', '가구원 전원 신분증', TRUE, NULL, 1),
+('WLF00000007', '사회보장급여 신청서', '의료급여 신청 서류', TRUE, '주민센터 비치', 2),
+('WLF00000007', '소득재산신고서', '소득 및 재산 현황 신고', TRUE, '주민센터 비치', 3),
+('WLF00000007', '금융정보등 제공동의서', '금융정보 조회 동의', TRUE, '주민센터 비치', 4),
+('WLF00000007', '진단서 또는 소견서', '질환 확인용 (해당 시)', FALSE, '병원', 5),
+('WLF00000007', '장애인등록증', '장애인인 경우', FALSE, '주민센터', 6);
+
+-- 긴급복지지원 (servId 예시: WLF00000008)
+INSERT INTO welfare_required_documents (service_id, document_name, document_description, is_required, how_to_get, document_order) VALUES
+('WLF00000008', '신분증', '신청인 신분증', TRUE, NULL, 1),
+('WLF00000008', '긴급지원 신청서', '긴급복지지원 신청', TRUE, '주민센터 또는 129 콜센터', 2),
+('WLF00000008', '위기상황 증빙서류', '실직증명서, 사망진단서 등 위기 사유 증빙', TRUE, '상황에 따라 다름', 3),
+('WLF00000008', '통장 사본', '지원금 수령용', TRUE, '해당 은행', 4),
+('WLF00000008', '소득재산신고서', '소득 및 재산 현황', FALSE, '주민센터 비치', 5);
+
+-- 국민취업지원제도 (servId 예시: WLF00000009)
+INSERT INTO welfare_required_documents (service_id, document_name, document_description, is_required, how_to_get, document_order) VALUES
+('WLF00000009', '신분증', '본인 확인용', TRUE, NULL, 1),
+('WLF00000009', '구직등록 확인', '고용센터 구직등록 필요', TRUE, '고용센터 또는 워크넷', 2),
+('WLF00000009', '소득증빙서류', '가구 소득 확인', TRUE, '건강보험공단, 국세청 홈택스', 3),
+('WLF00000009', '통장 사본', '구직촉진수당 수령용', TRUE, '해당 은행', 4),
+('WLF00000009', '재학증명서 또는 졸업증명서', '학력 확인 (청년의 경우)', FALSE, '학교', 5),
+('WLF00000009', '고용보험 피보험자격 이력내역서', '고용이력 확인', FALSE, '고용센터', 6);
+
+-- 청년월세지원 (servId 예시: WLF00000010)
+INSERT INTO welfare_required_documents (service_id, document_name, document_description, is_required, how_to_get, document_order) VALUES
+('WLF00000010', '신분증', '본인 확인용', TRUE, NULL, 1),
+('WLF00000010', '주민등록등본', '독립거주 확인', TRUE, '주민센터 또는 정부24', 2),
+('WLF00000010', '임대차계약서', '월세 계약 확인', TRUE, NULL, 3),
+('WLF00000010', '월세 이체 확인서', '월세 납부 내역', TRUE, '은행', 4),
+('WLF00000010', '소득금액증명원', '본인 및 부모 소득 확인', TRUE, '홈택스 또는 주민센터', 5),
+('WLF00000010', '건강보험자격득실확인서', '소득 확인용', TRUE, '건강보험공단', 6),
+('WLF00000010', '통장 사본', '지원금 수령용', TRUE, '해당 은행', 7);
+
+-- 노인일자리 및 사회활동 지원 (servId 예시: WLF00000011)
+INSERT INTO welfare_required_documents (service_id, document_name, document_description, is_required, how_to_get, document_order) VALUES
+('WLF00000011', '신분증', '만 65세 이상 확인', TRUE, NULL, 1),
+('WLF00000011', '참여신청서', '노인일자리 참여 신청', TRUE, '주민센터 또는 시니어클럽', 2),
+('WLF00000011', '통장 사본', '활동비 수령용', TRUE, '해당 은행', 3),
+('WLF00000011', '건강상태 확인서', '활동 가능 여부 확인', FALSE, '병원 또는 보건소', 4);
+
+-- 장애인활동지원 (servId 예시: WLF00000012)
+INSERT INTO welfare_required_documents (service_id, document_name, document_description, is_required, how_to_get, document_order) VALUES
+('WLF00000012', '신분증', '본인 및 보호자 신분증', TRUE, NULL, 1),
+('WLF00000012', '장애인등록증', '등록장애인 확인', TRUE, '주민센터', 2),
+('WLF00000012', '활동지원 신청서', '서비스 신청 서류', TRUE, '주민센터 또는 국민연금공단', 3),
+('WLF00000012', '통장 사본', '본인 명의 통장', TRUE, '해당 은행', 4),
+('WLF00000012', '서비스 이용권 발급 신청서', '바우처 발급용', TRUE, '주민센터', 5),
+('WLF00000012', '활동지원등급 결정서', '등급 심사 후 발급', FALSE, '국민연금공단', 6);
+
+-- 보육료지원 (어린이집) (servId 예시: WLF00000013)
+INSERT INTO welfare_required_documents (service_id, document_name, document_description, is_required, how_to_get, document_order) VALUES
+('WLF00000013', '신분증', '보호자 신분증', TRUE, NULL, 1),
+('WLF00000013', '주민등록등본', '아동과의 관계 확인', TRUE, '주민센터 또는 정부24', 2),
+('WLF00000013', '보육료 지원 신청서', '어린이집 보육료 신청', TRUE, '복지로 또는 주민센터', 3),
+('WLF00000013', '건강보험증 사본', '가구원 확인', FALSE, '건강보험공단', 4),
+('WLF00000013', '맞벌이 증빙서류', '맞벌이 추가 지원 시', FALSE, '재직증명서 등', 5);
+
+-- 한부모가족 복지급여 (servId 예시: WLF00000014)
+INSERT INTO welfare_required_documents (service_id, document_name, document_description, is_required, how_to_get, document_order) VALUES
+('WLF00000014', '신분증', '신청인 신분증', TRUE, NULL, 1),
+('WLF00000014', '가족관계증명서', '한부모 가족 확인', TRUE, '정부24 또는 주민센터', 2),
+('WLF00000014', '혼인관계증명서', '이혼, 사별 등 확인', TRUE, '정부24 또는 주민센터', 3),
+('WLF00000014', '소득재산신고서', '소득 및 재산 현황', TRUE, '주민센터 비치', 4),
+('WLF00000014', '금융정보등 제공동의서', '금융정보 조회 동의', TRUE, '주민센터 비치', 5),
+('WLF00000014', '통장 사본', '급여 수령용', TRUE, '해당 은행', 6),
+('WLF00000014', '한부모가족증명서 발급 신청서', '한부모가족증명서 발급 시', FALSE, '주민센터', 7);
+
+-- 국민연금 (노령연금) (servId 예시: WLF00000015)
+INSERT INTO welfare_required_documents (service_id, document_name, document_description, is_required, how_to_get, document_order) VALUES
+('WLF00000015', '신분증', '본인 확인용', TRUE, NULL, 1),
+('WLF00000015', '연금 청구서', '노령연금 청구', TRUE, '국민연금공단', 2),
+('WLF00000015', '통장 사본', '연금 수령용 본인 명의 통장', TRUE, '해당 은행', 3),
+('WLF00000015', '가족관계증명서', '부양가족연금 신청 시', FALSE, '정부24 또는 주민센터', 4),
+('WLF00000015', '혼인관계증명서', '배우자 확인 시', FALSE, '정부24 또는 주민센터', 5);
+
+-- ================================================
+-- 서비스 ID 매핑 테이블 (API servId <-> 내부 service_id)
+-- ================================================
+
+CREATE TABLE IF NOT EXISTS welfare_service_mapping (
+    mapping_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '매핑 ID',
+    internal_service_id VARCHAR(50) NOT NULL COMMENT '내부 서비스 ID',
+    api_service_id VARCHAR(50) NOT NULL COMMENT 'API의 servId',
+    service_name VARCHAR(200) NOT NULL COMMENT '서비스명',
+    api_source VARCHAR(20) DEFAULT 'central' COMMENT 'API 출처 (central/local)',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일',
+
+    UNIQUE KEY uk_internal_id (internal_service_id),
+    INDEX idx_api_id (api_service_id)
+) ENGINE=InnoDB COMMENT='복지 서비스 ID 매핑 (API <-> 내부)';
+
+-- 매핑 데이터 (실제 API servId는 API 조회 후 업데이트 필요)
+INSERT INTO welfare_service_mapping (internal_service_id, api_service_id, service_name, api_source) VALUES
+('WLF00000001', 'WLF00001000', '기초연금', 'central'),
+('WLF00000002', 'WLF00001001', '아동수당', 'central'),
+('WLF00000003', 'WLF00001002', '장애인연금', 'central'),
+('WLF00000004', 'WLF00001003', '국민기초생활보장 생계급여', 'central'),
+('WLF00000005', 'WLF00001004', '양육수당(영아수당)', 'central'),
+('WLF00000006', 'WLF00001005', '주거급여', 'central'),
+('WLF00000007', 'WLF00001006', '의료급여', 'central'),
+('WLF00000008', 'WLF00001007', '긴급복지지원', 'central'),
+('WLF00000009', 'WLF00001008', '국민취업지원제도', 'central'),
+('WLF00000010', 'WLF00001009', '청년월세 한시 특별지원', 'central'),
+('WLF00000011', 'WLF00001010', '노인일자리 및 사회활동 지원', 'central'),
+('WLF00000012', 'WLF00001011', '장애인활동지원', 'central'),
+('WLF00000013', 'WLF00001012', '보육료지원(어린이집)', 'central'),
+('WLF00000014', 'WLF00001013', '한부모가족 복지급여', 'central'),
+('WLF00000015', 'WLF00001014', '국민연금(노령연금)', 'central');

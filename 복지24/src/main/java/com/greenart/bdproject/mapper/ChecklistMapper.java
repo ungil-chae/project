@@ -74,4 +74,26 @@ public interface ChecklistMapper {
     int initializeUserChecklist(
             @Param("memberId") Long memberId,
             @Param("serviceId") String serviceId);
+
+    // ========== 서비스 ID 매핑 관련 ==========
+
+    /**
+     * API servId로 내부 serviceId 조회
+     */
+    String findInternalServiceIdByApiId(@Param("apiServiceId") String apiServiceId);
+
+    /**
+     * 내부 serviceId로 API servId 조회
+     */
+    String findApiServiceIdByInternalId(@Param("internalServiceId") String internalServiceId);
+
+    /**
+     * 서비스명으로 내부 serviceId 조회 (부분 일치)
+     */
+    String findInternalServiceIdByName(@Param("serviceName") String serviceName);
+
+    /**
+     * 필요 서류가 있는 서비스 목록 조회
+     */
+    List<java.util.Map<String, Object>> selectServicesWithDocuments();
 }
