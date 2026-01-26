@@ -28,12 +28,12 @@ public class WelfareService {
 
     private static final Logger logger = LoggerFactory.getLogger(WelfareService.class);
 
-    // API URLs
+    // API URLs (공공데이터포털 복지로 API)
     private static final String CENTRAL_API_URL = "https://apis.data.go.kr/B554287/NationalWelfareInformationsV001";
     private static final String LOCAL_API_URL = "https://apis.data.go.kr/B554287/LocalGovernmentWelfareInformations";
 
-    @Value("${api.government.key}")
-    private String API_KEY;
+    // API Key (공공데이터포털) - URL 인코딩됨
+    private static final String API_KEY = "5Zmolv%2Fd2cH1icO3c3x0NrGtNFn7unsoJ00Fllf8S6PKT6%2FzNvozPbIq1x8dyp1TasaRabGQSklygHZuVM79Bg%3D%3D";
 
     private final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     private final DocumentBuilder db;
@@ -41,6 +41,7 @@ public class WelfareService {
 
     public WelfareService() throws ParserConfigurationException {
         this.db = dbf.newDocumentBuilder();
+        logger.info("WelfareService 초기화 완료");
     }
 
     /**

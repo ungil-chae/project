@@ -23,10 +23,10 @@
         <p class="main-subtitle">숨은 혜택을 찾아드립니다.</p>
         <div class="cta-buttons">
           <a
-            href="/bdproject/project_information.jsp"
+            href="/bdproject/project_detail.jsp"
             class="main-cta-btn"
             style="text-decoration: none; display: inline-block"
-            >나의 상황 진단하기</a
+            >복지 혜택 찾기</a
           >
         </div>
       </div>

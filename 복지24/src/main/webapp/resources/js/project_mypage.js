@@ -714,27 +714,27 @@
                                     <div class="favorite-card-header">
                                         <div>
                                             <div class="favorite-card-title">
-                                                \${favorite.serviceName}
+                                                ${favorite.serviceName}
                                                 <span class="favorite-badge">★</span>
                                             </div>
                                             <div class="favorite-card-department">
-                                                <span class="department-tag">\${favorite.department || '소관기관 정보 없음'}</span>
+                                                <span class="department-tag">${favorite.department || '소관기관 정보 없음'}</span>
                                             </div>
                                             <div class="favorite-card-date">
-                                                <i class="fas fa-calendar-alt"></i> 추가일: \${dateStr}
+                                                <i class="fas fa-calendar-alt"></i> 추가일: ${dateStr}
                                             </div>
                                         </div>
                                     </div>
-                                    \${favorite.servicePurpose ? '<div class="favorite-card-description">' + favorite.servicePurpose + '</div>' : ''}
+                                    ${favorite.servicePurpose ? '<div class="favorite-card-description">' + favorite.servicePurpose + '</div>' : ''}
                                     <div class="favorite-card-actions">
-                                        <button class="btn btn-primary" onclick="showFavoriteDetail('\${favorite.serviceId}')">
+                                        <button class="btn btn-primary" onclick="showFavoriteDetail('${favorite.serviceId}')">
                                             상세 보기
                                         </button>
-                                        <a href="https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=\${favorite.serviceId}"
+                                        <a href="https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=${favorite.serviceId}"
                                            target="_blank" class="btn btn-outline">
                                             복지로 이동
                                         </a>
-                                        <button class="btn btn-delete" onclick="removeFavorite('\${favorite.serviceId}')">
+                                        <button class="btn btn-delete" onclick="removeFavorite('${favorite.serviceId}')">
                                             <i class="fas fa-trash-alt"></i> 삭제
                                         </button>
                                     </div>
@@ -860,7 +860,7 @@
             setTimeout(() => {
                 modalContent.innerHTML = `
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h3 style="margin: 0; color: #2c3e50;">서비스 ID: \${serviceId}</h3>
+                        <h3 style="margin: 0; color: #2c3e50;">서비스 ID: ${serviceId}</h3>
                         <button onclick="this.closest('.detail-modal').remove()" style="
                             background: none;
                             border: none;
@@ -873,7 +873,7 @@
                     <div style="line-height: 1.6; color: #495057;">
                         <p>상세한 정보는 복지로 사이트에서 확인하실 수 있습니다.</p>
                         <div style="margin-top: 20px; text-align: center;">
-                            <a href="https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=\${serviceId}"
+                            <a href="https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=${serviceId}"
                                target="_blank"
                                style="
                                    display: inline-block;

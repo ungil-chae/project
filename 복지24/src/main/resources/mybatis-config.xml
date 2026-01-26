@@ -17,11 +17,6 @@
 		<typeAlias type="com.greenart.bdproject.dto.VolunteerApplicationDto" alias="VolunteerApplicationDto"/>
 		<typeAlias type="com.greenart.bdproject.dto.VolunteerReviewDto" alias="VolunteerReviewDto"/>
 		<typeAlias type="com.greenart.bdproject.dto.MemberStatusHistoryDto" alias="MemberStatusHistoryDto"/>
-
-		<!-- 체크리스트 기능 DTO -->
-		<typeAlias type="com.greenart.bdproject.dto.CommonDocumentDto" alias="CommonDocumentDto"/>
-		<typeAlias type="com.greenart.bdproject.dto.RequiredDocumentDto" alias="RequiredDocumentDto"/>
-		<typeAlias type="com.greenart.bdproject.dto.UserChecklistDto" alias="UserChecklistDto"/>
 	</typeAliases>
 
 	<!-- Mapper files are loaded via root-context.xml mapperLocations wildcard pattern -->

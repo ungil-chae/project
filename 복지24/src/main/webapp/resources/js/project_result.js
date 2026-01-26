@@ -26,155 +26,28 @@ function runComprehensiveWelfareMatching() {
             // userData 업데이트
             Object.assign(userData, userInfo);
 
-            // 데이터가 비어있으면 임시 데이터 사용
+            // 데이터가 비어있으면 API 호출
             if (!matchedServices || matchedServices.length === 0) {
-                console.log('매칭 결과가 비어있음 - 임시 데이터 사용');
-                matchedServices = getMockWelfareData();
+                console.log('매칭 결과가 비어있음 - API 호출');
+                callWelfareMatchApi();
+                return;
             }
 
             // 결과 바로 표시
             displayComprehensiveResults(matchedServices);
         } catch (error) {
             console.error('저장된 결과 파싱 오류:', error);
-            fallbackToApiCall();
+            callWelfareMatchApi();
         }
     } else {
-        // sessionStorage에 데이터가 없으면 임시 데이터 바로 사용
-        console.log('sessionStorage 데이터 없음 - 임시 데이터 사용');
-        matchedServices = getMockWelfareData();
-        displayComprehensiveResults(matchedServices);
+        // sessionStorage에 데이터가 없으면 API 호출
+        console.log('sessionStorage 데이터 없음 - API 호출');
+        callWelfareMatchApi();
     }
 }
 
-// 임시 복지 혜택 데이터 (API 작동 전 테스트용)
-function getMockWelfareData() {
-    return [
-        {
-            servId: 'MOCK001',
-            servNm: '기초생활수급자 생계급여',
-            servDgst: '생활이 어려운 사람에게 필요한 급여를 지급하여 최저생활을 보장하고 자활을 돕는 제도입니다.',
-            source: '중앙부처',
-            jurMnofNm: '보건복지부',
-            score: 95,
-            onapPsbltYn: 'Y',
-            lifeArray: '영유아,아동,청소년,청년,중장년,노년',
-            trgterIndvdlArray: '저소득,한부모·조손,장애인',
-            servDtlLink: 'https://www.bokjiro.go.kr',
-            inqNum: 15234,
-            reasons: ['저소득 가구 지원', '전 연령 대상'],
-            ctpvNm: '전국'
-        },
-        {
-            servId: 'MOCK002',
-            servNm: '긴급복지 생계지원',
-            servDgst: '갑작스러운 위기상황으로 생계유지가 어려운 저소득 가구에게 생계비를 일시적으로 지원합니다.',
-            source: '중앙부처',
-            jurMnofNm: '보건복지부',
-            score: 88,
-            onapPsbltYn: 'N',
-            lifeArray: '청년,중장년',
-            trgterIndvdlArray: '저소득,한부모·조손',
-            servDtlLink: 'https://www.bokjiro.go.kr',
-            inqNum: 8921,
-            reasons: ['긴급 생계 위기', '저소득층 지원'],
-            ctpvNm: '전국'
-        },
-        {
-            servId: 'MOCK003',
-            servNm: '청년 취업성공패키지',
-            servDgst: '저소득 청년에게 취업지원 서비스와 훈련비, 구직활동비를 지원하여 노동시장 진입을 돕습니다.',
-            source: '중앙부처',
-            jurMnofNm: '고용노동부',
-            score: 82,
-            onapPsbltYn: 'Y',
-            lifeArray: '청년',
-            trgterIndvdlArray: '저소득,구직자',
-            servDtlLink: 'https://www.bokjiro.go.kr',
-            inqNum: 12456,
-            reasons: ['청년 일자리 지원', '취업 훈련 제공'],
-            ctpvNm: '전국'
-        },
-        {
-            servId: 'MOCK004',
-            servNm: '노인 기초연금',
-            servDgst: '만 65세 이상 어르신 중 소득인정액이 선정기준액 이하인 경우 매월 기초연금을 지급합니다.',
-            source: '중앙부처',
-            jurMnofNm: '보건복지부',
-            score: 90,
-            onapPsbltYn: 'Y',
-            lifeArray: '노년',
-            trgterIndvdlArray: '저소득',
-            servDtlLink: 'https://www.bokjiro.go.kr',
-            inqNum: 23456,
-            reasons: ['만 65세 이상', '소득 하위 70%'],
-            ctpvNm: '전국'
-        },
-        {
-            servId: 'MOCK005',
-            servNm: '한부모가족 아동양육비 지원',
-            servDgst: '저소득 한부모가족의 만 18세 미만 자녀에게 양육비를 지원합니다.',
-            source: '중앙부처',
-            jurMnofNm: '여성가족부',
-            score: 85,
-            onapPsbltYn: 'Y',
-            lifeArray: '아동,청소년',
-            trgterIndvdlArray: '한부모·조손,저소득',
-            servDtlLink: 'https://www.bokjiro.go.kr',
-            inqNum: 9876,
-            reasons: ['한부모 가정', '저소득층 자녀 양육'],
-            ctpvNm: '전국'
-        },
-        {
-            servId: 'MOCK006',
-            servNm: '장애인 활동지원 서비스',
-            servDgst: '신체적·정신적 장애로 혼자 일상생활이 어려운 분들에게 활동보조, 방문목욕 등을 지원합니다.',
-            source: '중앙부처',
-            jurMnofNm: '보건복지부',
-            score: 78,
-            onapPsbltYn: 'Y',
-            lifeArray: '청년,중장년,노년',
-            trgterIndvdlArray: '장애인',
-            servDtlLink: 'https://www.bokjiro.go.kr',
-            inqNum: 7654,
-            reasons: ['장애 등급 해당', '일상생활 지원'],
-            ctpvNm: '전국'
-        },
-        {
-            servId: 'MOCK007',
-            servNm: '주거급여',
-            servDgst: '저소득층의 주거 안정을 위해 실제 임차료 또는 유지수선비를 지원합니다.',
-            source: '중앙부처',
-            jurMnofNm: '국토교통부',
-            score: 92,
-            onapPsbltYn: 'Y',
-            lifeArray: '영유아,아동,청소년,청년,중장년,노년',
-            trgterIndvdlArray: '저소득',
-            servDtlLink: 'https://www.bokjiro.go.kr',
-            inqNum: 18234,
-            reasons: ['주거비 부담 완화', '임차료 지원'],
-            ctpvNm: '전국'
-        },
-        {
-            servId: 'MOCK008',
-            servNm: '서울시 청년수당',
-            servDgst: '서울시 거주 미취업 청년에게 구직활동 지원금을 지급합니다.',
-            source: '지자체',
-            jurMnofNm: '서울시',
-            jurOrgNm: '일자리정책과',
-            score: 75,
-            onapPsbltYn: 'Y',
-            lifeArray: '청년',
-            trgterIndvdlArray: '구직자',
-            servDtlLink: 'https://www.bokjiro.go.kr',
-            inqNum: 5432,
-            reasons: ['서울시 거주', '미취업 청년'],
-            ctpvNm: '서울특별시'
-        }
-    ];
-}
-
-// 백업용 API 호출 함수
-function fallbackToApiCall() {
+// 복지 매칭 API 호출 함수
+function callWelfareMatchApi() {
     fetch('/bdproject/welfare/match', {
         method: 'POST',
         headers: {
